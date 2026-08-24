@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 0.4.0  24aug2026  Eric Booth}{...}
+{* *! version 0.4.1  24aug2026  Eric Booth}{...}
 {vieweralsosee "datadictionary" "help datadictionary"}{...}
 {vieweralsosee "mergemap" "help mergemap"}{...}
 {vieweralsosee "tabulate" "help tabulate"}{...}
@@ -166,6 +166,17 @@ is different. {cmd:q6_whovote} was never shown to 600 people, because it asks
 who you voted for and they said they did not vote. {cmd:q13_income} was shown to
 almost everyone and 220 of them refused. The last column names the answers that
 routed people away, so the two cases read apart at a glance.{p_end}
+
+
+{pstd}
+{bf:The arithmetic is checked, not assumed.} Every respondent in scope lands in
+exactly one of answered, declined or not shown at every item, so those three
+counts have to add to the sample on every row. The scan checks that and the
+receipt reports it, because a map whose arithmetic is wrong looks exactly like
+one whose arithmetic is right. {cmd:r(N_unbalanced)} is the number of items
+that failed, and the journal records the verdict so a reader coming to the file
+later can see the check was run. If it is ever anything but zero, that is a bug
+worth reporting.{p_end}
 
 
 {marker realfile}{...}
@@ -558,6 +569,16 @@ answer that opened it, and nothing depends on where it sits. When the order has
 to be guaranteed, as it does for a banded gate whose lanes run low to high, use
 the HTML map or the {opt export(png)} figure. Those are laid out here rather
 than by a third party, so lane 1 is always first.{p_end}
+
+{pstd}
+{bf:The same numbers, as text.} Under the figure the page carries a
+{cmd:<details>} block holding the whole map as a table: one row per item, with
+answered, declined, not shown, and what routed it. A diagram is not readable by
+everyone, and the honest fallback for a figure built from a table is that
+table rather than a sentence describing it. The figure itself is marked
+{cmd:role="img"} and points at its own title and description, and is taken out
+of the keyboard tab order so a forty-node map does not become forty tab
+stops.{p_end}
 
 {pstd}
 The page has no height cap and the diagram scrolls sideways, because a survey is

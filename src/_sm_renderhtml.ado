@@ -1,4 +1,4 @@
-*! version 0.4.0  24aug2026  Eric Booth
+*! version 0.4.1  24aug2026  Eric Booth
 *! _sm_renderhtml -- render a surveymap journal (TSV, 20 columns) as HTML
 *! with one inline SVG flow map.
 *!
@@ -744,15 +744,16 @@ program define _sm_renderhtml
 
     file write `H' `"<div class="sm-wrap">"' _n
     if "`embed'" == "" {
-        file write `H' `"<svg xmlns="http://www.w3.org/2000/svg" class="sm-svg" role="img" viewBox="0 0 `svgw' `svgh'" width="`svgw'" height="`svgh'">"' _n
+        file write `H' `"<svg xmlns="http://www.w3.org/2000/svg" class="sm-svg" role="img" focusable="false" aria-labelledby="`pfx'-ti `pfx'-de" viewBox="0 0 `svgw' `svgh'" width="`svgw'" height="`svgh'">"' _n
     }
     else {
         * embed: viewBox only, no width/height; natural width comes from a
         * scoped CSS rule inside .sm-wrap
-        file write `H' `"<svg xmlns="http://www.w3.org/2000/svg" class="sm-svg" role="img" viewBox="0 0 `svgw' `svgh'">"' _n
+        file write `H' `"<svg xmlns="http://www.w3.org/2000/svg" class="sm-svg" role="img" focusable="false" aria-labelledby="`pfx'-ti `pfx'-de" viewBox="0 0 `svgw' `svgh'">"' _n
     }
-    file write `H' `"<title>surveymap flow map for `jname'</title>"' _n
-    file write `H' `"<desc>Items run left to right in questionnaire order; a gate fans the sample into lanes that rejoin the spine at the end of its segment.</desc>"' _n
+    local dirw = cond(`vert', "down the page", "left to right")
+    file write `H' `"<title id="`pfx'-ti">surveymap flow map for `jname'</title>"' _n
+    file write `H' `"<desc id="`pfx'-de">Items run `dirw' in questionnaire order; a gate fans the sample into lanes that rejoin the spine at the end of its segment. The same numbers are in the table below the figure.</desc>"' _n
     file write `H' `"<defs>"' _n
     file write `H' `"<marker id="`pfx'-aa" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="`accent'" /></marker>"' _n
     file write `H' `"</defs>"' _n
@@ -767,6 +768,34 @@ program define _sm_renderhtml
     file close `R'
     file write `H' `"</svg>"' _n
     file write `H' `"</div>"' _n
+
+    * ---- the same numbers, as text ------------------------------------
+    * A screen reader cannot follow a spine, and neither can a reader who
+    * prints this badly or has the images turned off.  The map is drawn from
+    * a table, so the fallback is that table rather than a sentence about it.
+    file write `H' `"<details class="sm-alt">"' _n
+    file write `H' `"<summary class="sm-alts">The same map as a table</summary>"' _n
+    file write `H' `"<table class="sm-tbl">"' _n
+    file write `H' `"<caption class="sm-tcap">Every item in questionnaire order. Answered, declined and not shown add to the `nnf' respondents in scope at every row.</caption>"' _n
+    file write `H' `"<thead><tr><th scope="col">#</th><th scope="col">item</th><th scope="col">answered</th><th scope="col">declined</th><th scope="col">not shown</th><th scope="col">routed by</th></tr></thead>"' _n
+    file write `H' `"<tbody>"' _n
+    forvalues p = 1/`K' {
+        _srh_n `"`nn_`p''"'
+        local tnn `"`s(o)'"'
+        _srh_n `"`nr_`p''"'
+        local tnr `"`s(o)'"'
+        if "`tnr'" == "" local tnr "0"
+        _srh_n `"`ns_`p''"'
+        local tns `"`s(o)'"'
+        if "`tns'" == "" local tns "0"
+        local tgb `"`gb_`p''"'
+        if `"`tgb'"' == "." | `"`tgb'"' == "" local tgb "&#8212;"
+        local trow "sm-tr"
+        if "`g_`p''" == "1" local trow "sm-tr sm-trg"
+        file write `H' `"<tr class="`trow'"><td>`p'</td><th scope="row">`v_`p''</th><td>`tnn' (`pa_`p''%)</td><td>`tnr'</td><td>`tns'</td><td>`tgb'</td></tr>"' _n
+    }
+    file write `H' `"</tbody></table>"' _n
+    file write `H' `"</details>"' _n
 
     * provenance footer
     local flav = cond(c(MP) == 1, "MP", cond(c(SE) == 1, "SE", c(flavor)))
@@ -815,6 +844,14 @@ program define _srh_css
     file write `H' `"`P' .sm-leg { font-family: `SANS'; font-size: 11px; color: #888; margin: 0 0 8px 0; }"' _n
     file write `H' `"`P' .sm-legk { color: `accent'; font-weight: 700; }"' _n
     file write `H' `"`P' .sm-foot { font-family: `SANS'; font-size: 10px; color: #999; margin: 10px 0 0 0; line-height: 1.5; }"' _n
+    file write `H' `"`P' .sm-alt { font-family: `SANS'; font-size: 12px; color: #333; margin: 12px 0 0 0; }"' _n
+    file write `H' `"`P' .sm-alts { cursor: pointer; color: #555; padding: 2px 0; }"' _n
+    file write `H' `"`P' .sm-tbl { border-collapse: collapse; margin: 8px 0 0 0; font-size: 12px; }"' _n
+    file write `H' `"`P' .sm-tcap { text-align: left; color: #666; padding: 0 0 6px 0; font-size: 11px; }"' _n
+    file write `H' `"`P' .sm-tbl th, `P' .sm-tbl td { border: 1px solid #ddd; padding: 3px 8px; text-align: right; font-variant-numeric: tabular-nums; }"' _n
+    file write `H' `"`P' .sm-tbl thead th { background: #f4f4f4; text-align: right; }"' _n
+    file write `H' `"`P' .sm-tbl th[scope="row"] { text-align: left; font-weight: 600; }"' _n
+    file write `H' `"`P' .sm-trg th[scope="row"] { color: #2f5573; }"' _n
     file write `H' `"`P' .sm-node { cursor: help; }"' _n
     * svg text roles
     file write `H' `"`P' .sm-t { font-family: `MONO'; }"' _n

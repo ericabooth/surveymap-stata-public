@@ -2,6 +2,30 @@
 
 All notable changes to surveymap. Dates are the day the work landed locally.
 
+## 0.4.1 - 2026-08-24
+
+### Added
+
+- The scan checks its own arithmetic. Every respondent in scope has to land in
+  exactly one of answered, declined or not shown at every item, so those three
+  counts must add to the sample on every row. The receipt reports the verdict,
+  the journal records it, and `r(N_unbalanced)` returns the number of items
+  that failed. A map whose arithmetic is wrong looks exactly like one whose
+  arithmetic is right, which is the reason to check rather than assume.
+- The HTML map carries the same numbers as a table, in a `<details>` block
+  under the figure: one row per item with answered, declined, not shown and
+  what routed it. A diagram is not readable by everyone, and the fallback for
+  a figure built from a table is that table.
+- The figure now points at its own title and description with
+  `aria-labelledby` and is marked `focusable="false"`, so a forty-node map is
+  announced properly and does not become forty keyboard tab stops.
+
+### Testing
+
+- 257 checks, passing on Stata 16.1 and 19.5. The new block verifies the
+  conservation arithmetic independently, by adding the three states back up
+  from the journal rather than trusting the scan's own verdict.
+
 ## 0.4.0 - 2026-08-24
 
 ### Added

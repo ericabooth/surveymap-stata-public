@@ -1214,6 +1214,78 @@ capture noisily surveymap draw j21n.tsv, export(html) layout(vertical) ///
     saving(h21v.html) replace
 sm_assert `=(_rc == 0)' "a vertical HTML map draws a derived gate"
 
+* ============================================================================
+sm_block 22 "conservation, and the map as text"
+* ============================================================================
+* Every respondent in scope lands in exactly one of answered, declined or not
+* shown at every single item.  That is the arithmetic the whole map rests on,
+* so the scan checks it rather than assuming it: a slip here would draw a
+* picture that looks right and is not.
+capture use fake_a.dta, clear
+capture noisily surveymap, branch(q3_party) out(j22.tsv) noreceipt replace
+sm_assert `=(_rc == 0)' "the scan runs"
+sm_assert `=(r(N_unbalanced) == 0)' "every item accounts for the whole sample"
+capture sm_jval j22.tsv flags survey "*"
+sm_assert `=(strpos("`r(val)'", "balance ok") > 0)' ///
+    "the journal records the audit, so a later reader can see it was done"
+
+* ---- and the same arithmetic, checked here rather than taken on trust ----
+capture sm_jval j22.tsv n_asked survey "*"
+local scope = real("`r(val)'")
+sm_assert `=(`scope' > 0)' "the survey row carries the scope"
+* walk every item row and add the three states back up
+tempname fr22
+frame create `fr22'
+frame `fr22' {
+    quietly import delimited using "j22.tsv", delimiter(tab) varnames(1) ///
+        stringcols(_all) clear
+    quietly keep if class == "item"
+    quietly gen double s22 = real(n_answered) + real(n_nonresp) + real(n_sysmiss)
+    quietly count if s22 != `scope'
+    local off = r(N)
+    quietly count
+    local nit = r(N)
+}
+frame drop `fr22'
+sm_assert `=(`nit' > 0)' "there are item rows to check"
+sm_assert `=(`off' == 0)' "answered + declined + not shown = the sample on every item row"
+
+* ---- a weighted scan keeps the unweighted arithmetic intact ----
+capture use fake_a.dta, clear
+quietly gen double w22 = cond(q3_party == 1, 1.4, 0.8)
+capture noisily surveymap [pweight=w22], out(j22w.tsv) noreceipt replace
+sm_assert `=(_rc == 0)' "a weighted scan runs"
+sm_assert `=(r(N_unbalanced) == 0)' "weighting does not disturb the unweighted counts"
+
+* ---- the map ships its own numbers as text ----
+* A diagram is not readable by everyone, and the honest fallback for a figure
+* built from a table is that table.
+capture noisily surveymap draw j22.tsv, export(html) saving(h22.html) replace
+sm_assert `=(_rc == 0)' "the HTML map draws"
+capture sm_fcount h22.html `"<details class="sm-alt">"'
+sm_assert `=(r(n) == 1)' "the page carries a text alternative"
+capture sm_fcount h22.html `"scope="row""'
+sm_assert `=(r(n) >= 10)' "the table has a row header per item"
+capture sm_fcount h22.html "aria-labelledby="
+sm_assert `=(r(n) == 1)' "the figure points at its own title and description"
+capture sm_fcount h22.html `"focusable="false""'
+sm_assert `=(r(n) == 1)' "the figure does not swallow the keyboard tab order"
+
+* the ids the figure points at must actually exist, or the label resolves to
+* nothing and a screen reader announces an unlabelled graphic
+capture sm_fcount h22.html `"-ti">surveymap flow map"'
+sm_assert `=(r(n) == 1)' "the title the figure names is present"
+capture sm_fcount h22.html `"-de">Items run"'
+sm_assert `=(r(n) == 1)' "the description the figure names is present"
+
+* ---- the fragment stays scoped even with the table in it ----
+capture noisily surveymap draw j22.tsv, export(html) saving(f22.html) replace embed
+sm_assert `=(_rc == 0)' "the embed fragment draws"
+capture sm_fcount f22.html `"<details class="sm-alt">"'
+sm_assert `=(r(n) == 1)' "the fragment carries the table too"
+capture sm_fcount f22.html "<html"
+sm_assert `=(r(n) == 0)' "the fragment is still a fragment"
+
 * ---------------------------------------------------------------- summary ----
 display as text _n "{hline 78}"
 display as text "surveymap battery: " as result "$SM_PASS passed" as text ", " ///

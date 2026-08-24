@@ -1,4 +1,4 @@
-*! version 0.4.0  24aug2026  Eric Booth
+*! version 0.4.1  24aug2026  Eric Booth
 *! _sm_branch -- parse the branch() spec of -surveymap- into gates.
 *!
 *! Accepted forms, comma separated inside one branch():

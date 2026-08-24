@@ -1,4 +1,4 @@
-*! version 0.4.0  24aug2026  Eric Booth
+*! version 0.4.1  24aug2026  Eric Booth
 *! surveymap: map how respondents moved through a survey
 *!
 *! The data in memory are a survey: one row per respondent, one column per
@@ -552,6 +552,23 @@ program define surveymap, rclass
         if `"`lab_`v''"' == "" local lab_`v' `"`v'"'
     }
 
+    * ---- conservation --------------------------------------------------
+    * every respondent in scope lands in exactly one of the three states at
+    * every item, so the three counts must add to the scope.  Checked rather
+    * than assumed: a silent arithmetic slip here would draw a map that looks
+    * right and is not.
+    local nbal = 0
+    local balbad ""
+    foreach v of local vlist {
+        local vsum = `a_`v'' + `r_`v'' + `s_`v''
+        if `vsum' != `N' {
+            local ++nbal
+            if `nbal' <= 3 {
+                local balbad `"`balbad'`=cond(`"`balbad'"' == "", "", "; ")'`v' `vsum' vs `N'"'
+            }
+        }
+    }
+
     * ---- gate candidates for detection ------------------------------------
     * numeric, more than one and not too many distinct answers, and a
     * position before the item it might route around
@@ -761,6 +778,14 @@ program define surveymap, rclass
     if `"`bandnote'"' != "" local sflags `"`sflags'; `bandnote'"'
     if `"`profnote'"' != "" local sflags `"`sflags'; `profnote'"'
     if `"`skipgates'"' != "" local sflags `"`sflags'; skipped `skipgates'"'
+    if `nbal' == 0 {
+        local sflags `"`sflags'; balance ok: answered + declined + not shown = `N' at every item"'
+    }
+    else {
+        local itemw "items"
+        if `nbal' == 1 local itemw "item"
+        local sflags `"`sflags'; !! balance failed at `nbal' `itemw': `balbad'"'
+    }
     _sm_wrow `JH' `seq' survey "." `K' "." "." "." `N' "." "." "." "." "." ///
         "." "." "." "." "." note `"`sflags'"' `"`WTOT'"' "." "."
 
@@ -961,6 +986,7 @@ program define surveymap, rclass
     return local gates   `"`drawn'"'
     return scalar N        = `N'
     return scalar K_items  = `K'
+    return scalar N_unbalanced = `nbal'
     return scalar N_gates  = `NG'
     if `"`verify'"' != "" return scalar N_mismatch = `nbad'
 end
@@ -1249,6 +1275,21 @@ program define _sm_receipt
     di as txt "answered = a real answer.  declined = don't know, refused, or a " ///
         "nonresponse code."
     di as txt "not shown = system missing, which is where skip logic lands."
+    * the audit, so a reader checks the arithmetic instead of trusting it
+    local sfl ""
+    capture frame _smrc: local sfl = flags[1]
+    if strpos(`"`sfl'"', "!! balance failed") {
+        local bpos = strpos(`"`sfl'"', "!! balance failed")
+        local btxt = substr(`"`sfl'"', `bpos', .)
+        local bend = strpos(`"`btxt'"', "; skipped")
+        if `bend' local btxt = substr(`"`btxt'"', 1, `bend' - 1)
+        di as err "`btxt'"
+        di as err "    the three counts do not add to the sample at every item, so this"
+        di as err "    map is not a partition; report it as a bug"
+    }
+    else if strpos(`"`sfl'"', "balance ok") {
+        di as txt "balance: answered + declined + not shown = the sample, at every item."
+    }
     if `haswt' {
         di as txt "wtd% = the same answered share, weighted; the count beside it is unweighted."
     }

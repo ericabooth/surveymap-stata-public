@@ -64,6 +64,8 @@ Three kinds of blank are counted separately throughout:
 | **declined** | extended missing (`.a` to `.z`: don't know, refused), or a code you name in `nonresponse()` |
 | **not shown** | system missing (`.`), which is where skip logic lands |
 
+**The arithmetic is checked, not assumed.** Every respondent in scope lands in exactly one of answered, declined or not shown at every item, so those three counts have to add to the sample on every row. The scan checks it and the receipt reports it, because a map whose arithmetic is wrong looks exactly like one whose arithmetic is right. `r(N_unbalanced)` is the number of items that failed, and the journal records the verdict so a reader coming to the file later can see the check was run.
+
 ## Pointing it at a real survey file
 
 A delivered survey file is wider than the questionnaire: record ids, sample-frame columns from a voter or panel list, interviewer admin, vendor recodes, verbatim text. Mapping all of it gives you a picture with more columns than structure, and the columns that were never questions can look like branching to the routing detector.
@@ -273,6 +275,8 @@ surveymap draw, export(mermaid) layout(vertical) saving(flow_tall) replace
 Use it when the map is going into a report or a README, because a page scrolls down and a long instrument is taller than any screen is wide. The horizontal default suits a slide and a wide monitor. In mermaid the vertical map draws each lane as a labelled `subgraph`, so the grouping is drawn rather than inferred from where the boxes sit. Both layouts read the same journal, so you can write one of each without rescanning.
 
 **Where the lanes land.** A mermaid file declares the lanes lane 1 first, but which order they are *drawn* in belongs to whichever mermaid renders it, and renderers disagree: mermaid-cli and GitHub lay the same file out in opposite orders. Every lane is therefore labelled with the answer that opened it, and nothing depends on where it sits. When the order has to be guaranteed, as it does for a banded gate whose lanes run low to high, use the HTML map or the `export(png)` figure, which are laid out here rather than by a third party.
+
+**The same numbers, as text.** Under the figure the page carries a `<details>` block holding the whole map as a table: one row per item, with answered, declined, not shown, and what routed it. A diagram is not readable by everyone, and the honest fallback for a figure built from a table is that table rather than a sentence describing it. The figure is marked `role="img"`, points at its own title and description, and is taken out of the keyboard tab order so a forty-node map does not become forty tab stops.
 
 The page has no height cap and scrolls sideways, because a survey is wider than it is tall. The `embed` fragment is scoped so it cannot restyle the page you drop it into, and the package ships the check that proves it (`tests/embedcheck/check_embed_scoping.py`), which refuses a fragment carrying an unscoped selector, a script, or a page wrapper.
 

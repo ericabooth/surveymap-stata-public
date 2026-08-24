@@ -13,6 +13,14 @@ h1 { font-size: 19px; margin: 0 0 2px 0; font-weight: 600; }
 .sm-g-map-vertical .sm-leg { font-family: -apple-system, Segoe UI, Helvetica, Arial, sans-serif; font-size: 11px; color: #888; margin: 0 0 8px 0; }
 .sm-g-map-vertical .sm-legk { color: #4a6d8c; font-weight: 700; }
 .sm-g-map-vertical .sm-foot { font-family: -apple-system, Segoe UI, Helvetica, Arial, sans-serif; font-size: 10px; color: #999; margin: 10px 0 0 0; line-height: 1.5; }
+.sm-g-map-vertical .sm-alt { font-family: -apple-system, Segoe UI, Helvetica, Arial, sans-serif; font-size: 12px; color: #333; margin: 12px 0 0 0; }
+.sm-g-map-vertical .sm-alts { cursor: pointer; color: #555; padding: 2px 0; }
+.sm-g-map-vertical .sm-tbl { border-collapse: collapse; margin: 8px 0 0 0; font-size: 12px; }
+.sm-g-map-vertical .sm-tcap { text-align: left; color: #666; padding: 0 0 6px 0; font-size: 11px; }
+.sm-g-map-vertical .sm-tbl th, .sm-g-map-vertical .sm-tbl td { border: 1px solid #ddd; padding: 3px 8px; text-align: right; font-variant-numeric: tabular-nums; }
+.sm-g-map-vertical .sm-tbl thead th { background: #f4f4f4; text-align: right; }
+.sm-g-map-vertical .sm-tbl th[scope="row"] { text-align: left; font-weight: 600; }
+.sm-g-map-vertical .sm-trg th[scope="row"] { color: #2f5573; }
 .sm-g-map-vertical .sm-node { cursor: help; }
 .sm-g-map-vertical .sm-t { font-family: SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace; }
 .sm-g-map-vertical .sm-bh { font-size: 12px; font-weight: 700; fill: #111; }
@@ -36,9 +44,9 @@ h1 { font-size: 19px; margin: 0 0 2px 0; font-weight: 600; }
 <div class="sm-cap">survey: g_branched.tsv &#183; 1,161 respondents &#183; 12 items &#183; 2 gates &#183; counts unweighted, percentages weighted</div>
 <div class="sm-leg"><span class="sm-legk">!!</span> = warning (never colour alone) &#183; dashed box = skipped, routed around by the gate &#183; lanes partition the sample &#183; hover a node for detail</div>
 <div class="sm-wrap">
-<svg xmlns="http://www.w3.org/2000/svg" class="sm-svg" role="img" viewBox="0 0 1016 1984" width="1016" height="1984">
-<title>surveymap flow map for g_branched.tsv</title>
-<desc>Items run left to right in questionnaire order; a gate fans the sample into lanes that rejoin the spine at the end of its segment.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" class="sm-svg" role="img" focusable="false" aria-labelledby="sm-g-map-vertical-ti sm-g-map-vertical-de" viewBox="0 0 1016 1984" width="1016" height="1984">
+<title id="sm-g-map-vertical-ti">surveymap flow map for g_branched.tsv</title>
+<desc id="sm-g-map-vertical-de">Items run down the page in questionnaire order; a gate fans the sample into lanes that rejoin the spine at the end of its segment. The same numbers are in the table below the figure.</desc>
 <defs>
 <marker id="sm-g-map-vertical-aa" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#4a6d8c" /></marker>
 </defs>
@@ -444,7 +452,27 @@ type byte
 </g>
 </svg>
 </div>
-<div class="sm-foot">surveymap &#183; journal g_branched.tsv &#183; generated 24 Aug 2026 04:00:08 &#183; Stata 19.5 MP</div>
+<details class="sm-alt">
+<summary class="sm-alts">The same map as a table</summary>
+<table class="sm-tbl">
+<caption class="sm-tcap">Every item in questionnaire order. Answered, declined and not shown add to the 1,161 respondents in scope at every row.</caption>
+<thead><tr><th scope="col">#</th><th scope="col">item</th><th scope="col">answered</th><th scope="col">declined</th><th scope="col">not shown</th><th scope="col">routed by</th></tr></thead>
+<tbody>
+<tr class="sm-tr"><td>1</td><th scope="row">q1_consent</th><td>1,161 (100.0%)</td><td>0</td><td>0</td><td>&#8212;</td></tr>
+<tr class="sm-tr sm-trg"><td>2</td><th scope="row">q3_party</th><td>1,074 (94.5%)</td><td>87</td><td>0</td><td>&#8212;</td></tr>
+<tr class="sm-tr"><td>3</td><th scope="row">q4_reg</th><td>1,161 (100.0%)</td><td>0</td><td>0</td><td>&#8212;</td></tr>
+<tr class="sm-tr sm-trg"><td>4</td><th scope="row">q5_voted</th><td>1,133 (97.7%)</td><td>28</td><td>0</td><td>&#8212;</td></tr>
+<tr class="sm-tr"><td>5</td><th scope="row">q6_whovote</th><td>578 (50.0%)</td><td>22</td><td>561</td><td>q4_reg==0; q5_voted==0</td></tr>
+<tr class="sm-tr"><td>6</td><th scope="row">q7_whynot</th><td>507 (43.7%)</td><td>26</td><td>628</td><td>q5_voted==1</td></tr>
+<tr class="sm-tr"><td>7</td><th scope="row">q8_approve</th><td>1,053 (90.9%)</td><td>108</td><td>0</td><td>&#8212;</td></tr>
+<tr class="sm-tr"><td>8</td><th scope="row">q9_econ</th><td>1,088 (93.3%)</td><td>73</td><td>0</td><td>&#8212;</td></tr>
+<tr class="sm-tr"><td>9</td><th scope="row">q10_dem_prim</th><td>591 (62.8%)</td><td>22</td><td>548</td><td>q3_party==2 4</td></tr>
+<tr class="sm-tr"><td>10</td><th scope="row">q11_rep_prim</th><td>566 (45.6%)</td><td>15</td><td>580</td><td>q3_party==1 4</td></tr>
+<tr class="sm-tr"><td>11</td><th scope="row">q12_ideol</th><td>1,081 (92.7%)</td><td>80</td><td>0</td><td>&#8212;</td></tr>
+<tr class="sm-tr"><td>12</td><th scope="row">q13_income</th><td>941 (80.8%)</td><td>220</td><td>0</td><td>&#8212;</td></tr>
+</tbody></table>
+</details>
+<div class="sm-foot">surveymap &#183; journal g_branched.tsv &#183; generated 24 Aug 2026 04:25:33 &#183; Stata 19.5 MP</div>
 </div>
 </body>
 </html>

@@ -1,5 +1,5 @@
 seq	class	var	position	vallabel	value	gatevar	n_asked	n_answered	n_nonresp	n_sysmiss	pct_answered	rate	status	gate	gated_by	pooled	type	severity	flags	w_asked	w_answered	pct_answered_w
-1	survey	.	13	.	.	.	1161	.	.	.	.	.	.	.	.	.	.	note	prune=5 minn=30 maxcats=6 dlow=2 dhigh=50 nonresp=none; gates found in the data: q3_party q5_voted; name your own with branch()	1224.3400	.	.
+1	survey	.	13	.	.	.	1161	.	.	.	.	.	.	.	.	.	.	note	prune=5 minn=30 maxcats=6 dlow=2 dhigh=50 nonresp=none; gates found in the data: q3_party q5_voted; name your own with branch(); balance ok: answered + declined + not shown = 1161 at every item	1224.3400	.	.
 2	item	q1_consent	1	Consented to be interviewed	.	.	1161	1161	0	0	100.0	.	open	0	.	.	byte	note	.	1224.3400	1224.3400	100.0
 3	item	q2_age	2	Age in years	.	.	1161	1144	17	0	98.5	.	open	0	.	.	byte	note	.	1224.3400	1208.4800	98.7
 4	item	q3_party	3	Party identification	.	.	1161	1074	87	0	92.5	.	open	1	.	.	byte	note	.	1224.3400	1156.4800	94.5
