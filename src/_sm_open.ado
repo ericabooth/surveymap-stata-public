@@ -1,4 +1,4 @@
-*! version 0.4.1  24aug2026  Eric Booth
+*! version 0.4.2  24aug2026  Eric Booth
 *! _sm_open -- open a file surveymap just wrote, using the operating system's
 *! own handler.  Called from the click-to-run link that -surveymap draw- prints
 *! after writing an HTML page.

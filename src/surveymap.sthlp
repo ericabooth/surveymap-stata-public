@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 0.4.1  24aug2026  Eric Booth}{...}
+{* *! version 0.4.2  24aug2026  Eric Booth}{...}
 {vieweralsosee "datadictionary" "help datadictionary"}{...}
 {vieweralsosee "mergemap" "help mergemap"}{...}
 {vieweralsosee "tabulate" "help tabulate"}{...}
@@ -285,6 +285,17 @@ not mention is usually an undocumented filter, or a small-cell correlation that
 happens to satisfy the test. {bf:A declared gate the data does not show is the one to chase.} It means
 the questionnaire and the file disagree about who was asked, and every estimate
 on that item inherits the disagreement.{p_end}
+
+{pstd}
+{bf:The disagreement is drawn, not just counted.} A number in a receipt is
+something somebody has to go looking for, so {opt verify()} appends its verdict
+to the journal as {cmd:note} rows and every renderer marks the item with
+{cmd:!?}, on the spine or inside a fan, with the declared and observed counts on
+hover. The journal schema is append-only and read by name, so those rows cannot
+disturb a reader that ignores them, and a journal written without
+{opt verify()} draws exactly as it did before. {cmd:!?} means the questionnaire
+and the file disagree; {cmd:!!} still means a lot of people declined. Two
+different problems, two different marks.{p_end}
 
 {pstd}
 It also works the other way round. On a new delivery, run the scan first and use

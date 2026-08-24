@@ -1,4 +1,4 @@
-*! version 0.4.1  24aug2026  Eric Booth
+*! version 0.4.2  24aug2026  Eric Booth
 *! _sm_rendertext -- emit a mermaid flowchart LR from a surveymap journal
 *! (TSV, 20 columns).
 *!
@@ -114,6 +114,27 @@ program define _sm_rendertext
         }
         frame `J': local g_`p'  = gate[`i']
         frame `J': local fl_`p' = flags[`i']
+    }
+    * ---- what verify() found, if it was run ---------------------------
+    * A count in a receipt is a number somebody has to go looking for.  The
+    * useful form of "the questionnaire and the file disagree about who was
+    * asked this" is a mark on the item itself, wherever the map is read.
+    * These rows are appended by verify(); a journal without them draws
+    * exactly as before.
+    local vdis ""
+    frame `J' {
+        quietly count if class == "note" & strpos(flags, "verify=") == 1
+        if r(N) > 0 {
+            quietly levelsof var if class == "note" & strpos(flags, "verify=") == 1, ///
+                local(vdis) clean
+        }
+    }
+    foreach vv of local vdis {
+        frame `J' {
+            quietly levelsof flags if class == "note" & var == "`vv'" & ///
+                strpos(flags, "verify=") == 1, local(vf) clean
+        }
+        local vd_`vv' `"`vf'"'
     }
     if `K' == 0 {
         frame drop `J'
@@ -310,6 +331,10 @@ program define _sm_rendertext
                             local warns = "`warns'" + cond("`warns'" == "", "", ",") + "`id'"
                         }
                     }
+                    if `"`vd_`v_`q'''"' != "" {
+                        local clab `"`clab'<br/>!? declared routing disagrees"'
+                        local warns = "`warns'" + cond("`warns'" == "", "", ",") + "`id'"
+                    }
                     local ++nnd
                     local nd`nnd' `"  `id'["`clab'"]"'
                     if "`pc'" != "" {
@@ -346,6 +371,10 @@ program define _sm_rendertext
         }
         if `"`fl_`p''"' != "." & strpos(`"`fl_`p''"', "derived:") == 1 {
             local lab `"`lab'<br/>derived, not asked"'
+        }
+        if `"`vd_`v_`p'''"' != "" {
+            local lab `"`lab'<br/>!? declared routing disagrees"'
+            local isw = 1
         }
         local ++nnd
         if "`g_`p''" == "1" local nd`nnd' `"  n`p'{{"`lab'"}}"'

@@ -1,4 +1,4 @@
-*! version 0.4.1  24aug2026  Eric Booth
+*! version 0.4.2  24aug2026  Eric Booth
 *! surveymap: map how respondents moved through a survey
 *!
 *! The data in memory are a survey: one row per respondent, one column per
@@ -1068,9 +1068,15 @@ program define _sm_verify, rclass
     capture frame drop _smvj
     capture frame drop _smvd
     frame create _smvj
+    local lastseq = 0
     frame _smvj {
         quietly import delimited using `"`using'"', delimiter(tab)        ///
             varnames(1) stringcols(_all) clear
+        * the journal is append-only, so a verdict row continues the numbering
+        quietly gen double _sq = real(seq)
+        quietly summarize _sq, meanonly
+        local lastseq = r(max)
+        quietly drop _sq
         quietly keep if class == "item"
     }
     frame create _smvd
@@ -1124,6 +1130,7 @@ program define _sm_verify, rclass
                 local ++nabs
                 di as txt "  " %-16s "`vn'" _col(20) %8s "`ex'" _col(34) ///
                     %8s "-" _col(46) as err "not in the journal"
+                local vabs `"`vabs' `vn'"'
                 continue
             }
             if real("`got'") == real("`ex'") {
@@ -1139,11 +1146,38 @@ program define _sm_verify, rclass
                     di as err "        the data shows no routing on this item"
                 }
                 else di as txt "        the data shows: `gb'"
+                local vmis `"`vmis' `vn'"'
+                local mex_`vn' `"`ex'"'
+                local mgt_`vn' `"`got'"'
             }
         }
     }
     frame drop _smvj
     frame drop _smvd
+
+    * write the verdict back, as note rows: the schema is append-only and
+    * read by name, so adding rows cannot disturb a reader that ignores them
+    if `nmis' > 0 | `nabs' > 0 {
+        tempname VH
+        quietly file open `VH' using `"`using'"', write text append
+        local sq = `lastseq'
+        foreach vn of local vmis {
+            local ++sq
+            _sm_wrow `VH' `sq' note `"`vn'"' "." "." "." "." "." "." "." ///
+                "." "." "." "." "." "." "." "." warn                     ///
+                `"verify=mismatch; declared `mex_`vn'' answered, the data shows `mgt_`vn''"' ///
+                "." "." "."
+        }
+        foreach vn of local vabs {
+            local ++sq
+            _sm_wrow `VH' `sq' note `"`vn'"' "." "." "." "." "." "." "." ///
+                "." "." "." "." "." "." "." "." warn                     ///
+                `"verify=notmapped; declared, but this item is not in the map"' ///
+                "." "." "."
+        }
+        file close `VH'
+    }
+
     di as txt "{hline 78}"
     di as txt "  `nchk' declared, " as res "`nmat' match" as txt ", " ///
         as res "`nmis' disagree" as txt ", " as res "`nabs' not mapped"
@@ -1156,6 +1190,8 @@ program define _sm_verify, rclass
     return scalar n_match    = `nmat'
     return scalar n_mismatch = `nmis'
     return scalar n_missing  = `nabs'
+    return local  mismatched `"`=strtrim(`"`vmis'"')'"'
+    return local  notmapped  `"`=strtrim(`"`vabs'"')'"'
 end
 
 

@@ -103,6 +103,8 @@ The two failures mean different things. An item the map routes but the table doe
 
 It works in reverse too: on a new delivery, scan first and use the `gated_by` output as the draft skip-logic table, then check that draft against the questionnaire.
 
+**The disagreement is drawn, not just counted.** A number in a receipt is something somebody has to go looking for, so `verify()` appends its verdict to the journal as `note` rows and every renderer marks the item with `!?`, on the spine or inside a fan, with the declared and observed counts on hover. The journal schema is append-only and read by name, so those rows cannot disturb a reader that ignores them, and a journal written without `verify()` draws exactly as before. `!?` means the questionnaire and the file disagree; `!!` still means a lot of people declined. Two different problems, two different marks.
+
 ## Branching
 
 Name the questions whose answers you want the flow split by, and each category becomes a lane:

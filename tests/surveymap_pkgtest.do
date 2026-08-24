@@ -1286,6 +1286,99 @@ sm_assert `=(r(n) == 1)' "the fragment carries the table too"
 capture sm_fcount f22.html "<html"
 sm_assert `=(r(n) == 0)' "the fragment is still a fragment"
 
+* ============================================================================
+sm_block 23 "verify() writes its verdict back, and the map draws it"
+* ============================================================================
+* A count in a receipt is a number somebody has to go looking for.  Where the
+* questionnaire and the file disagree about who was asked an item, the useful
+* form of that is a mark on the item, wherever the map is read.
+capture use fake_a.dta, clear
+capture erase decl23.csv
+tempname d23
+file open `d23' using decl23.csv, write text replace
+file write `d23' "varname,expected_n,note" _n
+file write `d23' "q6_whovote,578,vote choice asked of voters" _n
+file write `d23' "q11_rep_prim,99999,deliberately wrong" _n
+file write `d23' "q99_nothere,100,not in the survey at all" _n
+file close `d23'
+
+capture noisily surveymap q1_consent q3_party q5_voted q6_whovote q11_rep_prim, ///
+    noautodetect out(j23.tsv) noreceipt replace verify(decl23.csv)
+sm_assert `=(_rc == 0)' "a scan with verify() runs"
+sm_assert `=(r(N_mismatch) == 1)' "it finds the one declared count that disagrees"
+
+* ---- the verdict is appended to the journal, not just printed ----
+capture sm_jcount j23.tsv note q11_rep_prim
+sm_assert `=(r(n) >= 1)' "the disagreeing item gets a note row"
+capture sm_jval j23.tsv flags note q11_rep_prim
+sm_assert `=(strpos("`r(val)'", "verify=mismatch") == 1)' ///
+    "the note says what kind of disagreement it was"
+sm_assert `=(strpos("`r(val)'", "99999") > 0)' "the note carries the declared count"
+capture sm_jval j23.tsv flags note q99_nothere
+sm_assert `=(strpos("`r(val)'", "verify=notmapped") == 1)' ///
+    "a declared item that is not in the map is recorded too"
+capture sm_jval j23.tsv severity note q11_rep_prim
+sm_assert `=("`r(val)'" == "warn")' "the note is a warning, not a footnote"
+
+* ---- an item that agreed gets no note, so the mark means something ----
+capture sm_jcount j23.tsv note q6_whovote
+sm_assert `=(r(n) == 0)' "an item whose declared count matches is left unmarked"
+
+* ---- appending must not disturb the rows already there ----
+capture sm_jcount j23.tsv item
+sm_assert `=(r(n) == 5)' "the five item rows survive the append"
+capture sm_jval j23.tsv n_answered item q11_rep_prim
+sm_assert `=(real("`r(val)'") > 0)' "the item row still carries its own counts"
+
+* ---- and the seq keeps running, because the schema is append-only ----
+tempname f23
+frame create `f23'
+frame `f23' {
+    quietly import delimited using "j23.tsv", delimiter(tab) varnames(1) ///
+        stringcols(_all) clear
+    quietly gen double sq23 = real(seq)
+    quietly summarize sq23
+    local nrow = r(N)
+    local mx = r(max)
+    quietly duplicates report sq23
+    local ndup = r(unique_value)
+}
+frame drop `f23'
+sm_assert `=(`ndup' == `nrow')' "every row still has a sequence number of its own"
+
+* ---- the map draws the disagreement, on the spine ----
+capture noisily surveymap draw j23.tsv, export(html) saving(h23.html) replace
+sm_assert `=(_rc == 0)' "the map draws"
+capture sm_fcount h23.html "!? declared routing disagrees"
+sm_assert `=(r(n) >= 1)' "the disagreeing item is marked on the map"
+capture sm_fcount h23.html "the declared routing and the data disagree"
+sm_assert `=(r(n) == 1)' "the legend says what the mark means"
+
+* ---- and inside a fan, where an item is drawn once per lane ----
+capture use fake_a.dta, clear
+capture noisily surveymap q1_consent q3_party q5_voted q6_whovote q11_rep_prim, ///
+    branch(q3_party = 1 2) out(j23f.tsv) noreceipt replace verify(decl23.csv)
+sm_assert `=(_rc == 0)' "a branched scan with verify() runs"
+capture noisily surveymap draw j23f.tsv, export(html) saving(h23f.html) replace
+sm_assert `=(_rc == 0)' "the branched map draws"
+capture sm_fcount h23f.html `"q11_rep_prim !?"'
+sm_assert `=(r(n) >= 2)' "an item inside a fan is marked in every lane that draws it"
+
+* ---- mermaid carries the mark too ----
+capture noisily surveymap draw j23.tsv, export(mermaid) saving(m23) replace
+sm_assert `=(_rc == 0)' "mermaid draws"
+capture sm_fcount m23.mmd "!? declared routing disagrees"
+sm_assert `=(r(n) >= 1)' "the mermaid node carries the mark"
+
+* ---- a journal with no verify rows draws exactly as before ----
+capture use fake_a.dta, clear
+capture noisily surveymap q1_consent q3_party q5_voted, out(j23n.tsv) ///
+    noreceipt replace
+capture noisily surveymap draw j23n.tsv, export(html) saving(h23n.html) replace
+sm_assert `=(_rc == 0)' "a journal without verify rows still draws"
+capture sm_fcount h23n.html "!? declared routing disagrees"
+sm_assert `=(r(n) == 0)' "and carries no disagreement mark"
+
 * ---------------------------------------------------------------- summary ----
 display as text _n "{hline 78}"
 display as text "surveymap battery: " as result "$SM_PASS passed" as text ", " ///

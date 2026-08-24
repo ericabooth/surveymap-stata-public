@@ -31,3 +31,4 @@ seq	class	var	position	vallabel	value	gatevar	n_asked	n_answered	n_nonresp	n_sys
 30	cell	q7_whynot	5	.	0	q5_voted	533	507	26	0	.	95.1	answered	.	.	.	.	note	.	.	.	.
 31	cell	q7_whynot	5	.	1	q5_voted	600	0	0	600	.	0.0	skipped	.	.	.	.	note	.	.	.	.
 32	cell	q7_whynot	5	.	noanswer	q5_voted	67	0	0	67	.	0.0	skipped	.	.	.	.	note	.	.	.	.
+33	note	q11_rep_prim	.	.	.	.	.	.	.	.	.	.	.	.	.	.	.	warn	verify=mismatch; declared 999 answered, the data shows 566	.	.	.

@@ -2,6 +2,29 @@
 
 All notable changes to surveymap. Dates are the day the work landed locally.
 
+## 0.4.2 - 2026-08-24
+
+### Added
+
+- `verify()` now writes its verdict back into the journal, as `note` rows, and
+  every renderer marks the disagreeing item with `!?` — on the spine, and in
+  every lane that draws it when the item sits inside a fan. The declared and
+  observed counts are on hover. A count in a receipt is a number somebody has
+  to go looking for; where the questionnaire and the file disagree about who
+  was asked an item, that belongs on the item.
+- `!?` and `!!` are deliberately different marks for deliberately different
+  problems: the questionnaire disagreeing with the file, versus a lot of people
+  declining. The legend says so.
+- `r(mismatched)` and `r(notmapped)` return the item names, so a do-file can
+  act on them.
+
+### Testing
+
+- 278 checks, passing on Stata 16.1 and 19.5. The new block checks that
+  appending the verdict leaves the item rows and the sequence numbering intact,
+  that an item whose declared count matches is left unmarked, and that a
+  journal written without `verify()` draws exactly as before.
+
 ## 0.4.1 - 2026-08-24
 
 ### Added

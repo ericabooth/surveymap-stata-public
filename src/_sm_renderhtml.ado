@@ -1,4 +1,4 @@
-*! version 0.4.1  24aug2026  Eric Booth
+*! version 0.4.2  24aug2026  Eric Booth
 *! _sm_renderhtml -- render a surveymap journal (TSV, 20 columns) as HTML
 *! with one inline SVG flow map.
 *!
@@ -158,6 +158,27 @@ program define _sm_renderhtml
         frame `J': local gb_`p' = gated_by[`i']
         frame `J': local ty_`p' = type[`i']
         frame `J': local fl_`p' = flags[`i']
+    }
+    * ---- what verify() found, if it was run ---------------------------
+    * A count in a receipt is a number somebody has to go looking for.  The
+    * useful form of "the questionnaire and the file disagree about who was
+    * asked this" is a mark on the item itself, wherever the map is read.
+    * These rows are appended by verify(); a journal without them draws
+    * exactly as before.
+    local vdis ""
+    frame `J' {
+        quietly count if class == "note" & strpos(flags, "verify=") == 1
+        if r(N) > 0 {
+            quietly levelsof var if class == "note" & strpos(flags, "verify=") == 1, ///
+                local(vdis) clean
+        }
+    }
+    foreach vv of local vdis {
+        frame `J' {
+            quietly levelsof flags if class == "note" & var == "`vv'" & ///
+                strpos(flags, "verify=") == 1, local(vf) clean
+        }
+        local vd_`vv' `"`vf'"'
     }
     if `K' == 0 {
         frame drop `J'
@@ -436,9 +457,13 @@ program define _sm_renderhtml
                     _srh_wtip `B' in lane `caf' `=char(3)' answered `cnf' (`crt'%)
                     _srh_wtip `B' status: `st'
                     if `"`st'"' == "skipped" _srh_wtip `B' routed around by skip logic
+                    if `"`vd_`v_`q'''"' != "" _srh_wtip `B' !? `vd_`v_`q'''
                     file write `B' `"</title>"' _n
                     _srh_mell `HBUD' `"`v_`q''"'
                     local wname `"`s(o)'"'
+                    * the item, not the lane, is what verify() disagreed about,
+                    * so every lane that draws this item carries the mark
+                    if `"`vd_`v_`q'''"' != "" local wname `"`wname' !?"'
                     if `"`st'"' == "skipped" {
                         _srh_rect `B' `lleft' `cy' `BW' `CH' gx
                         _srh_wtext `B' `=`lleft'+8' `=`cy'+17' gt `"`wname'"'
@@ -491,6 +516,7 @@ program define _sm_renderhtml
         if `"`ty_`p''"' != "." _srh_wtip `B' type `ty_`p''
         if "`g_`p''" == "1" _srh_wtip `B' gate: lanes split here
         if `"`gb_`p''"' != "." _srh_wtip `B' routed around for: `gb_`p''
+        if `"`vd_`v_`p'''"' != "" _srh_wtip `B' !? `vd_`v_`p'''
         if `"`fl_`p''"' != "." & `"`fl_`p''"' != "" {
             local rest `"`fl_`p''"'
             while `"`rest'"' != "" {
@@ -522,6 +548,10 @@ program define _sm_renderhtml
             _srh_n `"`nr_`p''"'
             local ty = `ty' + `LH'
             _srh_wtext `B' `=`xl'+8' `ty' bf `"!! nonresp `s(o)'"'
+        }
+        if `"`vd_`v_`p'''"' != "" {
+            local ty = `ty' + `LH'
+            _srh_wtext `B' `=`xl'+8' `ty' bf `"!? declared routing disagrees"'
         }
         file write `B' `"</g>"' _n
         local prevy = `y' + `SH'
@@ -596,9 +626,13 @@ program define _sm_renderhtml
                     _srh_wtip `B' in lane `caf' `=char(3)' answered `cnf' (`crt'%)
                     _srh_wtip `B' status: `st'
                     if `"`st'"' == "skipped" _srh_wtip `B' routed around by skip logic
+                    if `"`vd_`v_`q'''"' != "" _srh_wtip `B' !? `vd_`v_`q'''
                     file write `B' `"</title>"' _n
                     _srh_mell `HBUD' `"`v_`q''"'
                     local wname `"`s(o)'"'
+                    * the item, not the lane, is what verify() disagreed about,
+                    * so every lane that draws this item carries the mark
+                    if `"`vd_`v_`q'''"' != "" local wname `"`wname' !?"'
                     if `"`st'"' == "skipped" {
                         _srh_rect `B' `cx' `ltop' `BW' `CH' gx
                         _srh_wtext `B' `=`cx'+8' `=`ltop'+17' gt `"`wname'"'
@@ -655,6 +689,7 @@ program define _sm_renderhtml
         if `"`ty_`p''"' != "." _srh_wtip `B' type `ty_`p''
         if "`g_`p''" == "1" _srh_wtip `B' gate: lanes split here
         if `"`gb_`p''"' != "." _srh_wtip `B' routed around for: `gb_`p''
+        if `"`vd_`v_`p'''"' != "" _srh_wtip `B' !? `vd_`v_`p'''
         if `"`fl_`p''"' != "." & `"`fl_`p''"' != "" {
             local rest `"`fl_`p''"'
             while `"`rest'"' != "" {
@@ -687,6 +722,10 @@ program define _sm_renderhtml
             _srh_n `"`nr_`p''"'
             local ty = `ty' + `LH'
             _srh_wtext `B' `=`x'+8' `ty' bf `"!! nonresp `s(o)'"'
+        }
+        if `"`vd_`v_`p'''"' != "" {
+            local ty = `ty' + `LH'
+            _srh_wtext `B' `=`x'+8' `ty' bf `"!? declared routing disagrees"'
         }
         file write `B' `"</g>"' _n
 
@@ -739,7 +778,7 @@ program define _sm_renderhtml
         local wnote = cond(`haswt', ///
             " &#183; counts unweighted, percentages weighted", "")
         file write `H' `"<div class="sm-cap">survey: `jname' &#183; `nnf' respondents &#183; `K' `iw' &#183; `G' `gw'`wnote'</div>"' _n
-        file write `H' `"<div class="sm-leg"><span class="sm-legk">!!</span> = warning (never colour alone) &#183; dashed box = skipped, routed around by the gate &#183; lanes partition the sample &#183; hover a node for detail</div>"' _n
+        file write `H' `"<div class="sm-leg"><span class="sm-legk">!!</span> = warning (never colour alone) &#183; <span class="sm-legk">!?</span> = the declared routing and the data disagree &#183; dashed box = skipped, routed around by the gate &#183; lanes partition the sample &#183; hover a node for detail</div>"' _n
     }
 
     file write `H' `"<div class="sm-wrap">"' _n
