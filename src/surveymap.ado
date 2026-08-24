@@ -1299,9 +1299,11 @@ program define _sm_demo
         capture label drop smd_yn
         capture label drop smd_party
         capture label drop smd_why
+        capture label drop smd_miss
         label define smd_yn 1 "Yes" 0 "No" .a "Don't know" .b "Refused"
         label define smd_party 1 "Democrat" 2 "Republican" 3 "Independent" ///
             .a "Don't know" .b "Refused"
+        label define smd_miss .a "Don't know" .b "Refused"
         label define smd_why 1 "Too busy" 2 "Not registered" 3 "Other reason" ///
             .a "Don't know"
         gen long resp_id = _n
@@ -1311,6 +1313,13 @@ program define _sm_demo
         gen byte consent = `u' >= .04
         label variable consent "Consented to be interviewed"
         label values consent smd_yn
+        replace `u' = runiform()
+        gen int age = .
+        replace age = 18 + floor(`u' * 72) if consent == 1
+        replace `u' = runiform()
+        replace age = .b if consent == 1 & `u' < .03
+        label variable age "Age in years"
+        label values age smd_miss
         replace `u' = runiform()
         gen byte party = .
         replace party = 1 if consent == 1 & `u' < .40
@@ -1322,7 +1331,8 @@ program define _sm_demo
         label values party smd_party
         replace `u' = runiform()
         gen byte voted = .
-        replace voted = `u' < .64 if consent == 1
+        replace voted = `u' < (.42 + .006 * age) if consent == 1 & !missing(age)
+        replace voted = `u' < .64 if consent == 1 & missing(age)
         label variable voted "Voted in the last election"
         label values voted smd_yn
         replace `u' = runiform()
@@ -1352,8 +1362,9 @@ program define _sm_demo
     di as txt "{hline 78}"
     di as txt "surveymap demo: a 600-person survey in " as res `"`d'"'
     di as txt "{hline 78}"
-    di as txt "The survey has a consent question, a party question, and a voting"
-    di as txt "question that routes non-voters around the reason-for-not-voting item."
+    di as txt "The survey has a consent question, an age question, a party question,"
+    di as txt "and a voting question that routes non-voters around the"
+    di as txt "reason-for-not-voting item."
     di as txt ""
     di as txt "This is what was run:"
     di as txt `"    use "`d'/demo_survey.dta", clear"'
@@ -1371,6 +1382,14 @@ program define _sm_demo
         as txt "  text for a README"
     di as txt `"    {stata surveymap export, saving(`d'/demo_tracker.xlsx) replace:surveymap export, saving(...xlsx)}"' ///
         as txt "   the Excel tracker"
+    di as txt `"    {stata surveymap draw, layout(vertical) saving(demo_tall.html) replace:surveymap draw, layout(vertical) ...}"' ///
+        as txt "    the same map down a page"
+    di as txt ""
+    di as txt "Two more gates to try on this survey:"
+    di as txt `"    {stata surveymap, branch(age = cut(30 50 65)) out(`d'/demo_age.tsv) replace:surveymap, branch(age = cut(30 50 65))}"' ///
+        as txt "   band a continuous item"
+    di as txt `"    {stata surveymap, profile(declined) out(`d'/demo_prof.tsv) replace:surveymap, profile(declined)}"' ///
+        as txt "               split by who left items blank"
     di as txt ""
     c_local demojournal `"`d'/demo_journal.tsv"'
 end
