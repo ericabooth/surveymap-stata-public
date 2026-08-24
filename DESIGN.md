@@ -126,7 +126,7 @@ each position, is **not identified from the journal alone**: aggregate counts
 per item cannot separate a respondent who was routed past an item from one who
 had already stopped. An honest figure would draw it as a band with the range
 printed in the risk row, and a band whose whole point is that the data cannot
-say is a lot of figure for very little claim.
+say is a lot of figure for a small claim.
 
 `surveymap band` covers the useful part: it shows not-shown and declined by
 position, so a filter and a cliff are visibly different things rather than one
