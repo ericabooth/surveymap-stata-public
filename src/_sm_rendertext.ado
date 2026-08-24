@@ -1,4 +1,4 @@
-*! version 0.3.0  24aug2026  Eric Booth
+*! version 0.4.0  24aug2026  Eric Booth
 *! _sm_rendertext -- emit a mermaid flowchart LR from a surveymap journal
 *! (TSV, 20 columns).
 *!
@@ -251,13 +251,26 @@ program define _sm_rendertext
             local mtgt ""
             if `pe' + 1 <= `K' local mtgt "n`=`pe'+1'"
             local src `"`prev'"'
-            * Lanes are emitted last-first.  Mermaid's flowchart layout places
-            * sibling subgraphs in the reverse of the order they are declared
-            * (checked against mermaid-cli 11.16.0, in both TB and LR), so
-            * declaring them backwards is what puts lane 1 first on the page.
-            * Without this a banded gate reads right to left: "3 and over"
-            * lands where a reader looks for "none".
-            forvalues k = `L_`gp''(-1)1 {
+            * Which order the lanes are declared in decides which order
+            * mermaid draws them, and the rule is not the obvious one.  Where
+            * the lanes rejoin the spine, the merge edges give the layout a
+            * consistent ordering and declaration order is kept.  Where the
+            * gate's segment runs to the end of the questionnaire there is
+            * nothing to rejoin, and mermaid then places the subgraphs in the
+            * reverse of the order they were declared, so this declares them
+            * backwards to compensate.  Without it a banded gate reads right
+            * to left and "3 and over" lands where a reader looks for "none".
+            * Checked against mermaid-cli 11.16.0 in both TB and LR; the
+            * battery pins both cases, so a change in mermaid shows up there.
+            local kfrom = 1
+            local kto   = `L_`gp''
+            local kstep = 1
+            if "`mtgt'" == "" {
+                local kfrom = `L_`gp''
+                local kto   = 1
+                local kstep = -1
+            }
+            forvalues k = `kfrom'(`kstep')`kto' {
                 local q1 = 0
                 local qL = 0
                 forvalues q = `p'/`pe' {

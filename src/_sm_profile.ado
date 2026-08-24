@@ -1,4 +1,4 @@
-*! _sm_profile 0.4.0  Eric A. Booth
+*! version 0.4.0  24aug2026  Eric Booth
 *! Read a profile() spec: a respondent-level condition to split the map by.
 *!
 *! A branch() gate splits the map by an ANSWER, so the lanes say what

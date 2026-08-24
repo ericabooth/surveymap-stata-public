@@ -1174,13 +1174,33 @@ capture sm_fcount m21v.mmd "{{"
 sm_assert `=(r(n) >= 1)' "the gate node is drawn as its own shape, not a plain box"
 
 * ---- lane order survives the renderer ----
-* mermaid lays sibling subgraphs out in the reverse of the order they are
-* declared, so the renderer declares them backwards on purpose.  Pin it: if
-* mermaid ever changes, this check is what says so.
+* Which order mermaid draws sibling subgraphs in depends on whether the lanes
+* rejoin the spine.  Where they do, the merge edges fix the order and
+* declaration order is kept; where the gate runs to the end of the
+* questionnaire there is nothing to rejoin and mermaid reverses them, so the
+* renderer declares them backwards to compensate.  Both cases are pinned: if
+* mermaid ever changes, these two checks are what say so.
+*
+* This gate covers every item to the end, so there is no merge.
 capture sm_fline m21v.mmd "subgraph SG1x1"
 local first = r(line)
 capture sm_fline m21v.mmd "subgraph SG1x2"
-sm_assert `=(`first' > r(line))' "lane 1 is declared last, so it draws first"
+sm_assert `=(`first' > r(line))' "with no merge, lane 1 is declared last so it draws first"
+
+* A gate in the middle of the questionnaire does have a merge.
+capture use fake_a.dta, clear
+capture noisily surveymap q1_consent q3_party q5_voted q6_whovote q7_whynot ///
+    q8_approve, branch(q5_voted) out(j21m.tsv) noreceipt replace
+sm_assert `=(_rc == 0)' "a mid-questionnaire gate scans"
+capture noisily surveymap draw j21m.tsv, export(mermaid) layout(vertical) ///
+    saving(m21m) replace
+sm_assert `=(_rc == 0)' "it draws vertically"
+capture sm_fcount m21m.mmd "--> n6"
+sm_assert `=(r(n) >= 2)' "the lanes really do rejoin, so this is the merge case"
+capture sm_fline m21m.mmd "subgraph SG3x1"
+local mfirst = r(line)
+capture sm_fline m21m.mmd "subgraph SG3x2"
+sm_assert `=(`mfirst' < r(line))' "with a merge, lane 1 is declared first and draws first"
 
 capture noisily surveymap draw j21n.tsv, export(html) layout(vertical) ///
     saving(h21v.html) replace

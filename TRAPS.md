@@ -42,3 +42,22 @@
     drawn text with ">text" (inside a <text> element), not bare substrings.
 17. Version-gate everything at version 16; test on BOTH binaries before
     calling anything done.
+18. Value labels and variable labels belong to a DATASET, not to a session.
+    A gate banded inside frame _smwork has its label only there, so
+    `: value label x`, `: label lblname #` and `: variable label x` must all
+    run inside the frame or they come back empty (or r(111) for a derived
+    column that exists only in the copy).
+19. -xtile- creates its own variable and refuses one that already exists;
+    do not pre-generate the destination the way -replace- patterns suggest.
+20. -confirm number- rejects extended missings (.a to .z).  Accept a
+    refusal code with regexm(code, "^\.[a-z]$") OR confirm number, not
+    confirm number alone.
+21. Mermaid sibling-subgraph order depends on whether the lanes rejoin.
+    With a merge target the declaration order is kept; with none (a gate
+    whose segment runs to the end) mermaid reverses them, so the renderer
+    declares them backwards in that case only.  Checked against mermaid-cli
+    11.16.0 in both TB and LR.  The battery pins both cases: block 21.
+22. A count is not comparable across respondents that skip logic asked
+    different numbers of questions.  Anything respondent-level that counts
+    items has to be divided by the items THAT respondent was asked, with
+    system-missing (never shown) out of both numerator and denominator.

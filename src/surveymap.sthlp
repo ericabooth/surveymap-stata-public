@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 0.3.0  24aug2026  Eric Booth}{...}
+{* *! version 0.4.0  24aug2026  Eric Booth}{...}
 {vieweralsosee "datadictionary" "help datadictionary"}{...}
 {vieweralsosee "mergemap" "help mergemap"}{...}
 {vieweralsosee "tabulate" "help tabulate"}{...}
@@ -70,7 +70,8 @@ opens in any browser with no internet connection.{p_end}
 
 {p 8 17 2}
 {cmd:surveymap} [{cmd:scan}] [{varlist}] {ifin} {weight} [{cmd:,}
-{opt br:anch(spec)} {opt out(filename)} {opt non:response(numlist)}
+{opt br:anch(spec)} {opt prof:ile(spec)} {opt ref:usedcode(value)}
+{opt dk:code(value)} {opt out(filename)} {opt non:response(numlist)}
 {opt ex:clude(varlist)} {opt nostrings} {opt ver:ify(filename)}
 {opt prune(#)} {opt minn(#)} {opt maxc:ats(#)} {opt det:ect(# #)}
 {opt noautodetect} {opt noreceipt} {opt noprune} {opt replace}]
@@ -80,9 +81,9 @@ opens in any browser with no internet connection.{p_end}
 
 {p 8 17 2}
 {cmd:surveymap draw} [{it:journalfile}] [{cmd:,} {opt exp:ort(html|mermaid|png|svg)}
-{opt sav:ing(filename)} {opt prune(#)} {opt minn(#)} {opt maxc:ats(#)}
-{opt noprune} {opt name(text)} {opt embed} {opt maxn:odes(#)} {opt noopen}
-{opt replace}]
+{opt lay:out(horizontal|vertical)} {opt sav:ing(filename)} {opt prune(#)}
+{opt minn(#)} {opt maxc:ats(#)} {opt noprune} {opt name(text)} {opt embed}
+{opt maxn:odes(#)} {opt noopen} {opt replace}]
 
 {p 8 17 2}
 {cmd:surveymap export} [{it:journalfile}] [{cmd:,} {opt sav:ing(filename)}
@@ -319,6 +320,128 @@ With no {opt branch()}, the two questions that route the most respondents are
 drawn, and the receipt names them. {opt noautodetect} turns that off.{p_end}
 
 
+{pstd}
+{bf:Gating on a continuous item.} Age in years has too many values to be a
+gate, so you say where to cut it and {cmd:surveymap} bands it for the map. The
+banding happens on a copy: your data are not touched.{p_end}
+
+{synoptset 30 tabbed}{...}
+{synopt :{cmd:branch(age = cut(25 35 45 65))}}bands at the breaks you name{p_end}
+{synopt :{cmd:branch(hhinc = q(4))}}quartile bands{p_end}
+{synoptline}
+{p2colreset}{...}
+
+{pstd}
+There is deliberately no default cut. A break chosen by software becomes a
+stated fact in a figure somebody else reuses, and where to divide age is a
+decision about the population you are describing, so you make it and the
+journal records what you chose.{p_end}
+
+{pstd}
+Nobody falls outside the bands. Everyone below the first break belongs to the
+first lane and everyone at or above the last break belongs to the top one,
+which is where this differs from {helpb egen} {cmd:cut, at()}: that command
+leaves both tails missing, and lanes that dropped the tails would no longer add
+up to the sample. Band labels read from the breaks, so {cmd:cut(25 35 45 65)}
+gives {bf:under 25}, {bf:25 to 34}, {bf:35 to 44}, {bf:45 to 64} and
+{bf:65 and over}. A {cmd:q()} band is labelled with the range it spans.{p_end}
+
+
+{marker profile}{...}
+{title:Splitting by what the respondent did}
+
+{pstd}
+{opt branch()} splits the map by an answer, so the lanes say what Republicans
+did and what Democrats did. {opt profile()} splits it by something the
+respondent did while answering, so the lanes say what the people who left items
+blank did. Reach for it when your question is whether nonresponse sits with one
+kind of respondent rather than spread evenly, and you want to see {it:where}
+along the instrument it happened.{p_end}
+
+{synoptset 30 tabbed}{...}
+{synopt :{cmd:profile(declined)}}% of asked items left unanswered{p_end}
+{synopt :{cmd:profile(refused)}}% of asked items answered with a refusal code{p_end}
+{synopt :{cmd:profile(dontknow)}}% of asked items answered don't know{p_end}
+{synopt :{cmd:profile(asked)}}how many items the routing carried them to{p_end}
+{synopt :{cmd:profile(answered)}}how many items they answered{p_end}
+{synopt :{cmd:profile(breakoff)}}the position of the last item they answered{p_end}
+{synoptline}
+{p2colreset}{...}
+
+{pstd}
+Each takes the same banding grammar as a continuous gate, in the units of the
+condition, so {cmd:profile(declined = cut(10 25))} reads its breaks as
+percentages and {cmd:profile(asked = q(4))} bands a count into quartiles.{p_end}
+
+{pstd}
+{bf:Why the first three are shares and not counts.} Skip logic asks different
+respondents different numbers of questions, so a Democrat and a Republican on a
+split-ballot instrument have different denominators. A count of declines is
+therefore not comparable between them and a share is, which is why these three
+divide by the items each respondent was actually asked. An item that a skip
+routed around is in neither the numerator nor the denominator: counting it as a
+decline would make a well-behaved respondent on a long branch look like a bad
+one. NCES Statistical Standard 1-3-5 and the AAPOR {it:Standard Definitions}
+(10th ed., 2023) both define the item base this way.{p_end}
+
+{pstd}
+{bf:Where the default splits.} For a share the default cuts at zero and nowhere
+else, giving you {bf:none} and {bf:at least one}. Zero is the only boundary on
+this measure that is not a judgement call, and a threshold like "declined more
+than 20 percent" is a decision about what counts as a lot. AAPOR is explicit
+that such a boundary belongs to the researcher and has to be declared, so
+{cmd:surveymap} will not supply one. Set your own with {cmd:cut()} and the
+journal records that you did. For {cmd:breakoff} the default splits at reaching
+the last item, which is the same kind of boundary: it needs no judgement.{p_end}
+
+{pstd}
+{bf:What the map can and cannot claim.} A lane built this way is descriptive.
+It shows where answers were not obtained; whether that distorts an estimate
+depends on whether the people who declined differ on the thing being measured,
+and response data cannot establish that. Groves and Peytcheva's meta-analysis
+of 59 nonresponse bias studies found the nonresponse rate explains about 11
+percent of the variance in bias, so a high rate is not by itself evidence of a
+biased estimate. Note also that the {it:amount} of declining inside a lane you
+defined by declining is true by construction; the finding is {it:where} it
+happened.{p_end}
+
+{pstd}
+{bf:With a weight.} A lane defined by behaviour observed in the survey is not a
+population subgroup, so a weighted percentage inside it describes the weighted
+sample rather than a population quantity. The journal says so on any weighted
+scan that uses {opt profile()}.{p_end}
+
+{pstd}
+{bf:Two conditions this refuses to build.} Ask for {cmd:profile(exaggerator)}
+and you get a refusal with the reason. People who over-report a socially
+desirable answer resemble people who report it honestly on everything a survey
+records: Ansolabehere and Hersh's fifty-state vote validation found
+over-reporters look like voters on demographics and attitudes alike. A flag
+built from the answers alone therefore reproduces the profile of the behaviour
+rather than of the misreporting, and labels older, better-educated, more
+engaged respondents as liars. Measuring it takes an external record to validate
+against, or an instrument designed for it: a list experiment, randomised
+response, or the planted foils of the over-claiming technique.{p_end}
+
+{pstd}
+{cmd:profile(straightlining)} is refused for a different reason. Non-differentiation
+is measurable, but only inside a battery you name, and only where answering the
+same way down the battery would be implausible. Where it is plausible, Schonlau
+and Toepoel found 15 to 40 percent of respondents do it honestly. It is also
+more common among respondents with less schooling, so a lane built on it is
+partly a lane built on education. A survey file does not record which items
+share a response scale, so this package does not guess.{p_end}
+
+{pstd}
+What it will show you instead is {cmd:profile(refused)} against
+{cmd:profile(dontknow)}. Shoemaker, Eichholz and Skewes found don't-know
+associated with the cognitive effort a question demands, and refusal associated
+with effort {it:and} with how sensitive the question is. Refusals stacking on an
+income block is evidence about sensitivity; don't-knows spread across an
+attitude battery is evidence about burden. Those point at different fixes, which
+is why the package keeps them apart instead of adding them together.{p_end}
+
+
 {marker detect}{...}
 {title:How routing is found}
 
@@ -417,6 +540,16 @@ a party question asked early can decide primary-turnout questions much later, an
 the lanes belong where those questions sit.{p_end}
 
 {pstd}
+{bf:Which way it runs.} {opt layout(vertical)} turns the map on its side: items
+run down the page and a gate spreads its lanes across it, one column per lane.
+Use it when the map is going into a report or a README, because a page scrolls
+down and a long instrument is taller than any screen is wide. The horizontal
+default suits a slide and a wide monitor. In mermaid the vertical map draws each
+lane as a labelled {cmd:subgraph}, so the grouping is drawn rather than inferred
+from where the boxes sit. Both layouts read from the same journal, so you can
+write one of each without rescanning.{p_end}
+
+{pstd}
 The page has no height cap and the diagram scrolls sideways, because a survey is
 wider than it is tall. {opt embed} writes a fragment for a report page instead of
 a whole document: scoped styles, no element selectors, and a bounded box, so it
@@ -486,6 +619,9 @@ so a lookup across sheets is one formula.{p_end}
 
 {synoptset 26 tabbed}{...}
 {synopt :{opt br:anch(spec)}}the gates to split the flow by; see {help surveymap##branch:Branching}{p_end}
+{synopt :{opt prof:ile(spec)}}split by what the respondent did rather than by what they answered; see {help surveymap##profile:Splitting by what the respondent did}{p_end}
+{synopt :{opt ref:usedcode(value)}}the value this survey writes for a refusal, such as {cmd:.b} or {cmd:99}; needed by {cmd:profile(refused)}{p_end}
+{synopt :{opt dk:code(value)}}the value this survey writes for don't know; needed by {cmd:profile(dontknow)}{p_end}
 {synopt :{opt out(filename)}}write the journal here; default {cmd:survey_journal.tsv}{p_end}
 {synopt :{opt non:response(numlist)}}coded values that mean a refusal, such as {cmd:98 99}. Extended missings always count as declined{p_end}
 {synopt :{opt ex:clude(varlist)}}columns to leave out: ids, sample frame, admin{p_end}
@@ -517,6 +653,7 @@ respondents in scope, and every count and percent is computed within it.{p_end}
 
 {synoptset 26 tabbed}{...}
 {synopt :{opt exp:ort(html|mermaid|png|svg)}}the medium; default {cmd:html}{p_end}
+{synopt :{opt lay:out(horizontal|vertical)}}which way the questionnaire runs; default {cmd:horizontal}{p_end}
 {synopt :{opt sav:ing(filename)}}where to write it{p_end}
 {synopt :{opt name(text)}}what to call the survey on the page{p_end}
 {synopt :{opt embed}}a fragment for someone else's page, not a whole document{p_end}
@@ -667,9 +804,15 @@ the better tool when that is the shape you want.{p_end}
 
 {phang2}
 {bf:For a ribbon whose width is the count.} {cmd:sankey} and {cmd:alluvial}
-(Naqvi) draw flow widths from {cmd:from}/{cmd:to}/{cmd:value} data. Beautiful for
-two or three transitions; a survey has too many columns and too much per node for
-a ribbon to show.{p_end}
+(Naqvi) draw flow widths from {cmd:from}/{cmd:to}/{cmd:value} data, and mermaid's
+own {cmd:sankey-beta} does the same from three CSV columns. Reach for one of
+them when two or three transitions are the whole story. {cmd:surveymap} does not
+encode counts as widths, for two reasons worth knowing before you go looking for
+the option. A ribbon diagram invites the reader to expect the widths at a node
+to add up, and on a questionnaire they do not: the people who declined an item
+are a gap the eye reads as attrition already explained. And on a 15 to 40 item
+instrument the smallest flows fall below a pixel, so the paths taken by nobody
+disappear, which on a QC map is usually the finding you most wanted.{p_end}
 
 {phang2}
 {bf:For a study-disposition figure in a paper.} {cmd:flowchart} (Dodd) generates

@@ -54,7 +54,7 @@ Every scan prints one line per item, in questionnaire order:
   15  q13_income        941 (78.4%)     220      39  q1_consent==0
 ```
 
-`q6_whovote` and `q13_income` both look badly answered, for opposite reasons. `q6_whovote` was never shown to 600 people, because it asks who you voted for and they had just said they did not vote. `q13_income` was shown to nearly everyone, and 220 of them refused. The two sit one column apart in the table and call for completely different responses.
+`q6_whovote` and `q13_income` both look badly answered, for opposite reasons. `q6_whovote` was never shown to 600 people, because it asks who you voted for and they had just said they did not vote. `q13_income` was shown to nearly everyone, and 220 of them refused. The two appear one column apart in the table and call for completely different responses.
 
 Three kinds of blank are counted separately throughout:
 
@@ -72,7 +72,7 @@ A delivered survey file is wider than the questionnaire: record ids, sample-fram
 surveymap [pweight=wtfinal], exclude(respid interviewer) nostrings
 ```
 
-**Three kinds of blank, and only one is skip logic.** An item is blank because the respondent was routed past it, or because a sample-frame column does not apply to them (in one real file every voter-file column was blank for all the panel respondents, who are never matched to the voter file), or because a split ballot asked them the other version. The first is what the map is for; the other two should be excluded. The detector reports what the data shows, so read a detected gate as a claim to check.
+**A blank is not always skip logic.** An item is blank because the respondent was routed past it, or because a sample-frame column does not apply to them (in one real file every voter-file column was blank for all the panel respondents, who are never matched to the voter file), or because a split ballot asked them the other version. The first is what the map is for; the other two should be excluded. The detector reports what the data shows, so read a detected gate as a claim to check.
 
 ## Weights
 
@@ -117,11 +117,44 @@ Lanes always partition the sample: the categories you kept, one **other** lane f
 
 The lanes open where the gate's questions are, not necessarily in the next column. A party question asked early can decide primary-turnout questions much later, and the lanes belong where those questions sit; the map heads each block with **split by party** so you always know which question opened it.
 
+**Gating on a continuous item.** Age in years has too many values to be a lane, so you say where to cut it:
+
+```stata
+surveymap, branch(age = cut(25 35 45 65))   // bands at the breaks you name
+surveymap, branch(hhinc = q(4))             // quartile bands
+```
+
+There is deliberately no default cut. A break chosen by software becomes a stated fact in a figure somebody else reuses, and where to divide age is a decision about the population you are describing, so you make it and the journal records what you chose. Nobody falls outside the bands: everyone below the first break belongs to the first lane and everyone at or above the last belongs to the top one. That is where this differs from `egen cut, at()`, which leaves both tails missing; lanes that dropped the tails would no longer add up to the sample.
+
 With no `branch()`, the two questions that route the most respondents are drawn, and the receipt names them so you can override with a gate you actually care about.
 
 <img width="820" alt="surveymap lanes split by party" src="images/surveymap_lanes.png" />
 
 *Split by party. Democrats answer the Democratic primary question and are routed around the Republican one; Republicans the reverse; Independents answer both. The two smallest categories pool into **other**, and people who would not give a party form their own lane. The five lanes sum to the sample, and they rejoin the spine at the dot.*
+
+## Splitting by what the respondent did
+
+`branch()` splits the map by an answer, so the lanes say what Republicans did and what Democrats did. `profile()` splits it by something the respondent did while answering, so the lanes say what the people who left items blank did. Reach for it when your question is whether nonresponse sits with one kind of respondent rather than spread evenly, and you want to see *where* along the instrument it happened.
+
+```stata
+surveymap, profile(declined)                  // % of asked items left unanswered
+surveymap, profile(declined = cut(10 25))     // breaks read as percentages
+surveymap, profile(refused), refusedcode(.b)  // the survey's own refusal code
+surveymap, profile(breakoff)                  // where they stopped answering
+surveymap, profile(asked = q(4))              // how far the routing carried them
+```
+
+**Why the first three are shares and not counts.** Skip logic asks different respondents different numbers of questions, so a Democrat and a Republican on a split-ballot instrument have different denominators. A count of declines is not comparable between them and a share is, which is why these divide by the items each respondent was actually asked. An item a skip routed around is in neither the numerator nor the denominator: counting it as a decline would make a well-behaved respondent on a long branch look like a bad one. NCES Statistical Standard 1-3-5 and the AAPOR *Standard Definitions* (10th ed., 2023) both define the item base this way.
+
+**Where the default splits.** For a share the default cuts at zero and nowhere else, giving you **none** and **at least one**. Zero is the only boundary on this measure that is not a judgement call, and a threshold like "declined more than 20 percent" is a decision about what counts as a lot. AAPOR is explicit that such a boundary belongs to the researcher and has to be declared, so `surveymap` will not supply one. Set your own with `cut()` and the journal records that you did.
+
+**What the map can and cannot claim.** A lane built this way is descriptive. It shows where answers were not obtained; whether that distorts an estimate depends on whether the people who declined differ on the thing being measured, and response data cannot establish that. Groves and Peytcheva's meta-analysis of 59 nonresponse bias studies found the nonresponse rate explains about 11% of the variance in bias, so a high rate is not by itself evidence of a biased estimate. The *amount* of declining inside a lane you defined by declining is also true by construction; the finding is *where* it happened. Every derived gate is drawn with its own shape and labelled `derived, not asked`, and the journal records the caveat.
+
+**Two conditions this refuses to build.** `profile(exaggerator)` returns a refusal with the reason. People who over-report a socially desirable answer resemble people who report it honestly on everything a survey records: Ansolabehere and Hersh's fifty-state vote validation found over-reporters look like voters on demographics and attitudes alike. A flag built from the answers alone reproduces the profile of the behaviour rather than of the misreporting, and labels older, better-educated, more engaged respondents as liars. Measuring it takes an external record to validate against, or an instrument designed for it: a list experiment, randomised response, or planted foils.
+
+`profile(straightlining)` is refused for a different reason. Non-differentiation is measurable, but only inside a battery you name, and only where answering the same way down it would be implausible. Where it is plausible, Schonlau and Toepoel found 15 to 40% of respondents do it honestly. It is also more common among respondents with less schooling, so a lane built on it is partly a lane built on education. A survey file does not record which items share a response scale, so this package does not guess.
+
+What it shows you instead is `profile(refused)` against `profile(dontknow)`. Shoemaker, Eichholz and Skewes found don't-know associated with the cognitive effort a question demands, and refusal associated with effort *and* with how sensitive the question is. Refusals stacking on an income block is evidence about sensitivity; don't-knows spread across an attitude battery is evidence about burden. Those point at different fixes, which is why the package keeps them apart instead of adding them together.
 
 ## It renders on GitHub, too
 
@@ -153,6 +186,54 @@ flowchart LR
   class n4 smwarn;
 ```
 
+
+`layout(vertical)` writes the same map turned on its side, with one `subgraph` swimlane per lane. A report page scrolls down, so this is usually the one you want in a document; the horizontal default suits a slide.
+
+```mermaid
+flowchart TB
+  accTitle: surveymap flow of the vote-turnout branch
+  accDescr {
+    1,200 respondents, 6 items, 1 gate. Items run top to bottom in questionnaire order; a gate fans the sample into lanes that rejoin the spine at the end of its segment. A dashed node is a cell the lane was routed around. Two exclamation marks flag a warning.
+  }
+  classDef default fill:#ffffff,stroke:#5a5a5a,color:#1a1a1a,stroke-width:1px;
+  classDef smghost fill:#fbfbfb,stroke:#b0b0b0,stroke-dasharray: 5 4,color:#8a8a8a,stroke-width:1px;
+  classDef smwarn fill:#ffffff,stroke:#4a6d8c,stroke-width:2px,color:#1a1a1a;
+  classDef smgate fill:#eef2f6,stroke:#4a6d8c,stroke-width:1.5px,color:#1a1a1a;
+  n1["q1_consent<br/>1,200 (100.0%)"]
+  n2["q3_party<br/>1,074 (89.5%)<br/>!! nonresp 87"]
+  n3{{"q5_voted<br/>1,133 (94.4%)"}}
+  subgraph SG3x1["q5_voted = No · 533"]
+    direction TB
+  n4v1["q6_whovote<br/>skipped"]
+  n5v1["q7_whynot<br/>507 (95.1%)"]
+  end
+  subgraph SG3x2["q5_voted = Yes · 600"]
+    direction TB
+  n4v2["q6_whovote<br/>578 (96.3%)"]
+  n5v2["q7_whynot<br/>skipped"]
+  end
+  subgraph SG3x3["q5_voted = no answer · 67"]
+    direction TB
+  n4v3["q6_whovote<br/>skipped"]
+  n5v3["q7_whynot<br/>skipped"]
+  end
+  n6["q8_approve<br/>1,053 (87.8%)<br/>!! nonresp 108"]
+  n1 --> n2
+  n2 --> n3
+  n3 --> n4v1
+  n4v1 --> n5v1
+  n5v1 --> n6
+  n3 --> n4v2
+  n4v2 --> n5v2
+  n5v2 --> n6
+  n3 --> n4v3
+  n4v3 --> n5v3
+  n5v3 --> n6
+  class n3 smgate;
+  class n4v1,n5v2,n4v3,n5v3 smghost;
+  class n2,n6 smwarn;
+```
+
 ## How routing is found
 
 There is no questionnaire spec in a `.dta` file, so `surveymap` reads routing out of the answers. A category is recorded as routing people around a later item when almost nobody in that lane answered it while the other lanes did: at most 2% inside, at least 50% outside. `detect(# #)` moves both thresholds.
@@ -181,6 +262,15 @@ surveymap draw, export(png) saving(figures/flow)      // a figure for a paper
 ```
 
 Items run left to right on a spine, each box carrying the name, the label, and the count and percent who answered, with `!!` on items a lot of people declined. Where a gate splits the sample the spine fans into lanes; a dashed grey box is an item that lane was routed around. The lanes rejoin at a dot and the spine continues. Hover any box for its full record.
+
+**Which way it runs.** `layout(vertical)` turns the map on its side: items run down the page and a gate spreads its lanes across it, one column per lane.
+
+```stata
+surveymap draw, layout(vertical) saving(flow_tall.html) replace
+surveymap draw, export(mermaid) layout(vertical) saving(flow_tall) replace
+```
+
+Use it when the map is going into a report or a README, because a page scrolls down and a long instrument is taller than any screen is wide. The horizontal default suits a slide and a wide monitor. In mermaid the vertical map draws each lane as a labelled `subgraph`, so the grouping is drawn rather than inferred from where the boxes sit. Both layouts read the same journal, so you can write one of each without rescanning.
 
 The page has no height cap and scrolls sideways, because a survey is wider than it is tall. The `embed` fragment is scoped so it cannot restyle the page you drop it into, and the package ships the check that proves it (`tests/embedcheck/check_embed_scoping.py`), which refuses a fragment carrying an unscoped selector, a script, or a page wrapper.
 
@@ -237,7 +327,7 @@ A varlist chooses which items to map; the columns keep their dataset order eithe
 
 `surveymap` draws boxes and lanes because a survey node has to show more than a width: the item, its label, how many were asked, how many answered, how many declined. These draw flows in other shapes and are the better tool when that is the shape you want.
 
-- [`sankey`](https://github.com/asjadnaqvi/stata-sankey) and `alluvial` (Naqvi): ribbons whose width is the count, from `from`/`to`/`value` data. Excellent for two or three transitions; a survey has too many columns and too much per node for a ribbon to show.
+- [`sankey`](https://github.com/asjadnaqvi/stata-sankey) and `alluvial` (Naqvi): ribbons whose width is the count, from `from`/`to`/`value` data, as mermaid's own [`sankey-beta`](https://mermaid.js.org/syntax/sankey.html) does from three CSV columns. Reach for one of them when two or three transitions are the whole story. `surveymap` does not encode counts as widths, for two reasons worth knowing before you go looking for the option. A ribbon diagram invites the reader to expect the widths at a node to add up, and on a questionnaire they do not: the people who declined an item are a gap the eye reads as attrition already explained. And on a 15 to 40 item instrument the smallest flows fall below a pixel, so a path taken by nobody disappears, which on a QC map is usually the finding you most wanted.
 - [`flowchart`](https://ideas.repec.org/c/boc/bocode/s458387.html) (Dodd): CONSORT and PRISMA subject-disposition figures as LaTeX PGF/TikZ. Needs LaTeX, and you supply the counts.
 - [`direct_flow`](https://rlpacheco.github.io/direct_flow) (Pacheco, Martimbianco and Riera): systematic-review study-selection flowcharts, again from counts you supply.
 - `statflow`: an Excel sheet of logic, variable, statistic and value, with the value column rewritten from the data. You fix the shape; it fills the numbers.

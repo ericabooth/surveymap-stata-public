@@ -2,6 +2,53 @@
 
 All notable changes to surveymap. Dates are the day the work landed locally.
 
+## 0.4.0 - 2026-08-24
+
+### Added
+
+- `layout(vertical)` draws the map top to bottom in both HTML and mermaid,
+  with one swimlane `subgraph` per lane. A report page scrolls down, so a long
+  instrument fits it better on its side. Both layouts read the same journal.
+- `branch()` bands a continuous item on the fly: `cut(25 35 45 65)` for breaks
+  you name, `q(4)` for quantiles. Neither drops anybody, unlike
+  `egen cut, at()`, so the lanes still add up to the sample. There is no
+  default cut, because where to divide age is a decision about the population
+  being described.
+- `profile()` splits the map by what a respondent did rather than by what they
+  answered: `declined`, `refused`, `dontknow`, `asked`, `answered` and
+  `breakoff`. The first three are shares of the items each respondent was
+  actually asked, since skip logic asks different people different numbers of
+  questions and a raw count is not comparable between them. `refusedcode()`
+  and `dkcode()` name the survey's own codes rather than guessing them.
+- The default share split is at zero and nowhere else, giving `none` and
+  `at least one`. Any other threshold is a decision about what counts as a
+  lot, and the journal records when a default rather than the analyst chose
+  the bands.
+- A derived gate is drawn with its own node shape and labelled
+  `derived, not asked`, so a reader cannot take it for a question somebody
+  was asked. Its caveat travels in the journal, including the warning that a
+  weighted figure inside a behaviour-defined lane describes the weighted
+  sample rather than a population subgroup.
+- `profile(exaggerator)` and `profile(careless)` are refused with the reason
+  and the citations. Nothing in a set of answers separates someone who
+  over-reports a socially desirable answer from someone who reports it
+  honestly, and a flag built from responses alone would reproduce the
+  demographics of the behaviour instead.
+
+### Fixed
+
+- Lane order in every mermaid map. Sibling subgraph order depends on whether
+  the lanes rejoin the spine: with a merge the declaration order is kept,
+  without one mermaid reverses it. A banded gate could therefore read right to
+  left. The renderer now compensates only in the case that needs it, and the
+  battery pins both.
+- A value label read outside the frame it was defined in came back empty, so a
+  banded gate's lanes were labelled with their band numbers.
+
+### Testing
+
+- 236 checks, passing on Stata 16.1 and 19.5.
+
 ## 0.3.0 — 2026-08-24
 
 ### Added
