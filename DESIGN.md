@@ -39,7 +39,10 @@ nothing).  $SM_LASTJ remembers the last journal for draw/export/receipt.
     branch(party = 1 3 4)         only these; the rest pool into "other"
     branch(party = 1/3 5)         numlists work
     branch(party = 1 3, voted = 1)   two gates in one option
-    branch(party) branch(voted)      or repeated options
+    branch(party, voted)             two gates, every category of each
+
+-syntax- cannot repeat an option, so several gates go in ONE branch(),
+separated by commas.
 
 A declared gate's lanes run to the next declared gate or the end.  Without
 branch(), the two detected gates that route around the most respondents are
@@ -47,6 +50,12 @@ drawn (a note row and the receipt say which, and how to override).  String
 gates are declined with a warning (survey gates are coded numeric).
 
 ## Pruning (defaults, all changeable at scan OR draw/export time)
+
+prune() at scan time records the rule the readers inherit; the reader is
+what folds, so one journal can be drawn at several prune settings without a
+rescan.  Categories left out of an explicit branch(var = ...) keep list are
+marked in the journal, because that is a statement about what the lanes are
+and not a noise filter.
 
 prune(5) = hide categories under 5% of scope; minn(30) = or under 30
 respondents; maxcats(6) = keep the largest 6, pool the rest.  Pruned

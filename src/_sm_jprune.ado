@@ -92,6 +92,11 @@ program define _sm_jprune, sclass
         quietly gen double sm_pct = real(pct_answered)
         * ---- decide, per gate, which categories fold --------------------
         quietly gen byte sm_fold = 0
+        * the scan may already have marked a category to fold: branch(g = 1 3)
+        * means the categories left out of the list are not lanes.  That is a
+        * scan-time decision and it is honoured here alongside the read-time
+        * rules; noprune skips this program and shows everything.
+        quietly replace sm_fold = 1 if class == "cat" & pooled == "1"
         quietly levelsof gatevar if class == "cat", local(gates) clean
         foreach g of local gates {
             * rank real categories by n (noanswer handled after)
@@ -148,8 +153,10 @@ program define _sm_jprune, sclass
         foreach g of local fg {
             quietly levelsof value if sm_fold & gatevar == "`g'", local(fv)
             foreach v of local fv {
-                quietly replace sm_isfold = 1 if gatevar == "`g'" & value == `v' ///
-                    & inlist(class, "cat", "cell")
+                * value is a string column; the token must be quoted or a
+                * numeric-looking level dies on a type mismatch (r109)
+                quietly replace sm_isfold = 1 if gatevar == "`g'" ///
+                    & value == `"`v'"' & inlist(class, "cat", "cell")
             }
         }
         * numeric working copies for the sums

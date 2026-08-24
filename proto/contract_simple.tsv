@@ -1,0 +1,6 @@
+seq	class	var	position	vallabel	value	gatevar	n_asked	n_answered	n_nonresp	n_sysmiss	pct_answered	rate	status	gate	gated_by	pooled	type	severity	flags
+1	survey	.	4	.	.	.	1200	.	.	.	.	.	.	.	.	.	.	note	prune=5 minn=30 maxcats=6 dlow=2 dhigh=50 nonresp=none
+2	item	q8_approve	1	Approval of the governor	.	.	1200	1053	108	39	87.8	.	open	0	.	.	byte	note	.
+3	item	q9_econ	2	Rating of economic conditions today	.	.	1200	1088	73	39	90.7	.	open	0	.	.	byte	note	.
+4	item	q12_ideol	3	Ideological self-placement	.	.	1200	1081	80	39	90.1	.	open	0	.	.	byte	note	.
+5	item	q13_income	4	Total household income last year	.	.	1200	941	220	39	78.4	.	open	0	.	.	byte	note	.
