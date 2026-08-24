@@ -1,4 +1,4 @@
-*! version 0.4.2  24aug2026  Eric Booth
+*! version 0.4.3  24aug2026  Eric Booth
 *! surveymap: map how respondents moved through a survey
 *!
 *! The data in memory are a survey: one row per respondent, one column per

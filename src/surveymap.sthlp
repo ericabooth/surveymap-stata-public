@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 0.4.2  24aug2026  Eric Booth}{...}
+{* *! version 0.4.3  24aug2026  Eric Booth}{...}
 {vieweralsosee "datadictionary" "help datadictionary"}{...}
 {vieweralsosee "mergemap" "help mergemap"}{...}
 {vieweralsosee "tabulate" "help tabulate"}{...}
@@ -421,8 +421,9 @@ the last item, which is the same kind of boundary: it needs no judgement.{p_end}
 It shows where answers were not obtained; whether that distorts an estimate
 depends on whether the people who declined differ on the thing being measured,
 and response data cannot establish that. Groves and Peytcheva's meta-analysis
-of 59 nonresponse bias studies found the nonresponse rate explains about 11
-percent of the variance in bias, so a high rate is not by itself evidence of a
+of 59 nonresponse bias studies found the nonresponse rate is by itself a poor
+predictor of nonresponse bias, and Groves (2006) put the variance in bias it
+explains at about 11 percent. A high rate is not, on its own, evidence of a
 biased estimate. Note also that the {it:amount} of declining inside a lane you
 defined by declining is true by construction; the finding is {it:where} it
 happened.{p_end}
@@ -449,9 +450,10 @@ response, or the planted foils of the over-claiming technique.{p_end}
 {cmd:profile(straightlining)} is refused for a different reason. Non-differentiation
 is measurable, but only inside a battery you name, and only where answering the
 same way down the battery would be implausible. Where it is plausible, Schonlau
-and Toepoel found 15 to 40 percent of respondents do it honestly. It is also
-more common among respondents with less schooling, so a lane built on it is
-partly a lane built on education. A survey file does not record which items
+and Toepoel found 15 to 40 percent of respondents produce one, against under 2
+percent where it is implausible, and the index cannot tell those two apart. It
+is also more common among respondents with less schooling (Krosnick and Alwin
+1988), so a lane built on it is partly a lane built on education. A survey file does not record which items
 share a response scale, so this package does not guess.{p_end}
 
 {pstd}

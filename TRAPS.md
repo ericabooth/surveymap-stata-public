@@ -63,3 +63,26 @@
     different numbers of questions.  Anything respondent-level that counts
     items has to be divided by the items THAT respondent was asked, with
     system-missing (never shown) out of both numerator and denominator.
+23. A mermaid subgraph's own `direction` is ignored the moment ANY node in
+    it links outside the subgraph.  Every surveymap lane links out twice (up
+    to the gate, down to the merge), so the per-lane direction line was dead
+    code: the same map with the line present, absent, or set to the opposite
+    direction renders byte-identical PNG and SVG on mermaid-cli 11.16.0.
+24. Only a mermaid node ID named `end` breaks a flowchart; a quoted LABEL of
+    "end" is fine, including immediately before a subgraph's closing `end`.
+    The invariant that keeps this safe is that item names reach labels only,
+    never IDs (ids are machine-generated n1 / n2v1), and labels are always
+    quoted.  Do not relax either half.
+25. `n1---o3` with no spaces is lexed as the `---o` circle-edge into a new
+    node "3", not as a link to o3.  surveymap emits `-->` with spaces, so it
+    is safe; anything that ever emits the bare `---` form must space it.
+26. rankSpacing is NOT a free win.  Tightening it from 50 to 35 takes ~12% off
+    the printed height, but on a map with lane subgraphs it pulls the fan
+    edges down through the lane titles, drawing a line through
+    "gate = category - n".  Measure legibility, not just pixel height: the
+    probe that recommended it measured height and missed this.
+27. Verify a citation before shipping it.  "Groves and Peytcheva (2008) found
+    the nonresponse rate explains 11% of the variance in bias" conflated two
+    real sources: the 59-study meta-analysis is theirs, but the 11% is
+    Groves (2006), across 235 estimates in 30 studies.  Both halves were
+    plausible and the sentence was wrong.

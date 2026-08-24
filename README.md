@@ -152,11 +152,11 @@ surveymap, profile(asked = q(4))              // how far the routing carried the
 
 **Where the default splits.** For a share the default cuts at zero and nowhere else, giving you **none** and **at least one**. Zero is the only boundary on this measure that is not a judgement call, and a threshold like "declined more than 20 percent" is a decision about what counts as a lot. AAPOR is explicit that such a boundary belongs to the researcher and has to be declared, so `surveymap` will not supply one. Set your own with `cut()` and the journal records that you did.
 
-**What the map can and cannot claim.** A lane built this way is descriptive. It shows where answers were not obtained; whether that distorts an estimate depends on whether the people who declined differ on the thing being measured, and response data cannot establish that. Groves and Peytcheva's meta-analysis of 59 nonresponse bias studies found the nonresponse rate explains about 11% of the variance in bias, so a high rate is not by itself evidence of a biased estimate. The *amount* of declining inside a lane you defined by declining is also true by construction; the finding is *where* it happened. Every derived gate is drawn with its own shape and labelled `derived, not asked`, and the journal records the caveat.
+**What the map can and cannot claim.** A lane built this way is descriptive. It shows where answers were not obtained; whether that distorts an estimate depends on whether the people who declined differ on the thing being measured, and response data cannot establish that. Groves and Peytcheva's meta-analysis of 59 nonresponse bias studies found the nonresponse rate is by itself a poor predictor of nonresponse bias, and Groves (2006) put the variance in bias it explains at about 11%. A high rate is not, on its own, evidence of a biased estimate. The *amount* of declining inside a lane you defined by declining is also true by construction; the finding is *where* it happened. Every derived gate is drawn with its own shape and labelled `derived, not asked`, and the journal records the caveat.
 
 **Two conditions this refuses to build.** `profile(exaggerator)` returns a refusal with the reason. People who over-report a socially desirable answer resemble people who report it honestly on everything a survey records: Ansolabehere and Hersh's fifty-state vote validation found over-reporters look like voters on demographics and attitudes alike. A flag built from the answers alone reproduces the profile of the behaviour rather than of the misreporting, and labels older, better-educated, more engaged respondents as liars. Measuring it takes an external record to validate against, or an instrument designed for it: a list experiment, randomised response, or planted foils.
 
-`profile(straightlining)` is refused for a different reason. Non-differentiation is measurable, but only inside a battery you name, and only where answering the same way down it would be implausible. Where it is plausible, Schonlau and Toepoel found 15 to 40% of respondents do it honestly. It is also more common among respondents with less schooling, so a lane built on it is partly a lane built on education. A survey file does not record which items share a response scale, so this package does not guess.
+`profile(straightlining)` is refused for a different reason. Non-differentiation is measurable, but only inside a battery you name, and only where answering the same way down it would be implausible. Where a straight line is a plausible set of answers, Schonlau and Toepoel found 15 to 40% of respondents produce one, against under 2% where it is implausible; the index cannot tell those two apart. Non-differentiation is also more common among respondents with less schooling (Krosnick and Alwin 1988), and attention-check failure correlates with substantive characteristics in the same way (Berinsky, Margolis and Sances 2014), so a lane built on it is partly a lane built on education. A survey file does not record which items share a response scale, so this package does not guess.
 
 What it shows you instead is `profile(refused)` against `profile(dontknow)`. Shoemaker, Eichholz and Skewes found don't-know associated with the cognitive effort a question demands, and refusal associated with effort *and* with how sensitive the question is. Refusals stacking on an income block is evidence about sensitivity; don't-knows spread across an attitude battery is evidence about burden. Those point at different fixes, which is why the package keeps them apart instead of adding them together.
 
@@ -207,17 +207,14 @@ flowchart TB
   n2["q3_party<br/>1,074 (89.5%)<br/>!! nonresp 87"]
   n3{{"q5_voted<br/>1,133 (94.4%)"}}
   subgraph SG3x1["q5_voted = No · 533"]
-    direction TB
   n4v1["q6_whovote<br/>skipped"]
   n5v1["q7_whynot<br/>507 (95.1%)"]
   end
   subgraph SG3x2["q5_voted = Yes · 600"]
-    direction TB
   n4v2["q6_whovote<br/>578 (96.3%)"]
   n5v2["q7_whynot<br/>skipped"]
   end
   subgraph SG3x3["q5_voted = no answer · 67"]
-    direction TB
   n4v3["q6_whovote<br/>skipped"]
   n5v3["q7_whynot<br/>skipped"]
   end
@@ -360,7 +357,7 @@ cd tests
 do surveymap_pkgtest.do
 ```
 
-239 checks across 20 blocks, run on Stata 16.1 and on the current release, covering the fixture's routing truths, the branch parser, banding a continuous gate, the derived conditions and the ones the package refuses to build, lane partitioning, pruning at scan and at draw time, weights, `exclude()`/`nostrings`, `verify()`, both layouts of all four renderers, the Excel tracker, the fragment's scoping guarantee, and both directions of the `datadictionary` bridge.
+281 checks across 23 blocks, run on Stata 16.1 and on the current release, covering the fixture's routing truths, the branch parser, banding a continuous gate, the derived conditions and the ones the package refuses to build, the conservation arithmetic, the drawn verify disagreement, lane partitioning, pruning at scan and at draw time, weights, `exclude()`/`nostrings`, `verify()`, both layouts of all four renderers, the Excel tracker, the fragment's scoping guarantee, and both directions of the `datadictionary` bridge.
 
 The gallery is a second, coarser test: it rebuilds every example artifact from one fake survey and counts its own failures, because a Stata do-file can abort and still leave the runner reporting success.
 

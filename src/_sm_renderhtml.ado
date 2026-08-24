@@ -1,4 +1,4 @@
-*! version 0.4.2  24aug2026  Eric Booth
+*! version 0.4.3  24aug2026  Eric Booth
 *! _sm_renderhtml -- render a surveymap journal (TSV, 20 columns) as HTML
 *! with one inline SVG flow map.
 *!

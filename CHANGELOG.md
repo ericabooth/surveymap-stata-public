@@ -2,6 +2,44 @@
 
 All notable changes to surveymap. Dates are the day the work landed locally.
 
+## 0.4.3 - 2026-08-24
+
+### Fixed
+
+- A citation error that was live in the README and the help file. The
+  59-study meta-analysis is Groves and Peytcheva (2008), but the "explains
+  about 11% of the variance in bias" figure is Groves (2006), across 235
+  estimates in 30 studies. Both halves were real and the sentence joining
+  them was not. Both files now attribute each half correctly.
+- The straightlining refusal said Schonlau and Toepoel found 15 to 40 percent
+  of respondents straightline "honestly". They measured prevalence where a
+  straight line was a *plausible* set of answers, which is not the same
+  claim: a plausible straight line can still be satisficing, which is exactly
+  why the bound is a bound. The message now says what they measured, adds the
+  under-2% figure for the implausible case, and attributes the education
+  correlation to Krosnick and Alwin rather than leaving it inside their
+  sentence.
+
+### Changed
+
+- Mermaid edges are drawn straight rather than as splines. A path-following
+  diagram is read by tracing an edge, and uniform curvature measurably slows
+  that down and costs accuracy (Xu et al. 2012, IEEE TVCG 18(12):2449-2456);
+  their selectively-curved condition was no better than straight.
+- Removed the per-lane `direction` line from mermaid output. A subgraph's own
+  direction is ignored as soon as any node in it links outside, and every lane
+  links out twice, so the line never did anything: the same map renders
+  byte-identical with it present, absent, or reversed.
+- `rankSpacing` was tested and deliberately left at its default. Tightening it
+  saves about 12% of printed height but pulls the fan edges through the lane
+  titles, so a lane heading ends up with a line drawn through it.
+
+### Testing
+
+- 281 checks, passing on Stata 16.1 and 19.5. The battery now pins the absence
+  of the direction line and the presence of the straight-edge setting, so a
+  change in either shows up as a failure rather than silently.
+
 ## 0.4.2 - 2026-08-24
 
 ### Added

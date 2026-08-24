@@ -1,4 +1,4 @@
-*! version 0.4.2  24aug2026  Eric Booth
+*! version 0.4.3  24aug2026  Eric Booth
 *! _sm_rendertext -- emit a mermaid flowchart LR from a surveymap journal
 *! (TSV, 20 columns).
 *!
@@ -310,8 +310,6 @@ program define _sm_rendertext
                 _srt_n `"`ln_`gp'_`k''"'
                 local ++nnd
                 local nd`nnd' `"  subgraph SG`gp'x`k'["`v_`gp'' = `slab' `=uchar(183)' `s(o)'"]"'
-                local ++nnd
-                local nd`nnd' "    direction `dir'"
                 local pc ""
                 forvalues q = `q1'/`qL' {
                     if `"`cS_`gp'_`k'_`q''"' == "" continue
@@ -447,7 +445,17 @@ program define _sm_rendertext
         local tv "`tv','primaryBorderColor':'#606060','lineColor':'#606060'"
         local tv "`tv','secondaryColor':'#f4f4f4','tertiaryColor':'#fafafa'"
         local tv "`tv','edgeLabelBackground':'#ffffff','titleColor':'#202020'"
-        file write `fh' ("%%{init: {'theme':'base','themeVariables':{`tv'}}}%%") _n
+        * A path-following diagram is read by tracing an edge, and uniform
+        * curvature measurably slows that down and costs accuracy (Xu et al.
+        * 2012, IEEE TVCG 18(12):2449-2456); their selectively-curved
+        * condition was no better than straight, so a spline buys nothing
+        * here.  rankSpacing is deliberately left alone: tightening it to 35
+        * takes about 12 percent off the printed height, but on a map with
+        * lane subgraphs it pulls the fan edges down through the lane titles,
+        * so "q5_voted = no answer" ends up with a line drawn through it.
+        * Height is worth less than a legible label.
+        file write `fh' ("%%{init: {'theme':'base','themeVariables':{`tv'}," + ///
+            "'flowchart':{'curve':'linear'}}}%%") _n
         file write `fh' ("%% `prov'") _n
         file write `fh' ("flowchart `dir'") _n
         file write `fh' ("  accTitle: `acct'") _n

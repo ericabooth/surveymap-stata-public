@@ -897,8 +897,22 @@ local nsg = r(n)
 sm_assert `=(`nsg' >= 5)' "every lane with cells becomes a subgraph"
 capture sm_fcount m19v.mmd "  end"
 sm_assert `=(r(n) == `nsg')' "every subgraph is closed"
-capture sm_fcount m19v.mmd "    direction TB"
-sm_assert `=(r(n) == `nsg')' "each subgraph carries the drawing direction"
+* A subgraph's own direction is ignored the moment any node in it links
+* outside, and every lane links out twice: up to the gate and down to the
+* merge.  Rendering the same map with the line present, absent, and set to the
+* opposite direction gives byte-identical PNG and SVG on mermaid-cli 11.16.0,
+* so the line was dead code that only ever restated the parent's direction.
+capture sm_fcount m19v.mmd "    direction "
+sm_assert `=(r(n) == 0)' "no subgraph carries a direction line, which mermaid would ignore"
+capture sm_fcount m19v.mmd "flowchart TB"
+sm_assert `=(r(n) == 1)' "the parent flowchart still declares the direction"
+
+* Straight edges, because a path-following diagram is read by tracing one and
+* uniform curvature measurably hurts that (Xu et al. 2012).
+capture sm_fcount m19v.mmd "'curve':'linear'"
+sm_assert `=(r(n) == 1)' "the init directive asks for straight edges"
+capture sm_fcount m19v.mmd "rankSpacing"
+sm_assert `=(r(n) == 0)' "rank spacing is left alone, so fan edges stay clear of the lane titles"
 * the lane label belongs to the subgraph, so the edge into it is not labelled
 * with the same text twice
 capture sm_fcount m19v.mmd `"-- ""'

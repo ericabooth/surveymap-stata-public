@@ -1,4 +1,4 @@
-*! version 0.4.2  24aug2026  Eric Booth
+*! version 0.4.3  24aug2026  Eric Booth
 *! Read a profile() spec: a respondent-level condition to split the map by.
 *!
 *! A branch() gate splits the map by an ANSWER, so the lanes say what
@@ -98,10 +98,12 @@ program define _sm_profile, sclass
         di as err "    Non-differentiation is measurable, but only inside a battery"
         di as err "    the analyst names, and only where answering the same way down"
         di as err "    the battery would be implausible: where it is plausible, 15 to"
-        di as err "    40 percent of respondents do it honestly (Schonlau and Toepoel"
-        di as err "    2015).  It is also more common among respondents with less"
-        di as err "    schooling, so a lane built on it is partly a lane built on"
-        di as err "    education (Krosnick and Alwin 1988; Berinsky et al. 2014)."
+        di as err "    40 percent of respondents produce one, against under 2 percent"
+        di as err "    where it is implausible, and no index separates the two"
+        di as err "    (Schonlau and Toepoel 2015).  It is also more common among"
+        di as err "    respondents with less schooling, so a lane built on it is partly"
+        di as err "    a lane built on education (Krosnick and Alwin 1988; Berinsky,"
+        di as err "    Margolis and Sances 2014)."
         di as err "    This package does not ship it, because a survey file does not"
         di as err "    say which items share a scale."
         exit 198
