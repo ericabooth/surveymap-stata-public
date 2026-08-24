@@ -1,11 +1,11 @@
-*! version 0.4.4  24aug2026  Eric Booth
+*! version 0.4.5  24aug2026  Eric Booth
 *! _sm_rendertw : draw a surveymap journal (schema v2) as a native twoway
 *!            boxes-and-arrows figure, for a paper or a slide
 *!
 *! syntax:  _sm_rendertw using <journal.tsv>, saving(stub)
 *!              [maxnodes(#) name(text) noprovenance]
 *!
-*! Writes <stub>.png (width 2000) and <stub>.svg from one twoway call: boxes
+*! Writes <stub>.svg and <stub>.png (width 2000) from one twoway call: boxes
 *! from pci segments, arrows from pcarrowi, labels from text().  Items run
 *! left to right; a gate fans the sample into lanes that rejoin the spine,
 *! and a cell the lane was routed around is drawn dashed and grey.
@@ -416,12 +416,49 @@ program define _sm_rendertw
         scheme(s1color)                                       ///
         xsize(`xsize') ysize(`ysize') name(_srw, replace)
 
-    qui graph export `"`saving'.png"', width(2000) replace
+    * Vector first.  The SVG writer accepts every graph this program builds;
+    * the bitmap writer does not (see below), and writing the vector before
+    * attempting the bitmap means a bitmap failure can never leave the user
+    * with nothing.
     qui graph export `"`saving'.svg"', replace
+
+    * Stata's bitmap engine sometimes refuses a graph the vector writers
+    * accept -- observed on macOS batch runs with text-heavy immediate-plot
+    * graphs like this one: graph export png returns 198 "failed to export
+    * to the specified format" and leaves a zero-byte file behind, while SVG
+    * and PDF export the same graph without complaint.  So: try the PNG,
+    * and when the engine refuses, remove the zero-byte remnant and rebuild
+    * the PNG from a PDF export with the system converter where one exists.
+    capture quietly graph export `"`saving'.png"', width(2000) replace
+    local prc = _rc
+    if `prc' {
+        capture erase `"`saving'.png"'
+        * the GUI reports c(os)=MacOSX but the console build reports Unix,
+        * so the reliable Mac test is the machine type
+        if "`c(os)'" == "MacOSX" | strpos("`c(machine_type)'", "Mac") {
+            capture quietly graph export `"`saving'.pdf"', replace
+            if !_rc {
+                shell /usr/bin/sips -s format png --resampleWidth 2000 "`saving'.pdf" --out "`saving'.png" > /dev/null 2>&1
+                capture confirm file `"`saving'.png"'
+                if !_rc {
+                    local prc 0
+                }
+                capture erase `"`saving'.pdf"'
+            }
+        }
+    }
     graph drop _srw
 
-    display as text "_sm_rendertw: wrote " as result "`saving'.png" ///
-        as text " and " as result "`saving'.svg" as text " (`ncol' columns)"
+    if `prc' {
+        display as text "_sm_rendertw: wrote " as result "`saving'.svg" ///
+            as text " (`ncol' columns). The bitmap engine refused the PNG" ///
+            " (graph export returned " as result `prc' as text ") and no" ///
+            " system converter was available; the SVG carries the figure."
+    }
+    else {
+        display as text "_sm_rendertw: wrote " as result "`saving'.png" ///
+            as text " and " as result "`saving'.svg" as text " (`ncol' columns)"
+    }
 end
 
 

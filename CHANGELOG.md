@@ -2,6 +2,28 @@
 
 All notable changes to surveymap. Dates are the day the work landed locally.
 
+## 0.4.5 (2026-08-24)
+
+Fixed: `surveymap draw, export(png)` could fail with r(198) "failed to export
+to the specified format" and leave a zero-byte `.png` behind. Stata's bitmap
+engine sometimes refuses a graph that the vector writers accept -- observed on
+macOS batch (console-mode) runs with the text-heavy immediate-plot graphs this
+renderer builds, at any item count, while `graph export` to SVG and PDF of the
+same graph succeeds. Because the PNG was written first and the failure was not
+trapped, the error also aborted the command before the SVG line, so the user
+got nothing at all.
+
+The renderer now writes the SVG first, so a bitmap failure can never leave the
+user empty-handed; traps the PNG attempt; removes the zero-byte remnant when
+the engine refuses; and on a Mac rebuilds the PNG from a PDF export through the
+system converter (`sips`), which handles the same graph without complaint. When
+no converter is available it says plainly that the SVG carries the figure
+instead of dying mid-command.
+
+One trap inside the fix, recorded in TRAPS.md: GUI Stata reports
+`c(os)` = "MacOSX" but the console build reports "Unix", so the Mac test reads
+`c(machine_type)`.
+
 ## 0.4.4 - 2026-08-24
 
 ### Added
