@@ -1,4 +1,4 @@
-*! version 0.4.5  24aug2026  Eric Booth
+*! version 0.4.6  24aug2026  Eric Booth
 *! _sm_renderhtml -- render a surveymap journal (TSV, 20 columns) as HTML
 *! with one inline SVG flow map.
 *!
@@ -294,7 +294,10 @@ program define _sm_renderhtml
     local BW   176
     local GAP  56
     local LH   14
-    local CH   54
+    * 68 rather than 54: a lane cell carries the item wording as a visible
+    * line (0.4.6), not only in the hover, because static exports and viewers
+    * that suppress svg titles have no hover at all
+    local CH   68
     local LGAP 22
     local LBUD 25
     local HBUD 23
@@ -464,21 +467,29 @@ program define _sm_renderhtml
                     * the item, not the lane, is what verify() disagreed about,
                     * so every lane that draws this item carries the mark
                     if `"`vd_`v_`q'''"' != "" local wname `"`wname' !?"'
+                    * the wording is drawn IN the cell, not only in the
+                    * hover: a reader should never have to look up what D8 is
+                    _srh_mell `HBUD' `"`lb_`q''"'
+                    local wlab `"`s(o)'"'
+                    if `"`wlab'"' == "." local wlab ""
                     if `"`st'"' == "skipped" {
                         _srh_rect `B' `lleft' `cy' `BW' `CH' gx
-                        _srh_wtext `B' `=`lleft'+8' `=`cy'+17' gt `"`wname'"'
-                        _srh_wtext `B' `=`lleft'+8' `=`cy'+31' gt `"skipped `=char(3)' routed around"'
+                        _srh_wtext `B' `=`lleft'+8' `=`cy'+15' gt `"`wname'"'
+                        _srh_wtext `B' `=`lleft'+8' `=`cy'+28' gt `"`wlab'"'
+                        _srh_wtext `B' `=`lleft'+8' `=`cy'+42' gt `"skipped `=char(3)' routed around"'
                     }
                     else if `"`st'"' == "partial" {
                         _srh_rect `B' `lleft' `cy' `BW' `CH' cx
-                        _srh_wtext `B' `=`lleft'+8' `=`cy'+17' bh `"`wname'"'
-                        _srh_wtext `B' `=`lleft'+8' `=`cy'+31' bn `"`cnf' answered"'
-                        _srh_wtext `B' `=`lleft'+8' `=`cy'+45' bf `"!! partial `crt'%"'
+                        _srh_wtext `B' `=`lleft'+8' `=`cy'+15' bh `"`wname'"'
+                        _srh_wtext `B' `=`lleft'+8' `=`cy'+28' bl `"`wlab'"'
+                        _srh_wtext `B' `=`lleft'+8' `=`cy'+42' bn `"`cnf' answered"'
+                        _srh_wtext `B' `=`lleft'+8' `=`cy'+56' bf `"!! partial `crt'%"'
                     }
                     else {
                         _srh_rect `B' `lleft' `cy' `BW' `CH' cx
-                        _srh_wtext `B' `=`lleft'+8' `=`cy'+17' bh `"`wname'"'
-                        _srh_wtext `B' `=`lleft'+8' `=`cy'+31' bn `"`cnf' (`crt'%)"'
+                        _srh_wtext `B' `=`lleft'+8' `=`cy'+15' bh `"`wname'"'
+                        _srh_wtext `B' `=`lleft'+8' `=`cy'+28' bl `"`wlab'"'
+                        _srh_wtext `B' `=`lleft'+8' `=`cy'+42' bn `"`cnf' (`crt'%)"'
                     }
                     file write `B' `"</g>"' _n
                     local pcy = `cy' + `CH'
@@ -633,21 +644,29 @@ program define _sm_renderhtml
                     * the item, not the lane, is what verify() disagreed about,
                     * so every lane that draws this item carries the mark
                     if `"`vd_`v_`q'''"' != "" local wname `"`wname' !?"'
+                    * the wording is drawn IN the cell, not only in the
+                    * hover: a reader should never have to look up what D8 is
+                    _srh_mell `HBUD' `"`lb_`q''"'
+                    local wlab `"`s(o)'"'
+                    if `"`wlab'"' == "." local wlab ""
                     if `"`st'"' == "skipped" {
                         _srh_rect `B' `cx' `ltop' `BW' `CH' gx
-                        _srh_wtext `B' `=`cx'+8' `=`ltop'+17' gt `"`wname'"'
-                        _srh_wtext `B' `=`cx'+8' `=`ltop'+31' gt `"skipped `=char(3)' routed around"'
+                        _srh_wtext `B' `=`cx'+8' `=`ltop'+15' gt `"`wname'"'
+                        _srh_wtext `B' `=`cx'+8' `=`ltop'+28' gt `"`wlab'"'
+                        _srh_wtext `B' `=`cx'+8' `=`ltop'+42' gt `"skipped `=char(3)' routed around"'
                     }
                     else if `"`st'"' == "partial" {
                         _srh_rect `B' `cx' `ltop' `BW' `CH' cx
-                        _srh_wtext `B' `=`cx'+8' `=`ltop'+17' bh `"`wname'"'
-                        _srh_wtext `B' `=`cx'+8' `=`ltop'+31' bn `"`cnf' answered"'
-                        _srh_wtext `B' `=`cx'+8' `=`ltop'+45' bf `"!! partial `crt'%"'
+                        _srh_wtext `B' `=`cx'+8' `=`ltop'+15' bh `"`wname'"'
+                        _srh_wtext `B' `=`cx'+8' `=`ltop'+28' bl `"`wlab'"'
+                        _srh_wtext `B' `=`cx'+8' `=`ltop'+42' bn `"`cnf' answered"'
+                        _srh_wtext `B' `=`cx'+8' `=`ltop'+56' bf `"!! partial `crt'%"'
                     }
                     else {
                         _srh_rect `B' `cx' `ltop' `BW' `CH' cx
-                        _srh_wtext `B' `=`cx'+8' `=`ltop'+17' bh `"`wname'"'
-                        _srh_wtext `B' `=`cx'+8' `=`ltop'+31' bn `"`cnf' (`crt'%)"'
+                        _srh_wtext `B' `=`cx'+8' `=`ltop'+15' bh `"`wname'"'
+                        _srh_wtext `B' `=`cx'+8' `=`ltop'+28' bl `"`wlab'"'
+                        _srh_wtext `B' `=`cx'+8' `=`ltop'+42' bn `"`cnf' (`crt'%)"'
                     }
                     file write `B' `"</g>"' _n
                     local pcx = `cx' + `BW'

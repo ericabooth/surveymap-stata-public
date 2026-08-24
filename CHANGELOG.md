@@ -2,6 +2,19 @@
 
 All notable changes to surveymap. Dates are the day the work landed locally.
 
+## 0.4.6 (2026-08-24)
+
+The item wording is now drawn inside the boxes, not only in the hover. Lane
+cells (the fanned follow-up items a gate routes people through) previously
+showed the variable name and counts alone, so a reader of a static export, a
+print-out, or a viewer that suppresses svg titles had to look up what D8 was.
+The HTML renderer's lane cells gain a visible wording line (cells grew from 54
+to 68px to carry it), in both layouts; the twoway/PNG renderer appends the
+wording to the name line on every box, spine and lane cells alike, skipped
+cells included. Wording comes from the journal's existing vallabel column, so
+old journals gain the labels on redraw with no rescan. Items whose variable
+carried no label render exactly as before.
+
 ## 0.4.5 - 2026-08-24
 
 ### Fixed

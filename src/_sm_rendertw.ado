@@ -1,4 +1,4 @@
-*! version 0.4.5  24aug2026  Eric Booth
+*! version 0.4.6  24aug2026  Eric Booth
 *! _sm_rendertw : draw a surveymap journal (schema v2) as a native twoway
 *!            boxes-and-arrows figure, for a paper or a slide
 *!
@@ -93,6 +93,7 @@ program define _sm_rendertw
         if `p' >= . continue
         local K = max(`K', `p')
         frame `J': local v_`p'  = var[`i']
+        frame `J': local lb_`p' = vallabel[`i']
         frame `J': local na_`p' = n_asked[`i']
         frame `J': local nn_`p' = n_answered[`i']
         frame `J': local nr_`p' = n_nonresp[`i']
@@ -307,13 +308,25 @@ program define _sm_rendertw
                     if `"`st'"' == "skipped" {
                         local dashsegs `"`dashsegs' `lt' `cx' `lt' `xr' `lb' `cx' `lb' `xr' `lt' `cx' `lb' `cx' `lt' `xr' `lb' `xr'"'
                         _srw_ell 15 `"`v_`q''"'
-                        local txts `"`txts' text(`= `lt' - 1.0' `= `cx' + 0.5' `"`s(o)'"', size(@SZ@) color(gs8) placement(e))"'
+                        local bnm `"`s(o)'"'
+                        _srw_ell 26 `"`lb_`q''"'
+                        local bwl `"`s(o)'"'
+                        if `"`bwl'"' == "." local bwl ""
+                        if `"`bwl'"' != "" local bnm `"`bnm' `=uchar(183)' `bwl'"'
+                        local txts `"`txts' text(`= `lt' - 1.0' `= `cx' + 0.5' `"`bnm'"', size(@SZ@) color(gs8) placement(e))"'
                         local txts `"`txts' text(`= `lt' - 2.2' `= `cx' + 0.5' "skipped `=uchar(183)' routed around", size(@SZS@) color(gs8) placement(e))"'
                     }
                     else {
                         local boxsegs `"`boxsegs' `lt' `cx' `lt' `xr' `lb' `cx' `lb' `xr' `lt' `cx' `lb' `cx' `lt' `xr' `lb' `xr'"'
+                        * the wording rides on the name line (0.4.6), because a
+                        * static figure has no hover for a reader to fall back on
                         _srw_ell 15 `"`v_`q''"'
-                        local txts `"`txts' text(`= `lt' - 1.0' `= `cx' + 0.5' `"{bf:`s(o)'}"', size(@SZ@) color(black) placement(e))"'
+                        local bnm `"`s(o)'"'
+                        _srw_ell 26 `"`lb_`q''"'
+                        local bwl `"`s(o)'"'
+                        if `"`bwl'"' == "." local bwl ""
+                        if `"`bwl'"' != "" local bnm `"`bnm' `=uchar(183)' `bwl'"'
+                        local txts `"`txts' text(`= `lt' - 1.0' `= `cx' + 0.5' `"{bf:`bnm'}"', size(@SZ@) color(black) placement(e))"'
                         _srw_n `"`cN_`gp'_`k'_`q''"'
                         local txts `"`txts' text(`= `lt' - 2.2' `= `cx' + 0.5' "`s(o)' (`cR_`gp'_`k'_`q''%)", size(@SZS@) color(gs4) placement(e))"'
                     }
@@ -338,7 +351,12 @@ program define _sm_rendertw
         if `prevx' != . local arrs `"`arrs' `Y0' `prevx' `Y0' `= `x' - 0.4'"'
         local boxsegs `"`boxsegs' `bt' `x' `bt' `xr' `bb' `x' `bb' `xr' `bt' `x' `bb' `x' `bt' `xr' `bb' `xr'"'
         _srw_ell 15 `"`v_`p''"'
-        local txts `"`txts' text(`= `bt' - 1.0' `= `x' + 0.5' `"{bf:`s(o)'}"', size(@SZ@) color(black) placement(e))"'
+        local bnm `"`s(o)'"'
+        _srw_ell 26 `"`lb_`p''"'
+        local bwl `"`s(o)'"'
+        if `"`bwl'"' == "." local bwl ""
+        if `"`bwl'"' != "" local bnm `"`bnm' `=uchar(183)' `bwl'"'
+        local txts `"`txts' text(`= `bt' - 1.0' `= `x' + 0.5' `"{bf:`bnm'}"', size(@SZ@) color(black) placement(e))"'
         _srw_n `"`nn_`p''"'
         local txts `"`txts' text(`= `bt' - 2.2' `= `x' + 0.5' "`s(o)' (`pa_`p''%)", size(@SZS@) color(gs4) placement(e))"'
         * a lot of declined answers is worth a flag, in text and never colour alone
