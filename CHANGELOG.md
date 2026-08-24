@@ -2,6 +2,49 @@
 
 All notable changes to surveymap. Dates are the day the work landed locally.
 
+## 0.4.5 - 2026-08-24
+
+### Fixed
+
+- The help file claimed the remembered journal survives into a later Stata
+  session. It does not: the path lives in the global `$SM_LASTJ`, which ends
+  with the session. The help now says so and says to name the file yourself in
+  a do-file somebody else will run.
+- The Limitations section still said counts and percentages are unweighted,
+  contradicting the whole Weights section. Replaced with the limitation that is
+  real: `surveymap` reads a `pweight` and nothing else of a survey design, so
+  no `svyset` information and no standard errors.
+- `r(N_unbalanced)`, `r(devmax)`, `r(nitems)`, `r(mismatched)` and
+  `r(notmapped)` were returned but never documented in Stored results.
+- Four `{bf:}` directives spanned a line break, which renders the markup
+  literally rather than in bold.
+
+### Added
+
+- The help now states the base of every percentage. `pct_answered` divides by
+  the respondents in scope, not by the people the item reached, so a filtered
+  item like `q6_whovote` reads 48.2% where the of-those-shown figure is 96.3%.
+  Both are true; reporting the first as though it were the second is the
+  standard way a filter gets written up as a response-rate problem. The help
+  gives the two lines that compute the second.
+- The `!!` threshold, which is more than 5 percent of the respondents in scope.
+- A Band tab in Options: every `surveymap band` option was undocumented.
+- Definitions for the journal columns whose names do not give them away,
+  including the difference between `pct_answered` and `rate`.
+- Examples for the commands added since the examples were last written:
+  `profile()`, `band`, `layout(vertical)`, and `branch(x = cut())`.
+- How the three pruning rules combine (a category folds when it fails any one),
+  how `nonresponse()` and `refusedcode()` divide the work, what `demo` writes
+  and where, and which gate claims an item that two gates both route.
+
+### Changed
+
+- A prose pass for agentless and program-narrated sentences. The help now says
+  what you do and what you get, rather than narrating what the program does to
+  itself. Also removed the metaphorical-location verbs (`the journal carries`,
+  `the page ships`, `the columns hold`, `the lanes land`) and gave the four
+  bare-name citations their years.
+
 ## 0.4.4 - 2026-08-24
 
 ### Added

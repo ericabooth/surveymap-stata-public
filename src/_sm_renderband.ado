@@ -1,4 +1,4 @@
-*! version 0.4.4  24aug2026  Eric Booth
+*! version 0.4.5  24aug2026  Eric Booth
 *! _sm_renderband -- the status band chart (chronogram) of a surveymap journal.
 *!
 *! One thin column per item, in questionnaire order, each split into answered
