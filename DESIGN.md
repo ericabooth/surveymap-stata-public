@@ -96,6 +96,57 @@ from/to/value data -- surveymap can export edges in that shape one day).
 None reads routing out of the responses; that is surveymap's job, and the
 box/lane form holds more per node than a ribbon can.
 
+## Considered and not built
+
+Decisions worth keeping, so they are not relitigated from scratch.
+
+### Ribbon widths proportional to the count
+
+Not built. Two reasons, both structural rather than aesthetic. A ribbon
+diagram invites the reader to expect the widths at a node to add up, and on a
+questionnaire they do not: the people who declined an item are a gap the eye
+reads as attrition already accounted for. And on a 15 to 40 item instrument
+the smallest flows fall below a pixel, so a path taken by nobody disappears,
+which on a QC map is usually the finding you most wanted. `sankey` and
+`alluvial` (Naqvi) and mermaid's `sankey-beta` are the right tools when two or
+three transitions are the whole story.
+
+### A dropout curve over item position
+
+Not built, after prototyping it. The naive version -- respondents answering,
+plotted against item position -- measures routing and attrition added
+together, because a system missing in this package means "never shown", so a
+filtered item looks exactly like a cliff. The fix is to plot what the
+respondent was shown, which is `n_asked - n_sysmiss`, and that series is
+non-monotone by construction on any instrument whose branches rejoin, so it
+is not a survival curve and should not be drawn as one.
+
+The series a reader actually wants, how many are still in the interview at
+each position, is **not identified from the journal alone**: aggregate counts
+per item cannot separate a respondent who was routed past an item from one who
+had already stopped. An honest figure would draw it as a band with the range
+printed in the risk row, and a band whose whole point is that the data cannot
+say is a lot of figure for very little claim.
+
+`surveymap band` covers the useful part: it shows not-shown and declined by
+position, so a filter and a cliff are visibly different things rather than one
+line going down. For the respondent-level question, `profile(breakoff)` lanes
+the sample by where each respondent stopped, which is identified because it is
+computed per respondent rather than reconstructed from margins.
+
+If this is ever revisited: read `gated_by`, never plot `n_asked` (it is the
+scope, and constant), and print the risk set under the axis the way Galesic
+(2006, JOS 22(2):313-328) does, or the right-hand tail will be over-read.
+
+### rankSpacing on the mermaid output
+
+Tested, not adopted. Tightening it from 50 to 35 takes about 12% off the
+printed height, and pulls the fan edges down through the lane titles, so a
+lane heading gets a line drawn through it. Height is worth less than a legible
+label. `curve: linear` WAS adopted: straight edges, because a path-following
+diagram is read by tracing an edge and uniform curvature measurably hurts that
+(Xu et al. 2012, IEEE TVCG 18(12):2449-2456).
+
 ## House rules (binding)
 
 - Stata 16 floor, both test binaries:
