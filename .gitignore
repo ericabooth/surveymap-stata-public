@@ -1,0 +1,4 @@
+*.log
+*.smcl
+tests/pkgtest_tmp/
+surveymap_demo/

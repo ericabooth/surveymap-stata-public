@@ -1,0 +1,34 @@
+v 3
+d surveymap: map how respondents moved through a survey
+d
+d surveymap reads a survey dataset in memory -- one row per respondent,
+d columns in questionnaire order -- and maps the flow: who was asked each
+d item, who answered, who was routed around it by skip logic (read from the
+d responses themselves), and who declined.  Declared or detected branching
+d variables split the flow into lanes with counts and percentages on every
+d box and connector; small noisy branches pool into "other" under prune
+d rules you can change without rescanning.
+d
+d Outputs, all built from one journal file: a Results-window receipt, a
+d self-contained HTML flow map (no internet, no JavaScript), mermaid text,
+d and an Excel tracker whose sheets can sit inside a datadictionary
+d codebook workbook.
+d
+d Start with: surveymap demo
+d
+d Requires: Stata version 16
+d
+d Author: Eric Booth
+d Support: email eric.a.booth@gmail.com
+d
+d Distribution-Date: 20260823
+f src/surveymap.sthlp
+f src/surveymap.ado
+f src/_sm_branch.ado
+f src/_sm_draw.ado
+f src/_sm_export.ado
+f src/_sm_isabs.ado
+f src/_sm_jprune.ado
+f src/_sm_open.ado
+f src/_sm_renderhtml.ado
+f src/_sm_rendertext.ado
