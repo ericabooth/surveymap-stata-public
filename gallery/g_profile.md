@@ -2,11 +2,11 @@
 
 Items run left to right in questionnaire order; a gate fans the sample into lanes that rejoin the spine at the end of its segment. A dashed node is a cell the lane was routed around. `!!` marks a warning.
 
-*surveymap _sm_rendertext 0.1.0 - journal g_profile.tsv - rendered 24 Aug 2026 03:53:19 - Stata 19.5 MP*
+*surveymap _sm_rendertext 0.1.0 - journal g_profile.tsv - rendered 24 Aug 2026 03:56:36 - Stata 19.5 MP*
 
 ```mermaid
 %%{init: {'theme':'base','themeVariables':{'fontFamily':'Helvetica, Arial, sans-serif','fontSize':'14px','primaryColor':'#ffffff','primaryTextColor':'#202020','primaryBorderColor':'#606060','lineColor':'#606060','secondaryColor':'#f4f4f4','tertiaryColor':'#fafafa','edgeLabelBackground':'#ffffff','titleColor':'#202020'}}}%%
-%% surveymap _sm_rendertext 0.1.0 - journal g_profile.tsv - rendered 24 Aug 2026 03:53:19 - Stata 19.5 MP
+%% surveymap _sm_rendertext 0.1.0 - journal g_profile.tsv - rendered 24 Aug 2026 03:56:36 - Stata 19.5 MP
 flowchart TB
   accTitle: surveymap flow of g_profile.tsv
   accDescr {
@@ -17,21 +17,6 @@ flowchart TB
   classDef smwarn fill:#ffffff,stroke:#4a6d8c,stroke-width:2px,color:#1a1a1a;
   classDef smgate fill:#eef2f6,stroke:#4a6d8c,stroke-width:1.5px,color:#1a1a1a;
   n1{{"sm_declined<br/>1,200 (100.0%)<br/>derived, not asked"}}
-  subgraph SG1x2["sm_declined = at least one · 540"]
-    direction TB
-  n2v2["q1_consent<br/>540 (100.0%)"]
-  n3v2["q3_party<br/>453 (83.9%)"]
-  n4v2["q4_reg<br/>540 (100.0%)"]
-  n5v2["q5_voted<br/>512 (94.8%)"]
-  n6v2["q6_whovote<br/>233 (43.1%)<br/>!! partial"]
-  n7v2["q7_whynot<br/>231 (42.8%)<br/>!! partial"]
-  n8v2["q8_approve<br/>432 (80.0%)"]
-  n9v2["q9_econ<br/>467 (86.5%)"]
-  n10v2["q10_dem_prim<br/>247 (45.7%)<br/>!! partial"]
-  n11v2["q11_rep_prim<br/>219 (40.6%)<br/>!! partial"]
-  n12v2["q12_ideol<br/>460 (85.2%)"]
-  n13v2["q13_income<br/>320 (59.3%)<br/>!! partial"]
-  end
   subgraph SG1x1["sm_declined = none · 660"]
     direction TB
   n2v1["q1_consent<br/>660 (100.0%)"]
@@ -47,18 +32,21 @@ flowchart TB
   n12v1["q12_ideol<br/>621 (94.1%)"]
   n13v1["q13_income<br/>621 (94.1%)"]
   end
-  n1 --> n2v2
-  n2v2 --> n3v2
-  n3v2 --> n4v2
-  n4v2 --> n5v2
-  n5v2 --> n6v2
-  n6v2 --> n7v2
-  n7v2 --> n8v2
-  n8v2 --> n9v2
-  n9v2 --> n10v2
-  n10v2 --> n11v2
-  n11v2 --> n12v2
-  n12v2 --> n13v2
+  subgraph SG1x2["sm_declined = at least one · 540"]
+    direction TB
+  n2v2["q1_consent<br/>540 (100.0%)"]
+  n3v2["q3_party<br/>453 (83.9%)"]
+  n4v2["q4_reg<br/>540 (100.0%)"]
+  n5v2["q5_voted<br/>512 (94.8%)"]
+  n6v2["q6_whovote<br/>233 (43.1%)<br/>!! partial"]
+  n7v2["q7_whynot<br/>231 (42.8%)<br/>!! partial"]
+  n8v2["q8_approve<br/>432 (80.0%)"]
+  n9v2["q9_econ<br/>467 (86.5%)"]
+  n10v2["q10_dem_prim<br/>247 (45.7%)<br/>!! partial"]
+  n11v2["q11_rep_prim<br/>219 (40.6%)<br/>!! partial"]
+  n12v2["q12_ideol<br/>460 (85.2%)"]
+  n13v2["q13_income<br/>320 (59.3%)<br/>!! partial"]
+  end
   n1 --> n2v1
   n2v1 --> n3v1
   n3v1 --> n4v1
@@ -71,6 +59,18 @@ flowchart TB
   n10v1 --> n11v1
   n11v1 --> n12v1
   n12v1 --> n13v1
+  n1 --> n2v2
+  n2v2 --> n3v2
+  n3v2 --> n4v2
+  n4v2 --> n5v2
+  n5v2 --> n6v2
+  n6v2 --> n7v2
+  n7v2 --> n8v2
+  n8v2 --> n9v2
+  n9v2 --> n10v2
+  n10v2 --> n11v2
+  n11v2 --> n12v2
+  n12v2 --> n13v2
   class n1 smgate;
-  class n6v2,n7v2,n10v2,n11v2,n13v2,n6v1,n7v1,n10v1,n11v1 smwarn;
+  class n6v1,n7v1,n10v1,n11v1,n6v2,n7v2,n10v2,n11v2,n13v2 smwarn;
 ```

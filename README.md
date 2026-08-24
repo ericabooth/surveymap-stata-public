@@ -272,6 +272,8 @@ surveymap draw, export(mermaid) layout(vertical) saving(flow_tall) replace
 
 Use it when the map is going into a report or a README, because a page scrolls down and a long instrument is taller than any screen is wide. The horizontal default suits a slide and a wide monitor. In mermaid the vertical map draws each lane as a labelled `subgraph`, so the grouping is drawn rather than inferred from where the boxes sit. Both layouts read the same journal, so you can write one of each without rescanning.
 
+**Where the lanes land.** A mermaid file declares the lanes lane 1 first, but which order they are *drawn* in belongs to whichever mermaid renders it, and renderers disagree: mermaid-cli and GitHub lay the same file out in opposite orders. Every lane is therefore labelled with the answer that opened it, and nothing depends on where it sits. When the order has to be guaranteed, as it does for a banded gate whose lanes run low to high, use the HTML map or the `export(png)` figure, which are laid out here rather than by a third party.
+
 The page has no height cap and scrolls sideways, because a survey is wider than it is tall. The `embed` fragment is scoped so it cannot restyle the page you drop it into, and the package ships the check that proves it (`tests/embedcheck/check_embed_scoping.py`), which refuses a fragment carrying an unscoped selector, a script, or a page wrapper.
 
 `export(png)` and `export(svg)` draw the same figure through Stata's own graph engine, for a paper or a slide; asking for either writes both.

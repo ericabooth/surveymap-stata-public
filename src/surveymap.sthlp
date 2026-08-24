@@ -550,6 +550,16 @@ from where the boxes sit. Both layouts read from the same journal, so you can
 write one of each without rescanning.{p_end}
 
 {pstd}
+{bf:A note on where the lanes land.} In a mermaid file the lanes are declared
+lane 1 first, but which order they are {it:drawn} in belongs to whichever
+mermaid renders the file, and renderers disagree: mermaid-cli and GitHub lay
+the same file out in opposite orders. Every lane is therefore labelled with the
+answer that opened it, and nothing depends on where it sits. When the order has
+to be guaranteed, as it does for a banded gate whose lanes run low to high, use
+the HTML map or the {opt export(png)} figure. Those are laid out here rather
+than by a third party, so lane 1 is always first.{p_end}
+
+{pstd}
 The page has no height cap and the diagram scrolls sideways, because a survey is
 wider than it is tall. {opt embed} writes a fragment for a report page instead of
 a whole document: scoped styles, no element selectors, and a bounded box, so it

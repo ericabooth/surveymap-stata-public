@@ -52,11 +52,13 @@
 20. -confirm number- rejects extended missings (.a to .z).  Accept a
     refusal code with regexm(code, "^\.[a-z]$") OR confirm number, not
     confirm number alone.
-21. Mermaid sibling-subgraph order depends on whether the lanes rejoin.
-    With a merge target the declaration order is kept; with none (a gate
-    whose segment runs to the end) mermaid reverses them, so the renderer
-    declares them backwards in that case only.  Checked against mermaid-cli
-    11.16.0 in both TB and LR.  The battery pins both cases: block 21.
+21. Mermaid sibling-subgraph order is NOT controllable and NOT portable.
+    Whether the layout engine keeps or reverses declaration order depends on
+    the graph (a merge target changes it) and on the renderer: mermaid-cli
+    11.16.0 and GitHub lay the SAME file out in opposite orders.  Do not
+    compensate for one of them; declare lane 1 first, label every lane, and
+    say in the docs that the HTML map and the twoway figure are the ones
+    whose lane order is guaranteed because we lay them out ourselves.
 22. A count is not comparable across respondents that skip logic asked
     different numbers of questions.  Anything respondent-level that counts
     items has to be divided by the items THAT respondent was asked, with

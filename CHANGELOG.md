@@ -37,17 +37,22 @@ All notable changes to surveymap. Dates are the day the work landed locally.
 
 ### Fixed
 
-- Lane order in every mermaid map. Sibling subgraph order depends on whether
-  the lanes rejoin the spine: with a merge the declaration order is kept,
-  without one mermaid reverses it. A banded gate could therefore read right to
-  left. The renderer now compensates only in the case that needs it, and the
-  battery pins both.
 - A value label read outside the frame it was defined in came back empty, so a
-  banded gate's lanes were labelled with their band numbers.
+  banded gate's lanes were labelled with their band numbers instead of their
+  ranges.
+
+### Known
+
+- Lane order in a mermaid file is not portable. The file declares lane 1 first,
+  but which order the lanes are drawn in belongs to whichever mermaid renders
+  it, and renderers disagree: mermaid-cli and GitHub lay the same file out in
+  opposite orders. Every lane is labelled with the answer that opened it, so
+  nothing depends on where it sits, and the docs point at the HTML map and the
+  figure when the order has to be guaranteed.
 
 ### Testing
 
-- 236 checks, passing on Stata 16.1 and 19.5.
+- 239 checks, passing on Stata 16.1 and 19.5.
 
 ## 0.3.0 — 2026-08-24
 

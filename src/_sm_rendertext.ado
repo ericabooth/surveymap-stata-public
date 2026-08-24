@@ -251,26 +251,17 @@ program define _sm_rendertext
             local mtgt ""
             if `pe' + 1 <= `K' local mtgt "n`=`pe'+1'"
             local src `"`prev'"'
-            * Which order the lanes are declared in decides which order
-            * mermaid draws them, and the rule is not the obvious one.  Where
-            * the lanes rejoin the spine, the merge edges give the layout a
-            * consistent ordering and declaration order is kept.  Where the
-            * gate's segment runs to the end of the questionnaire there is
-            * nothing to rejoin, and mermaid then places the subgraphs in the
-            * reverse of the order they were declared, so this declares them
-            * backwards to compensate.  Without it a banded gate reads right
-            * to left and "3 and over" lands where a reader looks for "none".
-            * Checked against mermaid-cli 11.16.0 in both TB and LR; the
-            * battery pins both cases, so a change in mermaid shows up there.
-            local kfrom = 1
-            local kto   = `L_`gp''
-            local kstep = 1
-            if "`mtgt'" == "" {
-                local kfrom = `L_`gp''
-                local kto   = 1
-                local kstep = -1
-            }
-            forvalues k = `kfrom'(`kstep')`kto' {
+            * Lanes are declared in their own order, lane 1 first, and that is
+            * as far as this goes.  Which order they are DRAWN in belongs to
+            * whichever mermaid renders the file: the layout engine reverses
+            * sibling subgraphs in some configurations, keeps them in others,
+            * and mermaid-cli 11.16.0 and GitHub disagree with each other on
+            * the same input.  Compensating for one renderer breaks the rest,
+            * so every lane is labelled with the answer that opened it and no
+            * meaning is carried by where it sits.  The HTML map and the
+            * twoway figure are laid out here rather than by a third party,
+            * so use one of those when lane order has to be guaranteed.
+            forvalues k = 1/`L_`gp'' {
                 local q1 = 0
                 local qL = 0
                 forvalues q = `p'/`pe' {
