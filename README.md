@@ -354,13 +354,19 @@ cd tests
 do surveymap_pkgtest.do
 ```
 
-150 checks across 18 blocks, run on Stata 16.1 and on the current release, covering the fixture's routing truths, the branch parser, lane partitioning, pruning at scan and at draw time, weights, `exclude()`/`nostrings`, `verify()`, all four renderers, the Excel tracker, the fragment's scoping guarantee, and both directions of the `datadictionary` bridge.
+239 checks across 20 blocks, run on Stata 16.1 and on the current release, covering the fixture's routing truths, the branch parser, banding a continuous gate, the derived conditions and the ones the package refuses to build, lane partitioning, pruning at scan and at draw time, weights, `exclude()`/`nostrings`, `verify()`, both layouts of all four renderers, the Excel tracker, the fragment's scoping guarantee, and both directions of the `datadictionary` bridge.
 
 The gallery is a second, coarser test: it rebuilds every example artifact from one fake survey and counts its own failures, because a Stata do-file can abort and still leave the runner reporting success.
 
 ```stata
 cd gallery
 do runall.do
+```
+
+Two checks run outside Stata, because a broken picture is not a Stata error. A layout bug writes coordinates the browser draws without complaint, so `check_map_geometry.py` reads the coordinates back out and refuses a map with a box off the canvas, two boxes on top of each other, or a lane heading with nothing under it. `check_embed_scoping.py` refuses a fragment carrying an unscoped selector, a script, or a page wrapper.
+
+```bash
+python3 tests/svgcheck/check_map_geometry.py gallery/*.html
 ```
 
 ## Author and license
