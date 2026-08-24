@@ -53,15 +53,18 @@ program define _sm_draw, rclass
         exit 198
     }
 
-    * ---- layout: v0.1 draws horizontal only -----------------------------
-    if `"`layout'"' != "" {
-        local layout = strlower(`"`layout'"')
-        if inlist("`layout'", "h", "horiz") local layout "horizontal"
-        if "`layout'" != "horizontal" {
-            di as err "surveymap draw: layout() must be horizontal (the only"
-            di as err "    layout in this version; items run left to right)"
-            exit 198
-        }
+    * ---- layout ---------------------------------------------------------
+    * A questionnaire is a sequence, so it reads either way.  Left to right
+    * suits a slide and a wide screen; top to bottom suits a report page, a
+    * phone, and a long instrument, because a page scrolls down and a survey
+    * of forty items is taller than any screen is wide.
+    if `"`layout'"' == "" local layout "horizontal"
+    local layout = strlower(`"`layout'"')
+    if inlist("`layout'", "h", "horiz", "lr") local layout "horizontal"
+    if inlist("`layout'", "v", "vert", "tb", "td") local layout "vertical"
+    if !inlist("`layout'", "horizontal", "vertical") {
+        di as err "surveymap draw: layout() must be horizontal or vertical"
+        exit 198
     }
 
     * ---- prune the journal before any renderer sees it ------------------
@@ -86,7 +89,7 @@ program define _sm_draw, rclass
     if "`export'" == "html" {
         local hf `"`saving'"'
         if `"`hf'"' == "" local hf "surveymap_map.html"
-        _sm_draw_html `"`jfile'"' `"`hf'"' `"`jname'"' "`embed'" "`replace'" "`noopen'"
+        _sm_draw_html `"`jfile'"' `"`hf'"' `"`jname'"' "`embed'" "`replace'" "`noopen'" "`layout'"
         return local output `"`s(out)'"'
         exit
     }
@@ -108,7 +111,8 @@ program define _sm_draw, rclass
     * ---- mermaid --------------------------------------------------------
     local stub `"`saving'"'
     if `"`stub'"' == "" local stub "surveymap_map"
-    _sm_rendertext using `"`jfile'"', saving(`"`stub'"') name(`jname') `replace'
+    _sm_rendertext using `"`jfile'"', saving(`"`stub'"') name(`jname') ///
+        layout(`layout') `replace'
     return local output `"`stub'.mmd"'
 end
 
@@ -117,9 +121,10 @@ end
 * system browser in GUI sessions unless noopen.  An embed fragment is not a
 * standalone page, so it gets the path only, never an auto-open.
 program define _sm_draw_html, sclass
-    args jfile hf jname embed replace noopen
+    args jfile hf jname embed replace noopen layout
     if strlower(substr(`"`hf'"', -5, .)) != ".html" local hf `"`hf'.html"'
-    _sm_renderhtml using `"`jfile'"', saving(`"`hf'"') name(`jname') `embed' `replace'
+    _sm_renderhtml using `"`jfile'"', saving(`"`hf'"') name(`jname') ///
+        layout(`layout') `embed' `replace'
     sreturn local out `"`hf'"'
     if "`embed'" != "" {
         di as txt `"surveymap draw: fragment written; drop it into your page's body"'

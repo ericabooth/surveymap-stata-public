@@ -102,11 +102,20 @@ capture noisily surveymap draw g_branched.tsv, export(html) saving(g_frag.html) 
     replace embed
 gok `=(_rc == 0)' "an embed fragment for a report page"
 
+* a questionnaire is long and a report page scrolls down, so the same map
+* reads better on the page turned on its side
+capture noisily surveymap draw g_branched.tsv, export(html) layout(vertical) ///
+    saving(g_map_vertical.html) replace noopen
+gok `=(_rc == 0)' "the same map, top to bottom"
+
 display as text _n "{hline 70}"
 display as text "6. mermaid text"
 display as text "{hline 70}"
 capture noisily surveymap draw g_branched.tsv, export(mermaid) saving(g_map) replace
 gok `=(_rc == 0)' "mermaid"
+capture noisily surveymap draw g_branched.tsv, export(mermaid) layout(vertical) ///
+    saving(g_map_vertical) replace
+gok `=(_rc == 0)' "mermaid, top to bottom with a swimlane per lane"
 
 display as text _n "{hline 70}"
 display as text "7. PNG and SVG, through Stata's own graph engine"
@@ -118,6 +127,24 @@ capture noisily surveymap q1_consent q3_party q5_voted q6_whovote q7_whynot ///
 gok `=(_rc == 0)' "the figure's own scan"
 capture noisily surveymap draw g_fig.tsv, export(png) saving(g_fig) replace
 gok `=(_rc == 0)' "png and svg"
+
+display as text _n "{hline 70}"
+display as text "7b. splitting the map by what the respondent did"
+display as text "{hline 70}"
+* not "what did Republicans answer" but "what does the route look like for
+* the people who left items blank".  The lanes are derived, and every
+* renderer says so on the node itself.
+use fake_survey.dta, clear
+capture noisily surveymap q1_consent q3_party q4_reg q5_voted q6_whovote  ///
+    q7_whynot q8_approve q9_econ q10_dem_prim q11_rep_prim q12_ideol      ///
+    q13_income, profile(declined) out(g_profile.tsv) replace noreceipt
+gok `=(_rc == 0)' "a derived-condition scan"
+capture noisily surveymap draw g_profile.tsv, export(html) layout(vertical) ///
+    saving(g_profile.html) replace noopen
+gok `=(_rc == 0)' "the derived-condition map"
+capture noisily surveymap draw g_profile.tsv, export(mermaid) layout(vertical) ///
+    saving(g_profile) replace
+gok `=(_rc == 0)' "the same, as mermaid"
 
 display as text _n "{hline 70}"
 display as text "8. the Excel tracker"

@@ -34,7 +34,21 @@
 program define _sm_renderhtml
     version 16
     syntax using/, SAVing(string) [NAME(string) EMBed NOHEADer REPLACE ///
-        ACCent(string)]
+        ACCent(string) LAYout(string)]
+
+    * A questionnaire is a sequence, so it reads either way.  Left to right
+    * suits a slide and a wide screen; top to bottom suits a report page,
+    * because a page scrolls down and a long instrument is taller than any
+    * screen is wide.
+    if `"`layout'"' == "" local layout "horizontal"
+    local layout = strlower(`"`layout'"')
+    if inlist("`layout'", "h", "horiz", "lr") local layout "horizontal"
+    if inlist("`layout'", "v", "vert", "tb", "td") local layout "vertical"
+    if !inlist("`layout'", "horizontal", "vertical") {
+        display as error "layout() must be horizontal or vertical"
+        exit 198
+    }
+    local vert = ("`layout'" == "vertical")
 
     * ------------------------------------------------ options
     if "`accent'" == "" local accent "#4a6d8c"
@@ -323,6 +337,25 @@ program define _sm_renderhtml
     local Y0 = 8 + `half'
     local svgh = `Y0' + `half' + 12
 
+    * ---- vertical geometry: items down the page, lanes across it --------
+    if `vert' {
+        local GAPV = 82
+        forvalues p = 1/`K' {
+            local coly_`p' = 52 + (`p' - 1) * (`SH' + `GAPV')
+        }
+        local maxlan = 1
+        forvalues p = 1/`K' {
+            if "`fanat_`p''" != "" {
+                local gp = `fanat_`p''
+                local maxlan = max(`maxlan', `L_`gp'')
+            }
+        }
+        local blkwmax = `maxlan' * (`BW' + `LGAP') - `LGAP'
+        local svgw = max(`blkwmax', `BW') + 2 * `XM' + 24
+        local XC = `svgw' / 2 - `BW' / 2
+        local svgh = 52 + `K' * (`SH' + `GAPV') - `GAPV' + 46
+    }
+
     * globals the writers read (dropped at the end)
     global SRH_ACC "`accent'"
     global SRH_PFX "`pfx'"
@@ -333,6 +366,169 @@ program define _sm_renderhtml
     tempname B
     file open `B' using "`bodyf'", write text replace
 
+    if `vert' {
+    * ================================================ vertical body
+    * The same drawing with the axes exchanged: items run down the page and a
+    * gate spreads its lanes across it, so a lane is a column and the block is
+    * as wide as the gate has lanes.
+    local prevy = .
+    local p = 1
+    while `p' <= `K' {
+        if "`fanat_`p''" != "" {
+            local gp = `fanat_`p''
+            local pe = `segend_`gp''
+            local srcy = `prevy'
+            if `srcy' == . local srcy = `coly_`p'' - `GAPV'
+            local L = `L_`gp''
+            local blkw = `L' * (`BW' + `LGAP') - `LGAP'
+            local bleft = `XC' + `BW' / 2 - `blkw' / 2
+            local y1 = `coly_`p''
+            local cxs = `XC' + `BW' / 2
+            file write `B' `"<g class="sm-node">"' _n
+            file write `B' `"<title>"'
+            _srh_wtip `B' lanes split by `v_`gp''
+            _srh_wtip `B' `lb_`gp''
+            file write `B' `"</title>"' _n
+            _srh_wtext `B' `bleft' `=`y1'-66' lh `"split by `v_`gp''"'
+            file write `B' `"</g>"' _n
+            * one bus line for the whole fan, so no connector crosses a label
+            local busy = `y1' - 20
+            _srh_line `B' `cxs' `srcy' `cxs' `busy'
+            local bl = `bleft' + `BW' / 2
+            local br = `bleft' + (`L' - 1) * (`BW' + `LGAP') + `BW' / 2
+            if `L' > 1 _srh_line `B' `bl' `busy' `br' `busy'
+            local jy = `coly_`pe'' + `SH' + `GAPV' - 34
+            forvalues k = 1/`L' {
+                local lleft = `bleft' + (`k' - 1) * (`BW' + `LGAP')
+                local lcx = `lleft' + `BW' / 2
+                _srh_line `B' `lcx' `=`y1'-20' `lcx' `=`y1'-2'
+                _srh_n `"`ln_`gp'_`k''"'
+                local lnf `"`s(o)'"'
+                * a lane label has one column's width to live in, so the
+                * answer goes on one line and its size on the next
+                _srh_mell 21 `"`ll_`gp'_`k''"'
+                local lab1 `"`s(o)'"'
+                local lab2 `"`lnf' (`lp_`gp'_`k''%)"'
+                file write `B' `"<g class="sm-node">"' _n
+                file write `B' `"<title>"'
+                _srh_wtip `B' lane: `v_`gp'' == `lv_`gp'_`k''
+                _srh_wtip `B' `ll_`gp'_`k''
+                _srh_wtip `B' `lnf' respondents (`lp_`gp'_`k''% of scope)
+                file write `B' `"</title>"' _n
+                _srh_wtext `B' `lleft' `=`y1'-50' ll `"`lab1'"'
+                _srh_wtext `B' `lleft' `=`y1'-36' ll `"`lab2'"'
+                file write `B' `"</g>"' _n
+                local pcy = .
+                forvalues q = `p'/`pe' {
+                    if `"`cS_`gp'_`k'_`q''"' == "" continue
+                    local cy = `coly_`q''
+                    if `pcy' != . _srh_line `B' `lcx' `pcy' `lcx' `=`cy'-2'
+                    local st `"`cS_`gp'_`k'_`q''"'
+                    _srh_n `"`cA_`gp'_`k'_`q''"'
+                    local caf `"`s(o)'"'
+                    _srh_n `"`cN_`gp'_`k'_`q''"'
+                    local cnf `"`s(o)'"'
+                    local crt `"`cR_`gp'_`k'_`q''"'
+                    file write `B' `"<g class="sm-node">"' _n
+                    file write `B' `"<title>"'
+                    _srh_wtip `B' `v_`q'' `=char(3)' lane `v_`gp'' == `lv_`gp'_`k''
+                    _srh_wtip `B' `lb_`q''
+                    _srh_wtip `B' in lane `caf' `=char(3)' answered `cnf' (`crt'%)
+                    _srh_wtip `B' status: `st'
+                    if `"`st'"' == "skipped" _srh_wtip `B' routed around by skip logic
+                    file write `B' `"</title>"' _n
+                    _srh_mell `HBUD' `"`v_`q''"'
+                    local wname `"`s(o)'"'
+                    if `"`st'"' == "skipped" {
+                        _srh_rect `B' `lleft' `cy' `BW' `CH' gx
+                        _srh_wtext `B' `=`lleft'+8' `=`cy'+17' gt `"`wname'"'
+                        _srh_wtext `B' `=`lleft'+8' `=`cy'+31' gt `"skipped `=char(3)' routed around"'
+                    }
+                    else if `"`st'"' == "partial" {
+                        _srh_rect `B' `lleft' `cy' `BW' `CH' cx
+                        _srh_wtext `B' `=`lleft'+8' `=`cy'+17' bh `"`wname'"'
+                        _srh_wtext `B' `=`lleft'+8' `=`cy'+31' bn `"`cnf' answered"'
+                        _srh_wtext `B' `=`lleft'+8' `=`cy'+45' bf `"!! partial `crt'%"'
+                    }
+                    else {
+                        _srh_rect `B' `lleft' `cy' `BW' `CH' cx
+                        _srh_wtext `B' `=`lleft'+8' `=`cy'+17' bh `"`wname'"'
+                        _srh_wtext `B' `=`lleft'+8' `=`cy'+31' bn `"`cnf' (`crt'%)"'
+                    }
+                    file write `B' `"</g>"' _n
+                    local pcy = `cy' + `CH'
+                }
+                if `pcy' == . local pcy = `busy'
+                _srh_line `B' `lcx' `pcy' `lcx' `=`jy'-14'
+                if `lcx' != `cxs' _srh_line `B' `lcx' `=`jy'-14' `cxs' `=`jy'-14'
+            }
+            _srh_line `B' `cxs' `=`jy'-14' `cxs' `=`jy'-1'
+            file write `B' `"<circle cx="`cxs'" cy="`jy'" r="3.5" class="sm-jp" fill="#444444" />"' _n
+            local prevy = `jy' + 4
+            local p = `pe' + 1
+            continue
+        }
+        local y = `coly_`p''
+        local xl = `XC'
+        local cxs = `XC' + `BW' / 2
+        if `prevy' != . _srh_line `B' `cxs' `prevy' `cxs' `=`y'-2'
+        file write `B' `"<g class="sm-node">"' _n
+        file write `B' `"<title>"'
+        _srh_wtip `B' `v_`p'' `=char(3)' item `p' of `K'
+        _srh_wtip `B' `lb_`p''
+        _srh_n `"`na_`p''"'
+        local naf `"`s(o)'"'
+        _srh_n `"`nn_`p''"'
+        local nnf `"`s(o)'"'
+        _srh_wtip `B' asked `naf' `=char(3)' answered `nnf' (`pa_`p''%)
+        _srh_n `"`nr_`p''"'
+        local a `"`s(o)'"'
+        _srh_n `"`ns_`p''"'
+        local b `"`s(o)'"'
+        if "`a'" == "" local a "0"
+        if "`b'" == "" local b "0"
+        _srh_wtip `B' nonresponse `a' `=char(3)' system missing `b'
+        if `"`ty_`p''"' != "." _srh_wtip `B' type `ty_`p''
+        if "`g_`p''" == "1" _srh_wtip `B' gate: lanes split here
+        if `"`gb_`p''"' != "." _srh_wtip `B' routed around for: `gb_`p''
+        if `"`fl_`p''"' != "." & `"`fl_`p''"' != "" {
+            local rest `"`fl_`p''"'
+            while `"`rest'"' != "" {
+                local q = strpos(`"`rest'"', "; ")
+                if `q' {
+                    local one = substr(`"`rest'"', 1, `q'-1)
+                    local rest = substr(`"`rest'"', `q'+2, .)
+                }
+                else {
+                    local one `"`rest'"'
+                    local rest ""
+                }
+                _srh_wtip `B' `one'
+            }
+        }
+        file write `B' `"</title>"' _n
+        _srh_rect `B' `xl' `y' `BW' `SH' bx
+        local ty = `y' + 3
+        _srh_mell `HBUD' `"`v_`p''"'
+        local ty = `ty' + `LH'
+        _srh_wtext `B' `=`xl'+8' `ty' bh `"`s(o)'"'
+        forvalues j = 1/`nlab_`p'' {
+            local ty = `ty' + `LH'
+            _srh_wtext `B' `=`xl'+8' `ty' bl `"`lbl_`p'_`j''"'
+        }
+        local ty = `ty' + `LH'
+        _srh_wtext `B' `=`xl'+8' `ty' bn `"`nnf' (`pa_`p''%)"'
+        if `flag_`p'' {
+            _srh_n `"`nr_`p''"'
+            local ty = `ty' + `LH'
+            _srh_wtext `B' `=`xl'+8' `ty' bf `"!! nonresp `s(o)'"'
+        }
+        file write `B' `"</g>"' _n
+        local prevy = `y' + `SH'
+        local ++p
+    }
+    }
+    else {
     local prevx = .
     local p = 1
     while `p' <= `K' {
@@ -496,6 +692,7 @@ program define _sm_renderhtml
 
         local prevx = `x' + `BW'
         local ++p
+    }
     }
     file close `B'
 

@@ -7,6 +7,13 @@
 *!     party = 1/3 5         numlists expand
 *!     party = 1 3, voted = 1    two gates in one option
 *!
+*! A continuous item can gate too, once you say how to band it:
+*!     age = cut(25 35 45 65)    bands at the breaks you name
+*!     hhinc = q(4)              quartile bands
+*!
+*! There is deliberately no default banding.  A cutpoint chosen by software
+*! becomes a stated fact in a figure somebody reuses, so the user names it.
+*!
 *! A gate must be a numeric variable that exists in the data: survey gates
 *! are coded, and a string gate would make one lane per distinct answer.
 *! A string gate is declined with a warning and the scan carries on, because
@@ -17,6 +24,8 @@
 *!          s(gate`i') the i-th gate variable name
 *!          s(vals`i') its kept values, space separated ("" = every category)
 *!          s(gates)   all gate names, space separated, in the order given
+*!          s(rule`i')  "" for a categorical gate, else "cut" or "q"
+*!          s(parm`i')  the breaks for cut(), or the number of bands for q()
 *!          s(skipped) gates declined, with the reason, "; " separated
 
 program define _sm_branch, sclass
@@ -66,6 +75,55 @@ program define _sm_branch, sclass
             local vl ""
         }
 
+        * a banding rule: cut(breaks) or q(k)
+        local rule ""
+        local parm ""
+        local vll = strlower(`"`vl'"')
+        if regexm(`"`vll'"', "^(cut|q)[ ]*\(") {
+            local op = regexs(1)
+            local o1 = strpos(`"`vl'"', "(")
+            local o2 = strrpos(`"`vl'"', ")")
+            if !`o2' | `o2' < `o1' {
+                di as err `"branch(`gv'): `op'() is missing its closing bracket"'
+                exit 198
+            }
+            local inside = strtrim(substr(`"`vl'"', `o1' + 1, `o2' - `o1' - 1))
+            if `"`inside'"' == "" {
+                di as err `"branch(`gv'): `op'() needs a value"'
+                if "`op'" == "cut" di as err "    for example  branch(`gv' = cut(25 35 45 65))"
+                else              di as err "    for example  branch(`gv' = q(4))"
+                exit 198
+            }
+            if "`op'" == "cut" {
+                capture numlist `"`inside'"', sort
+                if _rc {
+                    di as err `"branch(`gv'): could not read the breaks "`inside'""'
+                    di as err "    give them as numbers: cut(25 35 45 65)"
+                    exit 198
+                }
+                local parm `"`r(numlist)'"'
+                local nb : word count `parm'
+                if `nb' < 1 {
+                    di as err "branch(`gv'): cut() needs at least one break"
+                    exit 198
+                }
+            }
+            else {
+                capture confirm integer number `inside'
+                if _rc | `inside' < 2 {
+                    di as err `"branch(`gv'): q() takes a whole number of bands, 2 or more"'
+                    exit 198
+                }
+                if `inside' > 20 {
+                    di as err "branch(`gv'): q(`inside') is more bands than a map can show"
+                    exit 198
+                }
+                local parm `inside'
+            }
+            local rule "`op'"
+            local vl ""
+        }
+
         * a second = is a typo, not a numlist
         if strpos(`"`vl'"', "=") {
             di as err `"branch(): could not read "`one'""'
@@ -94,6 +152,10 @@ program define _sm_branch, sclass
             exit 111
         }
         capture confirm numeric variable `gv'
+        if _rc & `"`rule'"' != "" {
+            di as err "branch(`gv'): a banding rule needs a numeric variable"
+            exit 198
+        }
         if _rc {
             * a string gate would make one lane per distinct answer, which is
             * not a branch; say so and carry on with the other gates
@@ -130,6 +192,8 @@ program define _sm_branch, sclass
         local names `"`names' `gv'"'
         sreturn local gate`ng' `"`gv'"'
         sreturn local vals`ng' `"`keep'"'
+        sreturn local rule`ng' `"`rule'"'
+        sreturn local parm`ng' `"`parm'"'
     }
 
     sreturn local n = `ng'

@@ -1,0 +1,41 @@
+seq	class	var	position	vallabel	value	gatevar	n_asked	n_answered	n_nonresp	n_sysmiss	pct_answered	rate	status	gate	gated_by	pooled	type	severity	flags	w_asked	w_answered	pct_answered_w
+1	survey	.	13	.	.	.	1200	.	.	.	.	.	.	.	.	.	.	note	prune=5 minn=30 maxcats=6 dlow=2 dhigh=50 nonresp=none; sm_declined banded at 0.00001 (split at zero only); sm_declined is derived: % of asked items left unanswered -- a share of the items each respondent was asked; a high share is not by itself evidence of bias; the default splits at zero only, because any other threshold is a decision about what counts as a lot; set your own with profile(declined = cut(10 25))	.	.	.
+2	item	sm_declined	1	% of asked items left unanswered	.	.	1200	1200	0	0	100.0	.	open	1	.	.	double	note	derived: % of asked items left unanswered, counted over the items each respondent was asked	.	.	.
+3	item	q1_consent	2	Consented to be interviewed	.	.	1200	1200	0	0	100.0	.	open	0	.	.	byte	note	.	.	.	.
+4	item	q3_party	3	Party identification	.	.	1200	1074	87	39	89.5	.	gated	0	q1_consent==0	.	byte	note	.	.	.	.
+5	item	q4_reg	4	Registered to vote at this address	.	.	1200	1161	0	39	96.8	.	gated	0	q1_consent==0	.	byte	note	.	.	.	.
+6	item	q5_voted	5	Voted in the 2024 general election	.	.	1200	1133	28	39	94.4	.	gated	0	q1_consent==0	.	byte	note	.	.	.	.
+7	item	q6_whovote	6	Vote choice for president in 2024	.	.	1200	578	22	600	48.2	.	gated	0	q4_reg==0; q5_voted==0	.	byte	note	.	.	.	.
+8	item	q7_whynot	7	Main reason for not voting	.	.	1200	507	26	667	42.2	.	gated	0	q5_voted==1	.	byte	note	.	.	.	.
+9	item	q8_approve	8	Approval of the governor	.	.	1200	1053	108	39	87.8	.	gated	0	q1_consent==0	.	byte	note	.	.	.	.
+10	item	q9_econ	9	Rating of economic conditions today	.	.	1200	1088	73	39	90.7	.	gated	0	q1_consent==0	.	byte	note	.	.	.	.
+11	item	q10_dem_prim	10	Plans to vote in the Democratic primary	.	.	1200	591	22	587	49.2	.	gated	0	q1_consent==0; q3_party==2 4	.	byte	note	.	.	.	.
+12	item	q11_rep_prim	11	Plans to vote in the Republican primary	.	.	1200	566	15	619	47.2	.	gated	0	q3_party==1 4	.	byte	note	.	.	.	.
+13	item	q12_ideol	12	Ideological self-placement	.	.	1200	1081	80	39	90.1	.	gated	0	q1_consent==0	.	byte	note	.	.	.	.
+14	item	q13_income	13	Total household income last year	.	.	1200	941	220	39	78.4	.	gated	0	q1_consent==0	.	byte	note	.	.	.	.
+15	cat	sm_declined	1	none	1	sm_declined	660	.	.	.	55.0	.	.	.	.	.	.	note	.	.	.	.
+16	cat	sm_declined	1	at least one	2	sm_declined	540	.	.	.	45.0	.	.	.	.	.	.	note	.	.	.	.
+17	cell	q1_consent	2	.	1	sm_declined	660	660	0	0	.	100.0	answered	.	.	.	.	note	.	.	.	.
+18	cell	q1_consent	2	.	2	sm_declined	540	540	0	0	.	100.0	answered	.	.	.	.	note	.	.	.	.
+19	cell	q3_party	3	.	1	sm_declined	660	621	0	39	.	94.1	answered	.	.	.	.	note	.	.	.	.
+20	cell	q3_party	3	.	2	sm_declined	540	453	87	0	.	83.9	answered	.	.	.	.	note	.	.	.	.
+21	cell	q4_reg	4	.	1	sm_declined	660	621	0	39	.	94.1	answered	.	.	.	.	note	.	.	.	.
+22	cell	q4_reg	4	.	2	sm_declined	540	540	0	0	.	100.0	answered	.	.	.	.	note	.	.	.	.
+23	cell	q5_voted	5	.	1	sm_declined	660	621	0	39	.	94.1	answered	.	.	.	.	note	.	.	.	.
+24	cell	q5_voted	5	.	2	sm_declined	540	512	28	0	.	94.8	answered	.	.	.	.	note	.	.	.	.
+25	cell	q6_whovote	6	.	1	sm_declined	660	345	0	315	.	52.3	partial	.	.	.	.	note	.	.	.	.
+26	cell	q6_whovote	6	.	2	sm_declined	540	233	22	285	.	43.1	partial	.	.	.	.	note	.	.	.	.
+27	cell	q7_whynot	7	.	1	sm_declined	660	276	0	384	.	41.8	partial	.	.	.	.	note	.	.	.	.
+28	cell	q7_whynot	7	.	2	sm_declined	540	231	26	283	.	42.8	partial	.	.	.	.	note	.	.	.	.
+29	cell	q8_approve	8	.	1	sm_declined	660	621	0	39	.	94.1	answered	.	.	.	.	note	.	.	.	.
+30	cell	q8_approve	8	.	2	sm_declined	540	432	108	0	.	80.0	answered	.	.	.	.	note	.	.	.	.
+31	cell	q9_econ	9	.	1	sm_declined	660	621	0	39	.	94.1	answered	.	.	.	.	note	.	.	.	.
+32	cell	q9_econ	9	.	2	sm_declined	540	467	73	0	.	86.5	answered	.	.	.	.	note	.	.	.	.
+33	cell	q10_dem_prim	10	.	1	sm_declined	660	344	0	316	.	52.1	partial	.	.	.	.	note	.	.	.	.
+34	cell	q10_dem_prim	10	.	2	sm_declined	540	247	22	271	.	45.7	partial	.	.	.	.	note	.	.	.	.
+35	cell	q11_rep_prim	11	.	1	sm_declined	660	347	0	313	.	52.6	partial	.	.	.	.	note	.	.	.	.
+36	cell	q11_rep_prim	11	.	2	sm_declined	540	219	15	306	.	40.6	partial	.	.	.	.	note	.	.	.	.
+37	cell	q12_ideol	12	.	1	sm_declined	660	621	0	39	.	94.1	answered	.	.	.	.	note	.	.	.	.
+38	cell	q12_ideol	12	.	2	sm_declined	540	460	80	0	.	85.2	answered	.	.	.	.	note	.	.	.	.
+39	cell	q13_income	13	.	1	sm_declined	660	621	0	39	.	94.1	answered	.	.	.	.	note	.	.	.	.
+40	cell	q13_income	13	.	2	sm_declined	540	320	220	0	.	59.3	partial	.	.	.	.	note	.	.	.	.

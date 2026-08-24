@@ -167,6 +167,23 @@ program define sm_jsumn, rclass
     return scalar sum = `s'
 end
 
+* the line a string first appears on, or 0 -> r(line)
+program define sm_fline, rclass
+    args f str
+    tempname fh
+    local n = 0
+    local hit = 0
+    file open `fh' using `"`f'"', read text
+    file read `fh' line
+    while r(eof) == 0 {
+        local ++n
+        if `hit' == 0 & strpos(`"`macval(line)'"', `"`str'"') local hit = `n'
+        file read `fh' line
+    }
+    file close `fh'
+    return scalar line = `hit'
+end
+
 * lines in a file that contain a string -> r(n)
 program define sm_fcount, rclass
     args f str
@@ -844,6 +861,65 @@ capture confirm file ../embedcheck/check_embed_scoping.py
 sm_assert `=(_rc == 0)' "the scoping checker ships with the package"
 
 * ============================================================================
+sm_block 19 "vertical layout"
+* ============================================================================
+* A questionnaire reads either way. Left to right suits a slide; top to bottom
+* suits a report page and a long instrument, because a page scrolls down.
+capture use fake_a.dta, clear
+capture noisily surveymap q1_consent q3_party q5_voted q6_whovote q7_whynot ///
+    q8_approve q10_dem_prim q11_rep_prim q13_income,                        ///
+    branch(q3_party = 1 2 3, q5_voted) out(j19.tsv) noreceipt replace
+sm_assert `=(_rc == 0)' "the layout fixture scans"
+
+capture noisily surveymap draw j19.tsv, export(mermaid) saving(m19v) replace ///
+    layout(vertical)
+sm_assert `=(_rc == 0)' "mermaid accepts layout(vertical)"
+capture sm_fcount m19v.mmd "flowchart TB"
+sm_assert `=(r(n) == 1)' "vertical emits flowchart TB"
+capture noisily surveymap draw j19.tsv, export(mermaid) saving(m19h) replace ///
+    layout(horizontal)
+capture sm_fcount m19h.mmd "flowchart LR"
+sm_assert `=(r(n) == 1)' "horizontal emits flowchart LR, and is the default"
+capture noisily surveymap draw j19.tsv, export(mermaid) saving(m19d) replace
+capture sm_fcount m19d.mmd "flowchart LR"
+sm_assert `=(r(n) == 1)' "the default layout is horizontal"
+* the abbreviations a user will actually type
+foreach L in v vert tb td VERTICAL {
+    capture noisily surveymap draw j19.tsv, export(mermaid) saving(m19a) replace layout(`L')
+    sm_assert `=(_rc == 0)' "layout(`L') is understood"
+}
+capture noisily surveymap draw j19.tsv, export(mermaid) saving(m19b) replace layout(diagonal)
+sm_assert `=(_rc == 198)' "an unknown layout is refused"
+
+* ---- each lane is drawn as its own labelled subgraph ----
+capture sm_fcount m19v.mmd "subgraph SG"
+local nsg = r(n)
+sm_assert `=(`nsg' >= 5)' "every lane with cells becomes a subgraph"
+capture sm_fcount m19v.mmd "  end"
+sm_assert `=(r(n) == `nsg')' "every subgraph is closed"
+capture sm_fcount m19v.mmd "    direction TB"
+sm_assert `=(r(n) == `nsg')' "each subgraph carries the drawing direction"
+* the lane label belongs to the subgraph, so the edge into it is not labelled
+* with the same text twice
+capture sm_fcount m19v.mmd `"-- ""'
+sm_assert `=(r(n) == 0)' "a lane with cells has no duplicate edge label"
+
+* ---- the description states the direction actually drawn ----
+capture sm_fcount m19v.mmd "run top to bottom"
+sm_assert `=(r(n) == 1)' "the vertical accDescr says top to bottom"
+capture sm_fcount m19h.mmd "run left to right"
+sm_assert `=(r(n) == 1)' "the horizontal accDescr says left to right"
+
+* ---- the label text is safe inside a mermaid quoted string ----
+capture sm_fcount m19v.mmd `"["'
+local nopen = r(n)
+sm_assert `=(`nopen' > 0)' "the file has bracketed nodes to check"
+* a middle dot must be real UTF-8, not a lone 0xB7 byte: that is what made
+* graph export refuse the figure, and it would corrupt a mermaid label too
+capture sm_fcount m19v.mmd "`=uchar(183)'"
+sm_assert `=(r(n) >= 1)' "the separator is valid UTF-8"
+
+* ============================================================================
 sm_block 16 "clear forgets the remembered journal"
 * ============================================================================
 capture use fake_a.dta, clear
@@ -853,6 +929,262 @@ sm_assert `=(_rc == 0)' "surveymap clear runs"
 sm_assert `=("$SM_LASTJ" == "")' "clear forgets SM_LASTJ"
 capture confirm file j16.tsv
 sm_assert `=(_rc == 0)' "clear leaves the journal FILE untouched"
+
+* ============================================================================
+sm_block 20 "banding a continuous item into lanes"
+* ============================================================================
+* A questionnaire asks age in years, but a map can only show a handful of
+* lanes, so the analyst says where to cut.  Nobody may fall outside the
+* bands: everyone below the first break belongs to the first lane and
+* everyone at or above the last break to the top one, which is the point on
+* which -egen cut, at()- differs, because it leaves the tails missing.
+capture use fake_a.dta, clear
+
+* ---- cut() at named breaks ----
+capture noisily surveymap q1_consent q2_age q3_party q8_approve ///
+    , branch(q2_age = cut(25 35 45 65)) out(j20c.tsv) noreceipt replace
+sm_assert `=(_rc == 0)' "branch(age = cut(...)) is accepted"
+capture sm_jcount j20c.tsv cat q2_age
+sm_assert `=(r(n) == 6)' "four breaks give five bands plus a no-answer lane"
+capture sm_jval j20c.tsv vallabel cat q2_age 1
+sm_assert `=("`r(val)'" == "under 25")' "the bottom band is labelled by its open side"
+capture sm_jval j20c.tsv vallabel cat q2_age 3
+sm_assert `=("`r(val)'" == "35 to 44")' "an interior band is labelled by its own range"
+capture sm_jval j20c.tsv vallabel cat q2_age 5
+sm_assert `=("`r(val)'" == "65 and over")' "the top band is labelled by its open side"
+
+* ---- the bands are a partition: nobody is dropped and nobody is counted twice
+capture sm_jsumn j20c.tsv n_asked cat q2_age
+local lanesum = r(sum)
+capture sm_jval j20c.tsv n_asked survey "*"
+local scope = real("`r(val)'")
+sm_assert `=(`lanesum' == `scope')' "the bands account for every respondent in scope"
+
+* ---- the journal says the lanes are derived, not asked ----
+capture sm_jval j20c.tsv flags survey "*"
+sm_assert `=(strpos("`r(val)'", "q2_age banded at 25 35 45 65") > 0)' ///
+    "the survey row records the breaks the analyst chose"
+
+* ---- q(k) cuts at the quantiles instead ----
+capture use fake_a.dta, clear
+capture noisily surveymap q1_consent q2_age q8_approve ///
+    , branch(q2_age = q(4)) out(j20q.tsv) noreceipt replace
+sm_assert `=(_rc == 0)' "branch(age = q(4)) is accepted"
+capture sm_jcount j20q.tsv cat q2_age
+sm_assert `=(r(n) == 5)' "q(4) gives four bands plus a no-answer lane"
+capture sm_jsumn j20q.tsv n_asked cat q2_age
+local qsum = r(sum)
+capture sm_jval j20q.tsv n_asked survey "*"
+sm_assert `=(`qsum' == real("`r(val)'"))' "the quartile bands account for everyone in scope"
+* four quantile bands of 1,200-odd respondents should be within a few percent
+capture sm_jval j20q.tsv n_asked cat q2_age 1
+local q1 = real("`r(val)'")
+capture sm_jval j20q.tsv n_asked cat q2_age 4
+local q4 = real("`r(val)'")
+sm_assert `=(abs(`q1' - `q4') / `q1' < 0.15)' "the quartile bands are close to equal in size"
+capture sm_jval j20q.tsv vallabel cat q2_age 1
+sm_assert `=(strpos("`r(val)'", " to ") > 0)' "a quantile band is labelled by the range it spans"
+
+* ---- a banding rule is checked before it is used ----
+capture use fake_a.dta, clear
+capture noisily surveymap q1_consent q2_age, branch(q2_age = cut()) ///
+    out(j20e.tsv) noreceipt replace
+sm_assert `=(_rc == 198)' "cut() with no breaks is refused"
+capture noisily surveymap q1_consent q2_age, branch(q2_age = cut(abc)) ///
+    out(j20e.tsv) noreceipt replace
+sm_assert `=(_rc == 198)' "cut() with breaks that are not numbers is refused"
+capture noisily surveymap q1_consent q2_age, branch(q2_age = q(1)) ///
+    out(j20e.tsv) noreceipt replace
+sm_assert `=(_rc == 198)' "q(1) is refused, because one band is not a split"
+capture noisily surveymap q1_consent q2_age, branch(q2_age = q(40)) ///
+    out(j20e.tsv) noreceipt replace
+sm_assert `=(_rc == 198)' "q(40) is refused as more lanes than a map can show"
+capture noisily surveymap q1_consent st, branch(st = q(3)) ///
+    out(j20e.tsv) noreceipt replace
+sm_assert `=(_rc == 198)' "a banding rule on a string item is refused"
+
+* ---- a banded gate still routes the items below it ----
+capture use fake_a.dta, clear
+capture noisily surveymap q1_consent q2_age q8_approve q13_income ///
+    , branch(q2_age = cut(40)) out(j20r.tsv) noreceipt replace
+sm_assert `=(_rc == 0)' "a single break is enough to gate"
+capture sm_jcount j20r.tsv cell "*" q2_age
+sm_assert `=(r(n) > 0)' "the banded gate produces cell rows for the items below it"
+
+* ============================================================================
+sm_block 21 "profile(): splitting the map by what the respondent did"
+* ============================================================================
+* branch() splits the map by an answer.  profile() splits it by something the
+* respondent did while answering, so an analyst can see whether the people
+* who leave items blank take a different route through the questionnaire.
+capture use fake_a.dta, clear
+
+capture noisily surveymap, profile(declined) out(j21n.tsv) noreceipt replace
+sm_assert `=(_rc == 0)' "profile(declined) is accepted"
+capture sm_jval j21n.tsv var item sm_declined
+sm_assert `=("`r(val)'" == "sm_declined")' "the derived condition becomes an item"
+capture sm_jval j21n.tsv position item sm_declined
+sm_assert `=(real("`r(val)'") == 1)' "the condition sits first, ahead of every question"
+capture sm_jval j21n.tsv gate item sm_declined
+sm_assert `=("`r(val)'" == "1")' "the condition is a gate"
+
+* ---- a reader must never take a derived column for a question ----
+capture sm_jval j21n.tsv flags item sm_declined
+sm_assert `=(strpos("`r(val)'", "derived:") == 1)' ///
+    "the item row says the condition is derived, not asked"
+capture sm_jval j21n.tsv flags survey "*"
+local sf `"`r(val)'"'
+sm_assert `=(strpos(`"`sf'"', "is derived") > 0)' ///
+    "the survey row records what the condition measures"
+sm_assert `=(strpos(`"`sf'"', "not by itself evidence of bias") > 0)' ///
+    "the caveat that a decline rate is not a bias estimate travels with the map"
+sm_assert `=(strpos(`"`sf'"', "splits at zero only") > 0)' ///
+    "the journal admits the default threshold was not the analyst's choice"
+
+* ---- the default split is at zero, which is the one non-arbitrary boundary
+capture sm_jcount j21n.tsv cat sm_declined
+sm_assert `=(r(n) == 2)' "the default gives two lanes"
+capture sm_jval j21n.tsv vallabel cat sm_declined 1
+sm_assert `=("`r(val)'" == "none")' "the lower lane is the respondents who declined nothing"
+capture sm_jval j21n.tsv vallabel cat sm_declined 2
+sm_assert `=("`r(val)'" == "at least one")' "the upper lane is everyone else"
+
+* ---- the lanes partition the sample ----
+capture sm_jsumn j21n.tsv n_asked cat sm_declined
+local lanesum = r(sum)
+capture sm_jval j21n.tsv n_asked survey "*"
+sm_assert `=(`lanesum' == real("`r(val)'"))' "the condition's lanes account for everyone"
+
+* ---- a share, not a count: the denominator is the items THAT respondent
+* ---- was asked, because skip logic asks different people different numbers
+capture use fake_a.dta, clear
+quietly gen int hand_num = 0
+quietly gen int hand_den = 0
+foreach v of varlist q1_consent q2_age q3_party q4_reg q5_voted q6_whovote ///
+    q7_whynot q8_approve q9_econ q10_dem_prim q11_rep_prim q12_ideol q13_income ///
+    resp_id {
+    quietly replace hand_den = hand_den + 1 if `v' != .
+    quietly replace hand_num = hand_num + 1 if missing(`v') & `v' != .
+}
+quietly gen double hand_share = 100 * hand_num / hand_den if hand_den > 0
+quietly count if hand_share > 0 & !missing(hand_share)
+local handany = r(N)
+capture sm_jval j21n.tsv n_asked cat sm_declined 2
+sm_assert `=(real("`r(val)'") == `handany')' ///
+    "the upper lane holds exactly the respondents who declined something"
+* the denominator really does vary, which is the whole reason for a share
+quietly summarize hand_den, meanonly
+sm_assert `=(r(min) < r(max))' "the fixture asks different respondents different numbers of items"
+
+* ---- bands of the analyst's own, read in percentage points ----
+capture use fake_a.dta, clear
+capture noisily surveymap, profile(declined = cut(10 25)) ///
+    out(j21b.tsv) noreceipt replace
+sm_assert `=(_rc == 0)' "profile() takes bands of the analyst's own"
+capture sm_jcount j21b.tsv cat sm_declined
+sm_assert `=(r(n) == 3)' "two breaks give three bands"
+capture sm_jval j21b.tsv vallabel cat sm_declined 1
+sm_assert `=("`r(val)'" == "under 10%")' "a share band is labelled in percentage points"
+capture sm_jval j21b.tsv vallabel cat sm_declined 3
+sm_assert `=("`r(val)'" == "25% and over")' "the top share band names its open side"
+capture sm_jval j21b.tsv flags survey "*"
+sm_assert `=(strpos("`r(val)'", "splits at zero only") == 0)' ///
+    "the journal does not claim a default when the analyst set the bands"
+
+* ---- where a respondent stopped ----
+capture use fake_a.dta, clear
+capture noisily surveymap, profile(breakoff) out(j21k.tsv) noreceipt replace
+sm_assert `=(_rc == 0)' "profile(breakoff) is accepted"
+capture sm_jcount j21k.tsv cat sm_breakoff
+sm_assert `=(r(n) == 2)' "the default splits at reaching the last item"
+capture sm_jval j21k.tsv vallabel cat sm_breakoff 2
+sm_assert `=("`r(val)'" == "reached the last item")' "the upper lane is the finishers"
+capture sm_jval j21k.tsv flags survey "*"
+sm_assert `=(strpos("`r(val)'", "consistent with abandonment") > 0)' ///
+    "the journal hedges breakoff, which item data cannot prove"
+
+* ---- refused and dontknow will not guess the survey's codes ----
+capture use fake_a.dta, clear
+capture noisily surveymap, profile(refused) out(j21e.tsv) noreceipt replace
+sm_assert `=(_rc == 198)' "profile(refused) without refusedcode() is refused"
+capture noisily surveymap, profile(dontknow) out(j21e.tsv) noreceipt replace
+sm_assert `=(_rc == 198)' "profile(dontknow) without dkcode() is refused"
+capture noisily surveymap, profile(refused) refusedcode(.b) ///
+    out(j21r.tsv) noreceipt replace
+sm_assert `=(_rc == 0)' "profile(refused) with the code named runs"
+capture sm_jval j21r.tsv var item sm_refused
+sm_assert `=("`r(val)'" == "sm_refused")' "the refusal count becomes an item"
+
+* ---- conditions the package refuses to build, and says why -------------
+* Over-reporters resemble honest reporters on everything a survey records
+* (Ansolabehere and Hersh 2012), so a flag built from answers alone would
+* reproduce the demographics of the behaviour and call those people liars.
+capture noisily surveymap, profile(exaggerator) out(j21e.tsv) noreceipt replace
+sm_assert `=(_rc == 198)' "profile(exaggerator) is refused, not invented"
+capture noisily surveymap, profile(liar) out(j21e.tsv) noreceipt replace
+sm_assert `=(_rc == 198)' "the other names for it are refused too"
+capture noisily surveymap, profile(straightlining) out(j21e.tsv) noreceipt replace
+sm_assert `=(_rc == 198)' "profile(straightlining) is refused without a named battery"
+capture noisily surveymap, profile(careless) out(j21e.tsv) noreceipt replace
+sm_assert `=(_rc == 198)' "a verdict about the respondent is refused"
+
+* ---- the bands are checked before they are used ----
+capture noisily surveymap, profile(declined = cut(150)) ///
+    out(j21e.tsv) noreceipt replace
+sm_assert `=(_rc == 198)' "a share break above 100 is refused"
+capture noisily surveymap, profile(declined = cut(abc)) ///
+    out(j21e.tsv) noreceipt replace
+sm_assert `=(_rc == 198)' "a break that is not a number is refused"
+capture noisily surveymap, profile(asked = cut(2.5)) ///
+    out(j21e.tsv) noreceipt replace
+sm_assert `=(_rc == 198)' "a fractional break on a count is refused"
+capture noisily surveymap, profile(declined = q(1)) ///
+    out(j21e.tsv) noreceipt replace
+sm_assert `=(_rc == 198)' "q(1) is refused, because one band is not a split"
+
+* ---- a weighted map says what a behaviour-defined lane can mean ----
+capture use fake_a.dta, clear
+quietly gen double wt21 = cond(q3_party == 1, 1.4, 0.8)
+capture noisily surveymap [pweight=wt21], profile(declined) ///
+    out(j21w.tsv) noreceipt replace
+sm_assert `=(_rc == 0)' "a weighted scan takes a derived condition"
+capture sm_jval j21w.tsv flags survey "*"
+sm_assert `=(strpos("`r(val)'", "not a population subgroup") > 0)' ///
+    "the journal warns that a weighted figure inside a behaviour lane is not a population estimate"
+
+* ---- profile() composes with branch() ----
+capture use fake_a.dta, clear
+capture noisily surveymap, profile(declined) branch(q3_party) ///
+    out(j21c.tsv) noreceipt replace
+sm_assert `=(_rc == 0)' "profile() and branch() can both be given"
+capture sm_jcount j21c.tsv cat sm_declined
+local a = r(n)
+capture sm_jcount j21c.tsv cat q3_party
+sm_assert `=(`a' > 0 & r(n) > 0)' "both gates get their own lanes"
+
+* ---- the renderers accept a derived gate ----
+capture noisily surveymap draw j21n.tsv, export(mermaid) layout(vertical) ///
+    saving(m21v) replace
+sm_assert `=(_rc == 0)' "a vertical mermaid draws a derived gate"
+capture sm_fcount m21v.mmd "derived, not asked"
+sm_assert `=(r(n) == 1)' "the mermaid node says the gate was derived"
+* a gate does a different job from a question, so it gets a different shape:
+* a reader printing in greyscale still sees which node splits the sample
+capture sm_fcount m21v.mmd "{{"
+sm_assert `=(r(n) >= 1)' "the gate node is drawn as its own shape, not a plain box"
+
+* ---- lane order survives the renderer ----
+* mermaid lays sibling subgraphs out in the reverse of the order they are
+* declared, so the renderer declares them backwards on purpose.  Pin it: if
+* mermaid ever changes, this check is what says so.
+capture sm_fline m21v.mmd "subgraph SG1x1"
+local first = r(line)
+capture sm_fline m21v.mmd "subgraph SG1x2"
+sm_assert `=(`first' > r(line))' "lane 1 is declared last, so it draws first"
+
+capture noisily surveymap draw j21n.tsv, export(html) layout(vertical) ///
+    saving(h21v.html) replace
+sm_assert `=(_rc == 0)' "a vertical HTML map draws a derived gate"
 
 * ---------------------------------------------------------------- summary ----
 display as text _n "{hline 78}"

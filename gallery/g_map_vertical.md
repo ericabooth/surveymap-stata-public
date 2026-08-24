@@ -7,10 +7,10 @@ Items run left to right in questionnaire order; a gate fans the sample into lane
 ```mermaid
 %%{init: {'theme':'base','themeVariables':{'fontFamily':'Helvetica, Arial, sans-serif','fontSize':'14px','primaryColor':'#ffffff','primaryTextColor':'#202020','primaryBorderColor':'#606060','lineColor':'#606060','secondaryColor':'#f4f4f4','tertiaryColor':'#fafafa','edgeLabelBackground':'#ffffff','titleColor':'#202020'}}}%%
 %% surveymap _sm_rendertext 0.1.0 - journal g_branched.tsv - rendered 24 Aug 2026 03:44:45 - Stata 19.5 MP
-flowchart LR
+flowchart TB
   accTitle: surveymap flow of g_branched.tsv
   accDescr {
-    1,161 respondents, 12 items, 2 gates. Items run left to right in questionnaire order; a gate fans the sample into lanes that rejoin the spine at the end of its segment. A dashed node is a cell the lane was routed around. Two exclamation marks flag a warning. Counts are unweighted and percentages are weighted.
+    1,161 respondents, 12 items, 2 gates. Items run top to bottom in questionnaire order; a gate fans the sample into lanes that rejoin the spine at the end of its segment. A dashed node is a cell the lane was routed around. Two exclamation marks flag a warning. Counts are unweighted and percentages are weighted.
   }
   classDef default fill:#ffffff,stroke:#5a5a5a,color:#1a1a1a,stroke-width:1px;
   classDef smghost fill:#fbfbfb,stroke:#b0b0b0,stroke-dasharray: 5 4,color:#8a8a8a,stroke-width:1px;
@@ -21,44 +21,44 @@ flowchart LR
   n3["q4_reg<br/>1,161 (100.0%)"]
   n4{{"q5_voted<br/>1,133 (97.7%)"}}
   subgraph SG4x3["q5_voted = other (pooled) · 28"]
-    direction LR
+    direction TB
   n5v3["q6_whovote<br/>skipped"]
   n6v3["q7_whynot<br/>skipped"]
   end
   subgraph SG4x2["q5_voted = Yes · 600"]
-    direction LR
+    direction TB
   n5v2["q6_whovote<br/>578 (96.6%)"]
   n6v2["q7_whynot<br/>skipped"]
   end
   subgraph SG4x1["q5_voted = No · 533"]
-    direction LR
+    direction TB
   n5v1["q6_whovote<br/>skipped"]
   n6v1["q7_whynot<br/>507 (95.2%)"]
   end
   n7["q8_approve<br/>1,053 (90.9%)<br/>!! nonresp 108"]
   n8["q9_econ<br/>1,088 (93.3%)<br/>!! nonresp 73"]
   subgraph SG2x5["q3_party = no answer · 87"]
-    direction LR
+    direction TB
   n9v5["q10_dem_prim<br/>skipped"]
   n10v5["q11_rep_prim<br/>skipped"]
   end
   subgraph SG2x4["q3_party = other (pooled) · 109"]
-    direction LR
+    direction TB
   n9v4["q10_dem_prim<br/>skipped"]
   n10v4["q11_rep_prim<br/>skipped"]
   end
   subgraph SG2x3["q3_party = Independent · 229"]
-    direction LR
+    direction TB
   n9v3["q10_dem_prim<br/>216 (94.3%)"]
   n10v3["q11_rep_prim<br/>224 (97.8%)"]
   end
   subgraph SG2x2["q3_party = Republican · 352"]
-    direction LR
+    direction TB
   n9v2["q10_dem_prim<br/>skipped"]
   n10v2["q11_rep_prim<br/>342 (97.2%)"]
   end
   subgraph SG2x1["q3_party = Democrat · 384"]
-    direction LR
+    direction TB
   n9v1["q10_dem_prim<br/>375 (97.7%)"]
   n10v1["q11_rep_prim<br/>skipped"]
   end

@@ -76,6 +76,7 @@ program define surveymap, rclass
     * ---- scan (the default) ----------------------------------------------
     syntax [varlist(default=none)] [if] [in] [pw] [,                       ///
         BRanch(string asis) out(string) NONresponse(string)                ///
+        PROFile(string asis) REFusedcode(string) DKcode(string)             ///
         EXclude(varlist) NOSTRings VERify(string)                          ///
         PRUNE(real 5) MINN(integer 30) MAXCats(integer 6)                  ///
         DETect(numlist min=2 max=2) NOAUTOdetect NORECeipt NOPRUNE replace]
@@ -232,6 +233,8 @@ program define surveymap, rclass
         forvalues i = 1/`ngdecl' {
             local gv`i' `"`s(gate`i')'"'
             local gk`i' `"`s(vals`i')'"'
+            local gr`i' `"`s(rule`i')'"'
+            local gp`i' `"`s(parm`i')'"'
         }
         * a declared gate that is not among the mapped items cannot be drawn
         forvalues i = 1/`ngdecl' {
@@ -261,6 +264,246 @@ program define surveymap, rclass
             _sm_wsum "`wvar'" "1"
             local WTOT "`s(o)'"
         }
+    }
+
+    * ---- a derived condition, built in the frame copy only --------------
+    * profile() splits the map by something the respondent DID rather than by
+    * an answer they gave, so an analyst can ask what the path looks like for
+    * the people who left a lot of items blank.  The count runs over the
+    * items each respondent was actually ASKED: an item a skip routed around
+    * is not in the denominator, because counting it would make a
+    * well-behaved respondent on a long branch look like a bad one.
+    local profnote ""
+    if `"`profile'"' != "" {
+        _sm_profile , spec("`profile'")
+        local prule   `"`s(rule)'"'
+        local pkind   `"`s(kind)'"'
+        local pband   `"`s(band)'"'
+        local pparm   `"`s(parm)'"'
+        local pvname  `"`s(vname)'"'
+        local pvlab   `"`s(vlab)'"'
+        local pdeflt  `"`s(deflt)'"'
+        local pcaveat `"`s(caveat)'"'
+
+        * refused and dontknow need the survey's own codes named, because no
+        * two survey houses agree on them and guessing would be a fabrication
+        if inlist("`prule'", "refused", "dontknow") {
+            local pcode `"`refusedcode'"'
+            local pcname "refusedcode()"
+            if "`prule'" == "dontknow" {
+                local pcode `"`dkcode'"'
+                local pcname "dkcode()"
+            }
+            if `"`pcode'"' == "" {
+                di as err "profile(`prule'): say which code the survey uses"
+                di as err "    `pcname' takes an extended missing or a number,"
+                di as err "    for example `pcname'(.b) or `pcname'(99)"
+                exit 198
+            }
+            * an extended missing is the usual way a survey stores a
+            * refusal, and -confirm number- does not accept one, so the two
+            * forms are checked separately
+            local pcok = 0
+            if regexm(`"`pcode'"', "^\.[a-z]$") local pcok = 1
+            else {
+                capture confirm number `pcode'
+                if !_rc local pcok = 1
+            }
+            if !`pcok' {
+                di as err `"`pcname': "`pcode'" is not a value"'
+                di as err "    give an extended missing such as .b, or a code such as 99"
+                exit 198
+            }
+        }
+
+        frame _smwork {
+            capture confirm variable `pvname'
+            if !_rc {
+                di as err "profile(): `pvname' is already a column in the data"
+                di as err "    rename it, so the derived condition has a name of its own"
+                exit 198
+            }
+            * Three tallies, walked once over the items.  A system missing
+            * means the item was never put in front of this respondent, so it
+            * is in neither the numerator nor the denominator; every other
+            * kind of blank means the respondent saw the question and did not
+            * answer it.
+            tempvar pnum pden ppos
+            quietly gen int `pnum' = 0
+            quietly gen int `pden' = 0
+            quietly gen int `ppos' = 0
+            local ppo = 0
+            local plastnum = 0
+            foreach v of local vlist {
+                local ++ppo
+                capture confirm numeric variable `v'
+                if _rc continue
+                local plastnum = `ppo'
+                local nrexp "0"
+                foreach c of local nrcodes {
+                    local nrexp `"`nrexp' | `v' == `c'"'
+                }
+                * asked: the item was shown at all
+                quietly replace `pden' = `pden' + 1 if `v' != .
+                * answered: a real value that is not a nonresponse code
+                quietly replace `ppos' = `ppo' if !missing(`v') & !(`nrexp')
+                if "`prule'" == "declined" {
+                    quietly replace `pnum' = `pnum' + 1 ///
+                        if (missing(`v') & `v' != .) | (!missing(`v') & (`nrexp'))
+                }
+                else if "`prule'" == "answered" | "`prule'" == "asked" {
+                    quietly replace `pnum' = `pnum' + 1 if !missing(`v') & !(`nrexp')
+                }
+                else if inlist("`prule'", "refused", "dontknow") {
+                    quietly replace `pnum' = `pnum' + 1 if `v' == `pcode'
+                }
+            }
+            if "`pkind'" == "share" {
+                * a respondent the routing never asked anything has no share:
+                * they get their own lane rather than a made-up zero
+                quietly gen double `pvname' = 100 * `pnum' / `pden' if `pden' > 0
+            }
+            else if "`prule'" == "asked"    quietly gen int `pvname' = `pden'
+            else if "`prule'" == "breakoff" {
+                quietly gen int `pvname' = `ppos' if `ppos' > 0
+            }
+            else quietly gen int `pvname' = `pnum'
+            label variable `pvname' `"`pvlab'"'
+        }
+
+        * the condition is the first thing the map splits on, because it is a
+        * property of the whole interview rather than of one question
+        local vlist `"`pvname' `vlist'"'
+        local K = `K' + 1
+        forvalues i = `ngdecl'(-1)1 {
+            local j = `i' + 1
+            local gv`j' `"`gv`i''"'
+            local gk`j' `"`gk`i''"'
+            local gr`j' `"`gr`i''"'
+            local gp`j' `"`gp`i''"'
+        }
+        local gv1 `"`pvname'"'
+        local gk1 ""
+        local gr1 `"`pband'"'
+        if "`pkind'" != "share" local pcount_`pvname' = 1
+        if "`pkind'" == "share" local pshare_`pvname' = 1
+        * Where a respondent stopped only has one boundary that is not a
+        * judgement call: did they reach the last item or not.  Quartiles of
+        * a stopping position put most of a finished survey in one band and
+        * say nothing.
+        if "`prule'" == "breakoff" & `pdeflt' == 1 {
+            local pband "cut"
+            local pparm = `plastnum'
+            local gr1 "cut"
+            local gp1 = `plastnum'
+            local pstop_`pvname' = 1
+        }
+        local gp1 `"`pparm'"'
+        local ++ngdecl
+        local declared `"`pvname' `declared'"'
+        local profnote `"`pvname' is derived: `pvlab' -- `pcaveat'"'
+        if `pdeflt' == 1 & "`pkind'" == "share" {
+            local profnote `"`profnote'; the default splits at zero only, because any other threshold is a decision about what counts as a lot; set your own with profile(`prule' = cut(10 25))"'
+        }
+        else if `pdeflt' == 1 {
+            local profnote `"`profnote'; bands are the default `pband'(`pparm'), set your own with profile(`prule' = cut(...))"'
+        }
+        * A lane defined by something the respondent did is not a population
+        * subgroup, so a weighted percentage inside it describes the weighted
+        * sample and not a population quantity.
+        if "`wvar'" != "" {
+            local profnote `"`profnote'; this lane is defined by behaviour in the survey, so a weighted figure inside it describes the weighted sample, not a population subgroup"'
+        }
+    }
+
+    * ---- band any continuous gate, in the frame copy only ---------------
+    * A cut point is a decision, so the user names it; there is no default.
+    * Nobody is dropped: values below the first break form the first band and
+    * values at or above the last form the top one, which is the deliberate
+    * opposite of -egen cut, at()- and is what keeps lanes a partition.
+    local bandnote ""
+    forvalues i = 1/`ngdecl' {
+        if `"`gr`i''"' == "" continue
+        local g `"`gv`i''"'
+        local lblname "_smband`i'"
+        frame _smwork {
+            tempvar bd
+            capture label drop `lblname'
+            if `"`gr`i''"' == "cut" {
+                quietly gen byte `bd' = .
+                local br `"`gp`i''"'
+                local nb : word count `br'
+                local b1 : word 1 of `br'
+                quietly replace `bd' = 1 if `g' < `b1' & !missing(`g')
+                local b1lab "under `b1'"
+                if "`pcount_`g''" == "1" {
+                    local b1lab = cond(`b1' == 1, "none", "fewer than `b1'")
+                }
+                if "`pshare_`g''" == "1" {
+                    * the default share split sits just above zero, so the
+                    * two lanes are "did this at all" and "did not"
+                    local b1lab = cond(`b1' <= 0.001, "none", ///
+                        "under " + string(`b1', "%9.0g") + "%")
+                }
+                if "`pstop_`g''" == "1" local b1lab "stopped before the end"
+                label define `lblname' 1 `"`b1lab'"', modify
+                forvalues j = 2/`nb' {
+                    local lo : word `=`j'-1' of `br'
+                    local hi : word `j' of `br'
+                    quietly replace `bd' = `j' if `g' >= `lo' & `g' < `hi'
+                    local top = `hi' - 1
+                    local isint = (`hi' == int(`hi') & `lo' == int(`lo'))
+                    local txt = cond(`isint', "`lo' to `top'", "`lo' to under `hi'")
+                    if "`pshare_`g''" == "1" {
+                        local txt = string(`lo', "%9.0g") + " to under " + ///
+                            string(`hi', "%9.0g") + "%"
+                    }
+                    label define `lblname' `j' `"`txt'"', modify
+                }
+                local bk : word `nb' of `br'
+                quietly replace `bd' = `=`nb'+1' if `g' >= `bk' & !missing(`g')
+                local bklab "`bk' and over"
+                if "`pshare_`g''" == "1" {
+                    local bklab = cond(`bk' <= 0.001, "at least one", ///
+                        string(`bk', "%9.0g") + "% and over")
+                }
+                if "`pstop_`g''" == "1" local bklab "reached the last item"
+                label define `lblname' `=`nb'+1' `"`bklab'"', modify
+                local bandnote `"`bandnote'`=cond(`"`bandnote'"' == "", "", "; ")'`g' banded at `br'"'
+                if "`pshare_`g''" == "1" & `nb' == 1 & `bk' <= 0.001 {
+                    local bandnote `"`bandnote'`=cond(`"`bandnote'"' == "", "", "")' (split at zero only)"'
+                }
+            }
+            else {
+                local nq `"`gp`i''"'
+                capture confirm variable `bd'
+                if !_rc quietly drop `bd'
+                quietly xtile `bd' = `g' if !missing(`g'), nquantiles(`nq')
+                forvalues j = 1/`nq' {
+                    quietly summarize `g' if `bd' == `j', meanonly
+                    if r(N) > 0 {
+                        local lo = r(min)
+                        local hi = r(max)
+                        * a count can pile up on one value, and "12 to 12" is
+                        * a band label that makes a reader look twice
+                        local qlab = cond(`lo' == `hi', "`lo'", "`lo' to `hi'")
+                        if "`pshare_`g''" == "1" {
+                            local qlab = string(`lo', "%9.1f") + " to " + ///
+                                string(`hi', "%9.1f") + "%"
+                            if `lo' == `hi' local qlab = string(`lo', "%9.1f") + "%"
+                        }
+                        label define `lblname' `j' `"`qlab'"', modify
+                    }
+                    else label define `lblname' `j' "band `j' (empty)", modify
+                }
+                local bandnote `"`bandnote'`=cond(`"`bandnote'"' == "", "", "; ")'`g' cut into `nq' equal-sized bands"'
+            }
+            * the banded values stand in for the item inside this copy only
+            quietly replace `g' = `bd'
+            label values `g' `lblname'
+        }
+        * the keep list, if any, refers to band numbers
+        local str_`g' = 0
     }
 
     * ---- per item: answered / nonresponse / system missing ---------------
@@ -305,7 +548,7 @@ program define surveymap, rclass
         local s_`v' = `sys'
         local t_`v' `"`ty'"'
         local str_`v' = `isstr'
-        local lab_`v' : variable label `v'
+        frame _smwork: local lab_`v' : variable label `v'
         if `"`lab_`v''"' == "" local lab_`v' `"`v'"'
     }
 
@@ -515,6 +758,8 @@ program define surveymap, rclass
     local nrtxt = cond(`"`nrcodes'"' == "", "none", `"`nrcodes'"')
     local sflags "prune=`prune' minn=`minn' maxcats=`maxcats' dlow=`dlow' dhigh=`dhigh' nonresp=`nrtxt'"
     if `"`autonote'"' != "" local sflags `"`sflags'; `autonote'"'
+    if `"`bandnote'"' != "" local sflags `"`sflags'; `bandnote'"'
+    if `"`profnote'"' != "" local sflags `"`sflags'; `profnote'"'
     if `"`skipgates'"' != "" local sflags `"`sflags'; skipped `skipgates'"'
     _sm_wrow `JH' `seq' survey "." `K' "." "." "." `N' "." "." "." "." "." ///
         "." "." "." "." "." note `"`sflags'"' `"`WTOT'"' "." "."
@@ -536,6 +781,9 @@ program define surveymap, rclass
         else if `s_`v'' == `N' {
             local sev "warn"
             local fl "!! nobody was shown this item"
+        }
+        if "`v'" == "`pvname'" {
+            local fl `"derived: `pvlab', counted over the items each respondent was asked"'
         }
         local gbv = cond(`"`gb_`v''"' == "", ".", `"`gb_`v''"')
         local pctw "."
@@ -582,19 +830,20 @@ program define surveymap, rclass
         * reader can fold them; the journal keeps every category
         local allrows `"`cats'"'
 
-        local vlbl : value label `g'
+        frame _smwork: local vlbl : value label `g'
         foreach c of local allrows {
+            local dec ""
             frame _smwork {
                 quietly count if `g' == `c'
                 local nc = r(N)
                 _sm_wsum "`wvar'" "`g' == `c'"
                 local wnc "`s(o)'"
+                * a value label belongs to a dataset, so a banded gate's
+                * labels can only be read where the banding happened
+                if `"`vlbl'"' != "" local dec : label `vlbl' `c', strict
             }
             local ctext "`c'"
-            if `"`vlbl'"' != "" {
-                local dec : label `vlbl' `c', strict
-                if `"`dec'"' != "" & `"`dec'"' != "`c'" local ctext `"`dec'"'
-            }
+            if `"`dec'"' != "" & `"`dec'"' != "`c'" local ctext `"`dec'"'
             local ++seq
             local pooled "."
             local hit : list c in lanevals

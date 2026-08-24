@@ -19,7 +19,21 @@
 
 program define _sm_rendertext
     version 16
-    syntax using/, SAVing(string) [NAME(string) replace]
+    syntax using/, SAVing(string) [LAYout(string) NAME(string) replace]
+
+    * A questionnaire is a sequence, so either direction reads correctly.
+    * Left to right suits a slide and a wide screen; top to bottom suits a
+    * report page, a phone, and a long instrument, because a page scrolls
+    * down and a survey with forty items is taller than any screen is wide.
+    if `"`layout'"' == "" local layout "horizontal"
+    local layout = strlower(`"`layout'"')
+    if inlist("`layout'", "h", "horiz", "lr") local layout "horizontal"
+    if inlist("`layout'", "v", "vert", "tb", "td") local layout "vertical"
+    if !inlist("`layout'", "horizontal", "vertical") {
+        display as error "layout() must be horizontal or vertical"
+        exit 198
+    }
+    local dir = cond("`layout'" == "vertical", "TB", "LR")
 
     * forgive a pasted extension on the stub
     foreach e in .mmd .md {
@@ -99,6 +113,7 @@ program define _sm_rendertext
             if "`pw'" != "." & "`pw'" != "" local pa_`p' "`pw'"
         }
         frame `J': local g_`p'  = gate[`i']
+        frame `J': local fl_`p' = flags[`i']
     }
     if `K' == 0 {
         frame drop `J'
@@ -224,6 +239,7 @@ program define _sm_rendertext
     local ned = 0
     local ghosts ""
     local warns  ""
+    local gates  ""
     local prev ""
     local p = 1
     while `p' <= `K' {
@@ -235,7 +251,13 @@ program define _sm_rendertext
             local mtgt ""
             if `pe' + 1 <= `K' local mtgt "n`=`pe'+1'"
             local src `"`prev'"'
-            forvalues k = 1/`L_`gp'' {
+            * Lanes are emitted last-first.  Mermaid's flowchart layout places
+            * sibling subgraphs in the reverse of the order they are declared
+            * (checked against mermaid-cli 11.16.0, in both TB and LR), so
+            * declaring them backwards is what puts lane 1 first on the page.
+            * Without this a banded gate reads right to left: "3 and over"
+            * lands where a reader looks for "none".
+            forvalues k = `L_`gp''(-1)1 {
                 local q1 = 0
                 local qL = 0
                 forvalues q = `p'/`pe' {
@@ -254,8 +276,17 @@ program define _sm_rendertext
                 }
                 if "`src'" != "" {
                     local ++ned
-                    local ed`ned' `"  `src' -- "`flab'" --> n`q1'v`k'"'
+                    local ed`ned' `"  `src' --> n`q1'v`k'"'
                 }
+                * one subgraph per lane, labelled with the answer that opened
+                * it, so the grouping is drawn instead of inferred
+                _srt_esc `"`ll_`gp'_`k''"'
+                local slab `"`s(o)'"'
+                _srt_n `"`ln_`gp'_`k''"'
+                local ++nnd
+                local nd`nnd' `"  subgraph SG`gp'x`k'["`v_`gp'' = `slab' `=uchar(183)' `s(o)'"]"'
+                local ++nnd
+                local nd`nnd' "    direction `dir'"
                 local pc ""
                 forvalues q = `q1'/`qL' {
                     if `"`cS_`gp'_`k'_`q''"' == "" continue
@@ -283,6 +314,8 @@ program define _sm_rendertext
                     }
                     local pc "`id'"
                 }
+                local ++nnd
+                local nd`nnd' "  end"
                 if "`mtgt'" != "" & "`pc'" != "" {
                     local ++ned
                     local ed`ned' `"  `pc' --> `mtgt'"'
@@ -307,9 +340,16 @@ program define _sm_rendertext
                 local isw = 1
             }
         }
+        if `"`fl_`p''"' != "." & strpos(`"`fl_`p''"', "derived:") == 1 {
+            local lab `"`lab'<br/>derived, not asked"'
+        }
         local ++nnd
-        local nd`nnd' `"  n`p'["`lab'"]"'
+        if "`g_`p''" == "1" local nd`nnd' `"  n`p'{{"`lab'"}}"'
+        else                local nd`nnd' `"  n`p'["`lab'"]"'
         if `isw' local warns = "`warns'" + cond("`warns'" == "", "", ",") + "n`p'"
+        else if "`g_`p''" == "1" {
+            local gates = "`gates'" + cond("`gates'" == "", "", ",") + "n`p'"
+        }
         if "`prev'" != "" {
             local ++ned
             local ed`ned' `"  `prev' --> n`p'"'
@@ -335,8 +375,9 @@ program define _sm_rendertext
     local acct "surveymap flow of `jname'"
     local gw = cond(`G' == 1, "gate", "gates")
     local iw = cond(`K' == 1, "item", "items")
-    local accd "`nnf' respondents, `K' `iw', `G' `gw'. Items run left to"
-    local accd "`accd' right in questionnaire order; a gate fans the sample"
+    local rd = cond("`layout'" == "vertical", "top to bottom", "left to right")
+    local accd "`nnf' respondents, `K' `iw', `G' `gw'. Items run `rd'"
+    local accd "`accd' in questionnaire order; a gate fans the sample"
     local accd "`accd' into lanes that rejoin the spine at the end of its"
     local accd "`accd' segment. A dashed node is a cell the lane was routed"
     local accd "`accd' around. Two exclamation marks flag a warning."
@@ -375,23 +416,30 @@ program define _sm_rendertext
         local tv "`tv','edgeLabelBackground':'#ffffff','titleColor':'#202020'"
         file write `fh' ("%%{init: {'theme':'base','themeVariables':{`tv'}}}%%") _n
         file write `fh' ("%% `prov'") _n
-        file write `fh' ("flowchart LR") _n
+        file write `fh' ("flowchart `dir'") _n
         file write `fh' ("  accTitle: `acct'") _n
         file write `fh' ("  accDescr {") _n
         file write `fh' ("    `accd'") _n
         file write `fh' ("  }") _n
-        file write `fh' ("  classDef default fill:#ffffff,stroke:#606060,") ///
-            ("color:#202020;") _n
-        file write `fh' ("  classDef smghost fill:#ffffff,stroke:#909090,") ///
-            ("stroke-dasharray: 5 4,color:#707070;") _n
+        * Three states, three weights of the same grey: an item everyone was
+        * asked, an item a lane was routed around, and an item worth a second
+        * look.  Only the third carries the accent, and it also carries "!!",
+        * so the signal survives a monochrome printout.
+        file write `fh' ("  classDef default fill:#ffffff,stroke:#5a5a5a,") ///
+            ("color:#1a1a1a,stroke-width:1px;") _n
+        file write `fh' ("  classDef smghost fill:#fbfbfb,stroke:#b0b0b0,") ///
+            ("stroke-dasharray: 5 4,color:#8a8a8a,stroke-width:1px;") _n
         file write `fh' ("  classDef smwarn fill:#ffffff,stroke:#4a6d8c,") ///
-            ("stroke-width:2.5px,color:#202020;") _n
+            ("stroke-width:2px,color:#1a1a1a;") _n
+        file write `fh' ("  classDef smgate fill:#eef2f6,stroke:#4a6d8c,") ///
+            ("stroke-width:1.5px,color:#1a1a1a;") _n
         forvalues i = 1/`nnd' {
             file write `fh' (subinstr(`"`nd`i''"', char(2), char(36), .)) _n
         }
         forvalues i = 1/`ned' {
             file write `fh' (subinstr(`"`ed`i''"', char(2), char(36), .)) _n
         }
+        if "`gates'"  != "" file write `fh' ("  class `gates' smgate;") _n
         if "`ghosts'" != "" file write `fh' ("  class `ghosts' smghost;") _n
         if "`warns'"  != "" file write `fh' ("  class `warns' smwarn;") _n
         if "`ext'" == "md" {
@@ -405,6 +453,16 @@ program define _sm_rendertext
 end
 
 * comma-format a count string ("." or "" -> empty) -> s(o)
+* make label text safe inside a mermaid quoted string -> s(o)
+program define _srt_esc, sclass
+    args t
+    local t = subinstr(`"`t'"', char(34), "'", .)
+    local t = subinstr(`"`t'"', "[", "(", .)
+    local t = subinstr(`"`t'"', "]", ")", .)
+    sreturn clear
+    sreturn local o `"`t'"'
+end
+
 program define _srt_n, sclass
     args s
     if `"`s'"' == "." | `"`s'"' == "" sreturn local o ""
