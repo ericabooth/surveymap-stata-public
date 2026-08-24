@@ -2,11 +2,11 @@
 
 Items run left to right in questionnaire order; a gate fans the sample into lanes that rejoin the spine at the end of its segment. A dashed node is a cell the lane was routed around. `!!` marks a warning.
 
-*surveymap _sm_rendertext 0.1.0 - journal g_branched.tsv - rendered 24 Aug 2026 05:11:54 - Stata 19.5 MP*
+*surveymap _sm_rendertext 0.1.0 - journal g_branched.tsv - rendered 24 Aug 2026 08:01:13 - Stata 19.5 MP*
 
 ```mermaid
 %%{init: {'theme':'base','themeVariables':{'fontFamily':'Helvetica, Arial, sans-serif','fontSize':'14px','primaryColor':'#ffffff','primaryTextColor':'#202020','primaryBorderColor':'#606060','lineColor':'#606060','secondaryColor':'#f4f4f4','tertiaryColor':'#fafafa','edgeLabelBackground':'#ffffff','titleColor':'#202020'},'flowchart':{'curve':'linear'}}}%%
-%% surveymap _sm_rendertext 0.1.0 - journal g_branched.tsv - rendered 24 Aug 2026 05:11:54 - Stata 19.5 MP
+%% surveymap _sm_rendertext 0.1.0 - journal g_branched.tsv - rendered 24 Aug 2026 08:01:13 - Stata 19.5 MP
 flowchart LR
   accTitle: surveymap flow of g_branched.tsv
   accDescr {

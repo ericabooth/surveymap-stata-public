@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 0.4.4  24aug2026  Eric Booth}{...}
+{* *! version 0.4.5  24aug2026  Eric Booth}{...}
 {vieweralsosee "datadictionary" "help datadictionary"}{...}
 {vieweralsosee "mergemap" "help mergemap"}{...}
 {vieweralsosee "tabulate" "help tabulate"}{...}
@@ -114,7 +114,7 @@ opens in any browser with no internet connection.{p_end}
 {synopt :{opt band}}the band chart: one column per item, for a long instrument{p_end}
 {synopt :{opt export}}the tracker: {cmd:.xlsx}, {cmd:.dta}, or {cmd:.csv}{p_end}
 {synopt :{opt receipt}}reprint the receipt from a saved journal{p_end}
-{synopt :{opt clear}}forget the remembered journal; no file is touched{p_end}
+{synopt :{opt clear}}empty {cmd:$SM_LASTJ} so the next {cmd:draw} needs a filename; no file on disk is touched{p_end}
 {synoptline}
 {p2colreset}{...}
 
@@ -123,15 +123,16 @@ opens in any browser with no internet connection.{p_end}
 {title:Description}
 
 {pstd}
-{cmd:surveymap} treats the data in memory as a survey: one row per respondent,
-one column per item, columns in the order the questions were asked. It reads
-them and never changes them. For each item it counts who was asked, who gave a
-real answer, who declined, and who was never shown the item at all, and it
-works out which earlier answers routed people around which later questions.{p_end}
+Point {cmd:surveymap} at a survey in memory: one row per respondent, one column
+per item, columns in the order the questions were asked. For every item you get
+counts of who was in scope, who gave a real answer, who declined, and who was
+never shown it, together with the earlier answers that routed people past the
+later questions. Your data are read and not written to.{p_end}
 
 {pstd}
-Three kinds of blank are counted apart, because they mean different things and
-a single "percent missing" hides the difference:{p_end}
+A blank means three different things in a survey file, and you get a separate
+count for each, because one "percent missing" figure hides the difference
+between them:{p_end}
 
 {synoptset 26 tabbed}{...}
 {synopt :{bf:answered}}a real answer{p_end}
@@ -141,16 +142,17 @@ a single "percent missing" hides the difference:{p_end}
 {p2colreset}{...}
 
 {pstd}
-An item that half the sample left blank is a different problem depending on
-which column the blanks are in. Blanks under {bf:declined} are a question people
-would not answer, and the fix is question wording. Blanks under {bf:not shown}
-are people the instrument never asked, and there is nothing to fix.{p_end}
+Which column the blanks fall in tells you what to do about them. Blanks under
+{bf:declined} mean people saw the question and would not answer it, so look at
+the wording. Blanks under {bf:not shown} mean the instrument never put the
+question in front of them, so there is nothing to fix and no reason to report a
+low response rate on that item.{p_end}
 
 {pstd}
-The scan writes a journal: one tab-separated line per event, which is the only
-intermediate file. The receipt, the map, the mermaid text and the Excel tracker
-are all built from it, so a drawing can be re-cut without re-reading the
-data.{p_end}
+The scan writes one intermediate file, a tab-separated journal with a line per
+event. Everything else you get, the receipt, the map, the mermaid text and the
+Excel tracker, comes from that journal, so you can re-cut a drawing without
+touching the data again.{p_end}
 
 
 {marker receipt}{...}
@@ -168,22 +170,50 @@ The receipt prints after a scan, one line per item in questionnaire order:{p_end
 {txt}{...}
 
 {pstd}
-{cmd:q6_whovote} and {cmd:q13_income} both look poorly answered, and the reason
-is different. {cmd:q6_whovote} was never shown to 600 people, because it asks
-who you voted for and they said they did not vote. {cmd:q13_income} was shown to
-almost everyone and 220 of them refused. The last column names the answers that
-routed people away, so the two cases read apart at a glance.{p_end}
+{cmd:q6_whovote} and {cmd:q13_income} both look poorly answered, for opposite
+reasons. Six hundred people never saw {cmd:q6_whovote}, because it asks who you
+voted for and they had just said they did not vote: the instrument was working.
+Almost everyone saw {cmd:q13_income}, and 220 of them refused: that one is a
+wording problem. Read the last column to tell the two apart, since it gives the
+answer that routed people away.{p_end}
+
+{pstd}
+{bf:Every percentage here is out of the whole sample.}
+The receipt and the journal's {cmd:pct_answered} both divide by the respondents
+in scope, so {cmd:q6_whovote} shows 48.2 percent of all 1,200. Of the 600 people
+it was put in front of, 578 answered, which is 96.3 percent. Both numbers are true and they answer
+different questions, so say which one you mean. When you want the second,
+compute it from the journal, which has no column for it:{p_end}
+
+{phang2}{cmd:. // answered as a share of those the item was shown to}{p_end}
+{phang2}{cmd:. generate double shown = n_asked - n_sysmiss}{p_end}
+{phang2}{cmd:. generate double pct_of_shown = 100 * n_answered / shown}{p_end}
+
+{pstd}
+Reporting the first figure as though it were the second is the standard way a
+filtered item gets written up as a response-rate problem. NCES Statistical
+Standard 1-3-5 and the AAPOR {it:Standard Definitions} (10th ed., 2023) both
+put the item base at respondents minus valid skips, which is
+{cmd:pct_of_shown}.{p_end}
 
 
 {pstd}
-{bf:The arithmetic is checked, not assumed.} Every respondent in scope lands in
-exactly one of answered, declined or not shown at every item, so those three
-counts have to add to the sample on every row. The scan checks that and the
-receipt reports it, because a map whose arithmetic is wrong looks exactly like
-one whose arithmetic is right. {cmd:r(N_unbalanced)} is the number of items
-that failed, and the journal records the verdict so a reader coming to the file
-later can see the check was run. If it is ever anything but zero, that is a bug
-worth reporting.{p_end}
+{bf:You do not have to take the arithmetic on trust.} Every respondent in scope
+falls into exactly one of answered, declined or not shown at every item, so
+those three counts must add to the sample on every row. {cmd:surveymap} checks
+that at scan time and prints the verdict at the foot of the receipt, because a
+map whose arithmetic is wrong looks exactly like one whose arithmetic is right.
+Read the count of failures from {cmd:r(N_unbalanced)}, and assert it in a
+do-file rather than reading it by eye:{p_end}
+
+{phang2}{cmd:. surveymap, out(journal.tsv) replace}{p_end}
+{phang2}{cmd:. assert r(N_unbalanced) == 0}{p_end}
+
+{pstd}
+You will also find the verdict in the journal, so somebody who opens the file
+months later can see that the check ran. Anything other than zero means the map
+is not a partition of the sample and nothing built on it holds; report it as a
+bug.{p_end}
 
 
 {marker realfile}{...}
@@ -191,15 +221,15 @@ worth reporting.{p_end}
 
 {pstd}
 A delivered survey file is wider than the questionnaire. Alongside the answers it
-holds record identifiers, sample-frame columns from a voter or panel list,
-interviewer administration, vendor recodes, and verbatim text. Mapping all of it
-produces a picture with more columns than structure, and worse, the columns that
-were never questions can look like branching to the routing detector. Three
-options keep the map to the instrument.{p_end}
+contains record identifiers, sample-frame columns from a voter or panel list,
+interviewer administration, vendor recodes, and verbatim text. Map all of it and
+you get a picture with more columns than structure; worse, a column that was
+never a question can look like branching to the routing detector. Cut it down to
+the instrument in one of these ways.{p_end}
 
 {synoptset 26 tabbed}{...}
 {synopt :{opt ex:clude(varlist)}}drop columns that are not questions{p_end}
-{synopt :{opt nostrings}}drop the string columns, which are usually verbatims{p_end}
+{synopt :{opt nostrings}}drop every string column; on a delivered file these are the verbatims{p_end}
 {synopt :{it:varlist}}or name the items you want, positively{p_end}
 {synoptline}
 {p2colreset}{...}
@@ -215,11 +245,12 @@ different reasons, and only one of them is routing.{p_end}
 is what the map is for.{p_end}
 
 {phang2}
-{bf:A frame property.} Sample-frame columns are blank for respondents who were
-never matched to that frame. In one real file every voter-file column was blank
-for all of the panel respondents, because panel cases are not matched to the
-voter file. Nobody was routed anywhere; the columns simply do not apply. Exclude
-them.{p_end}
+{bf:A frame property.} A sample-frame column is blank for any respondent the
+frame never matched. In one real file every voter-file column came back blank
+for all 363 panel respondents, because nobody matches a panel case to the voter
+file. No skip routed those people anywhere and the columns do not apply to them,
+so put the whole block in {opt exclude()}. Leave it in and the detector reads the
+frame as a filter.{p_end}
 
 {phang2}
 {bf:A split ballot.} Some items are asked of a random half of the sample by
@@ -227,88 +258,112 @@ design. That is missing completely at random by construction, and the two
 versions are two different questions, not one question with gaps.{p_end}
 
 {pstd}
-The routing detector reports what the data shows, so a frame column or a split
-ballot can satisfy its test. Read a detected gate as a claim to check, and use
-{opt verify()} against the questionnaire when you have it.{p_end}
+The detector works from the responses, so a frame column or a split ballot can
+satisfy its test without being a filter. Treat a detected gate as a claim to
+check rather than as a finding; see
+{help surveymap##detect:How routing is found} for what the test is and
+{help surveymap##verify:Checking the map against a questionnaire} for how to
+check it.{p_end}
 
 
 {marker weights}{...}
 {title:Weights}
 
 {pstd}
-{cmd:pweight}s are allowed, and a weighted survey usually wants them:{p_end}
+{cmd:pweight}s are allowed. Give one whenever the numbers you are going to
+publish are weighted:{p_end}
 
 {phang2}{cmd:. surveymap [pweight=wtfinal], exclude(respid) nostrings}{p_end}
 
 {pstd}
-Both counts are kept, because they answer different questions. The unweighted
-count describes the people who were interviewed, which is the honest denominator
-for a statement about fieldwork and about who was asked what. The weighted count
-describes the estimate, which is what a published percentage rests on. The
-journal gains {cmd:w_asked}, {cmd:w_answered} and {cmd:pct_answered_w}, the
-receipt gains a {cmd:wtd%} column, and every unweighted column keeps its
-meaning.{p_end}
+You get both counts, because they answer different questions. Use the unweighted
+count when you are describing the fieldwork and who was asked what, since it
+describes the people somebody actually interviewed. Use the weighted count when
+you are describing an estimate, since that is what a published percentage rests
+on. A weighted scan adds {cmd:w_asked}, {cmd:w_answered} and
+{cmd:pct_answered_w} to the journal and a {cmd:wtd%} column to the receipt, and
+leaves every unweighted column meaning what it meant before.{p_end}
 
 {pstd}
-Two consequences worth knowing. A respondent whose weight is zero leaves the
-scope, exactly as they leave a weighted estimate, so the respondent count in the
-receipt is the positive-weight base and not the interview count. And a weight is
-a property of a respondent and not an answer, so the weight variable is
-never mapped as an item.{p_end}
+Expect two consequences. A respondent whose weight is zero drops out of scope,
+exactly as they drop out of a weighted estimate, so the respondent count on the
+receipt is the positive-weight base rather than the number of interviews: check
+it against the count you expect before reading anything else. And since a weight
+belongs to a respondent rather than to an answer, {cmd:surveymap} leaves the
+weight variable out of the item list, so you do not need to name it in
+{opt exclude()}.{p_end}
 
 {pstd}
-{bf:What the drawing shows.} A weighted journal is drawn the way survey results
-are normally reported: the count is unweighted, because it describes the people
-interviewed, and the percentage is weighted, because it describes the estimate.
-The page says so in its caption, so a weighted map cannot be mistaken for an
-unweighted one, and an unweighted map never claims otherwise.{p_end}
+{bf:What you see in the drawing.} A weighted map follows the convention survey
+results are usually reported in: an unweighted count, because it describes the
+people interviewed, beside a weighted percentage, because that describes the
+estimate. The caption states which is which, so nobody downstream has to guess
+whether a map was weighted.{p_end}
 
 {pstd}
-Without a weight the three columns hold {cmd:.} and every reader treats that as
-"unweighted only" instead of as zero.{p_end}
+With no weight given, the three weighted columns contain {cmd:.} rather than
+zero, so a reader can tell "not weighted" from "weighted to zero".{p_end}
 
 
 {marker verify}{...}
 {title:Checking the map against a questionnaire}
 
 {pstd}
-Survey projects usually keep their own table of the skip logic, one row per
-gated question with the number of people who should have answered it. That table
-and this map are two independent accounts of the same thing, so it is worth
-asking whether they agree:{p_end}
+Most survey projects already keep a table of the skip logic, one row per gated
+question with the number of people who should have answered it. That table and
+this map are two independent accounts of the same routing, so ask whether they
+agree:{p_end}
 
 {phang2}{cmd:. surveymap, verify(skiplogic.csv)}{p_end}
 
 {pstd}
-The file is a CSV whose header names at least {cmd:varname} and
-{cmd:expected_n}; {cmd:study}, {cmd:gate_expr} and {cmd:note} are used when
-present and ignored when absent, so a table written for another purpose usually
-works as it is. Each declared item is compared against what the answers show,
-and the count of disagreements comes back in {cmd:r(N_mismatch)}.{p_end}
+Give it a CSV whose header names at least {cmd:varname} and {cmd:expected_n}.
+{cmd:study}, {cmd:gate_expr} and {cmd:note} are read when present and skipped
+when absent, so a table somebody wrote for another purpose will often work
+unchanged. {cmd:surveymap} compares each declared item against what the answers
+show and returns the number of disagreements in {cmd:r(N_mismatch)}, which you
+can use to stop a run:{p_end}
+
+{phang2}{cmd:. surveymap, verify(skiplogic.csv) out(journal.tsv) replace}{p_end}
+{phang2}{cmd:. assert r(N_mismatch) == 0}{p_end}
 
 {pstd}
-The two outcomes mean different things. An item the map routes but the table does
-not mention is usually an undocumented filter, or a small-cell correlation that
-happens to satisfy the test. {bf:A declared gate the data does not show is the one to chase.} It means
-the questionnaire and the file disagree about who was asked, and every estimate
-on that item inherits the disagreement.{p_end}
+A disagreement can run either way, and the two directions call for different
+work. When the map routes an item the table does not mention, you are looking at
+either an undocumented filter or a small-cell correlation that happened to
+satisfy the test; open the questionnaire and decide which, then either add the
+row or write down why it is spurious.{p_end}
 
 {pstd}
-{bf:The disagreement is drawn, not just counted.} A number in a receipt is
-something somebody has to go looking for, so {opt verify()} appends its verdict
-to the journal as {cmd:note} rows and every renderer marks the item with
-{cmd:!?}, on the spine or inside a fan, with the declared and observed counts on
-hover. The journal schema is append-only and read by name, so those rows cannot
-disturb a reader that ignores them, and a journal written without
-{opt verify()} draws exactly as it did before. {cmd:!?} means the questionnaire
-and the file disagree; {cmd:!!} still means a lot of people declined. Two
-different problems, two different marks.{p_end}
+{bf:Chase the reverse case first.} A gate the questionnaire declares but the
+answer counts do not produce means the instrument and the file disagree about
+who was asked, so you cannot trust the denominator of any estimate on that item
+until you have found out which of the two is wrong.{p_end}
 
 {pstd}
-It also works the other way round. On a new delivery, run the scan first and use
-its {cmd:gated_by} output as the draft of the skip-logic table, then check the
-draft against the questionnaire. The draft is derived from what respondents
-actually saw.{p_end}
+{bf:You will see the disagreement in the drawing, not only in the receipt.} A
+number in a receipt is something the reader has to go looking for, so
+{opt verify()} adds its verdict to the journal as {cmd:note} rows and every
+renderer puts a {cmd:!?} on the item, on the spine and in each lane that draws
+it, with the declared and observed counts on hover. Hand the map to somebody who
+will not read a receipt and they still see the problem. Because the marks live
+in the journal rather than in the renderer, a map you draw months later from a
+stored journal still carries the audit that ran at scan time. Take the item
+names from {cmd:r(mismatched)} and {cmd:r(notmapped)} when you want to act on
+them in code.{p_end}
+
+{pstd}
+The two marks answer different questions. {cmd:!?} means the questionnaire and
+the file disagree about who was asked. {cmd:!!} means the declines on an item come
+to more than 5 percent of the respondents in scope. A journal written without {opt verify()}
+carries no {cmd:!?} at all and draws exactly as it did before.{p_end}
+
+{pstd}
+Run it the other way round on a new delivery, where you have the file before
+anybody has written the skip-logic table. Scan first, take the {cmd:gated_by}
+column as your draft of that table, then check the draft against the
+questionnaire. You are starting from what respondents actually saw rather than
+from what the instrument was supposed to do.{p_end}
 
 
 {marker branch}{...}
@@ -334,25 +389,31 @@ Several gates go in one {opt branch()} separated by commas, because
 {helpb syntax} cannot repeat an option.{p_end}
 
 {pstd}
-Lanes always partition the sample: the categories you kept, one {bf:other} lane
-for the rest, and one {bf:no answer} lane for people who left the gate blank.
-Their counts sum to the number of respondents in scope, so nobody is lost and
-nobody is counted twice.{p_end}
+The lanes always partition the sample: the categories you kept, one {bf:other}
+lane for the rest, and one {bf:no answer} lane for the people who left the gate
+blank. Add the lane counts and you get the number of respondents in scope, so
+you can check that nobody was lost and nobody was counted twice. The battery
+asserts it on every gate.{p_end}
 
 {pstd}
-A gate must be numeric. A string variable would make one lane per distinct
-answer, which is not a branch; {cmd:surveymap} says so and continues with the
-other gates.{p_end}
+Give a numeric variable. A string would produce one lane per distinct answer,
+which is a listing rather than a branch, so {cmd:surveymap} names the offending
+gate, skips it, and carries on with the others rather than stopping the
+scan.{p_end}
 
 {pstd}
-With no {opt branch()}, the two questions that route the most respondents are
-drawn, and the receipt names them. {opt noautodetect} turns that off.{p_end}
+Give no {opt branch()} at all and you get the two questions that route the most
+respondents, with the receipt naming them so you know what you are looking at.
+Use {opt noautodetect} when you want only the gates you asked for, which matters
+when you are producing a figure for publication and do not want the drawn gates
+changing as the data change.{p_end}
 
 
 {pstd}
-{bf:Gating on a continuous item.} Age in years has too many values to be a
-gate, so you say where to cut it and {cmd:surveymap} bands it for the map. The
-banding happens on a copy: your data are not touched.{p_end}
+{bf:Gating on a continuous item.} Age in years has too many values to work as a
+gate, so name the cut yourself and {cmd:surveymap} bands the item for the
+drawing. It bands a copy inside a frame, so your data are untouched and the
+variable keeps its original values afterwards.{p_end}
 
 {synoptset 30 tabbed}{...}
 {synopt :{cmd:branch(age = cut(25 35 45 65))}}bands at the breaks you name{p_end}
@@ -361,36 +422,39 @@ banding happens on a copy: your data are not touched.{p_end}
 {p2colreset}{...}
 
 {pstd}
-There is deliberately no default cut. A break chosen by software becomes a
-stated fact in a figure somebody else reuses, and where to divide age is a
-decision about the population you are describing, so you make it and the
-journal records what you chose.{p_end}
+There is deliberately no default cut. Where to divide age is a decision about
+the population you are describing, and once it is drawn it becomes a stated fact
+in a figure somebody else will reuse, so you make that decision rather than the
+software. You will find the breaks you chose written into the journal, which is
+what lets a later reader see whose judgement they were.{p_end}
 
 {pstd}
-Nobody falls outside the bands. Everyone below the first break belongs to the
-first lane and everyone at or above the last break belongs to the top one,
-which is where this differs from {helpb egen} {cmd:cut, at()}: that command
-leaves both tails missing, and lanes that dropped the tails would no longer add
-up to the sample. Band labels read from the breaks, so {cmd:cut(25 35 45 65)}
-gives {bf:under 25}, {bf:25 to 34}, {bf:35 to 44}, {bf:45 to 64} and
-{bf:65 and over}. A {cmd:q()} band is labelled with the range it spans.{p_end}
+Nobody falls outside the bands. Everyone below the first break goes into the
+first lane and everyone at or above the last break into the top one, which is
+where this differs from {helpb egen} {cmd:cut, at()}: that command returns both
+tails as missing, and lanes that dropped the tails would stop adding up to the
+sample. Expect labels taken from the breaks themselves, so {cmd:cut(25 35 45 65)}
+gives you {bf:under 25}, {bf:25 to 34}, {bf:35 to 44}, {bf:45 to 64} and
+{bf:65 and over}, and a {cmd:q()} band is labelled with the range it
+covers.{p_end}
 
 
 {marker profile}{...}
 {title:Splitting by what the respondent did}
 
 {pstd}
-{opt branch()} splits the map by an answer, so the lanes say what Republicans
-did and what Democrats did. {opt profile()} splits it by something the
-respondent did while answering, so the lanes say what the people who left items
-blank did. Reach for it when your question is whether nonresponse sits with one
-kind of respondent rather than spread evenly, and you want to see {it:where}
-along the instrument it happened.{p_end}
+{opt branch()} splits the map by an answer, so you read one lane for Republicans
+and another for Democrats. {opt profile()} splits it by something the respondent
+did while answering, so you read one lane for the people who left items blank
+and another for the people who did not. Reach for it when you want to know
+whether item nonresponse concentrates in one kind of respondent rather than
+spreading evenly across the sample, and, more usefully, {it:where} along the
+instrument that happens.{p_end}
 
 {synoptset 30 tabbed}{...}
 {synopt :{cmd:profile(declined)}}% of asked items left unanswered{p_end}
-{synopt :{cmd:profile(refused)}}% of asked items answered with a refusal code{p_end}
-{synopt :{cmd:profile(dontknow)}}% of asked items answered don't know{p_end}
+{synopt :{cmd:profile(refused)}}% of asked items refused; needs {opt refusedcode()}{p_end}
+{synopt :{cmd:profile(dontknow)}}% of asked items answered don't know; needs {opt dkcode()}{p_end}
 {synopt :{cmd:profile(asked)}}how many items the routing carried them to{p_end}
 {synopt :{cmd:profile(answered)}}how many items they answered{p_end}
 {synopt :{cmd:profile(breakoff)}}the position of the last item they answered{p_end}
@@ -398,88 +462,121 @@ along the instrument it happened.{p_end}
 {p2colreset}{...}
 
 {pstd}
-Each takes the same banding grammar as a continuous gate, in the units of the
-condition, so {cmd:profile(declined = cut(10 25))} reads its breaks as
-percentages and {cmd:profile(asked = q(4))} bands a count into quartiles.{p_end}
+Band any of them with the same grammar as a continuous gate, in the units of the
+condition itself: {cmd:profile(declined = cut(10 25))} reads its breaks as
+percentages, and {cmd:profile(asked = q(4))} cuts a count into quartiles.{p_end}
+
+{pstd}
+{cmd:refused} and {cmd:dontknow} will not run until you name the codes this
+survey uses, because no two survey houses agree on them and a guess would be a
+fabrication. Look at what the file contains, then pass it:{p_end}
+
+{phang2}{cmd:. codebook q13_income, tabulate(0)}{p_end}
+{phang2}{cmd:. surveymap, profile(refused) refusedcode(.b)}{p_end}
+{phang2}{cmd:. surveymap, profile(dontknow) dkcode(99)}{p_end}
+
+{pstd}
+Where the survey writes numeric codes such as 98 and 99 rather than extended
+missings, pass them to {opt nonresponse()} on the same scan as well, or every
+other part of the map counts those answers as real values.{p_end}
 
 {pstd}
 {bf:Why the first three are shares and not counts.} Skip logic asks different
-respondents different numbers of questions, so a Democrat and a Republican on a
-split-ballot instrument have different denominators. A count of declines is
-therefore not comparable between them and a share is, which is why these three
-divide by the items each respondent was actually asked. An item that a skip
-routed around is in neither the numerator nor the denominator: counting it as a
-decline would make a well-behaved respondent on a long branch look like a bad
-one. NCES Statistical Standard 1-3-5 and the AAPOR {it:Standard Definitions}
-(10th ed., 2023) both define the item base this way.{p_end}
+respondents different numbers of questions, so a parent who answered three
+child-related items and a non-parent who was routed past all three have
+different denominators. Compare raw counts of declines between them and you are
+comparing two different things; compare shares and you are not. So these three
+divide by the items that respondent was actually asked, and an item a skip
+routed past counts in neither the numerator nor the denominator. Count it and a
+well-behaved respondent on a long branch looks like a bad one. NCES Statistical
+Standard 1-3-5 and the AAPOR {it:Standard Definitions} (10th ed., 2023) both
+define the item base this way.{p_end}
 
 {pstd}
-{bf:Where the default splits.} For a share the default cuts at zero and nowhere
-else, giving you {bf:none} and {bf:at least one}. Zero is the only boundary on
-this measure that is not a judgement call, and a threshold like "declined more
-than 20 percent" is a decision about what counts as a lot. AAPOR is explicit
-that such a boundary belongs to the researcher and has to be declared, so
-{cmd:surveymap} will not supply one. Set your own with {cmd:cut()} and the
-journal records that you did. For {cmd:breakoff} the default splits at reaching
-the last item, which is the same kind of boundary: it needs no judgement.{p_end}
+{bf:Where the default splits, and when to override it.} With no banding, a share
+cuts at zero and nowhere else, giving you {bf:none} and {bf:at least one}. Zero
+is the only boundary on this measure that is not a judgement call: a threshold
+like "declined more than 20 percent" decides what counts as a lot, and AAPOR is
+explicit that such a boundary belongs to the researcher and has to be declared
+in advance, so {cmd:surveymap} will not supply one. On a long instrument, where
+almost everybody declines something, that default puts nearly the whole sample
+in one lane and tells you little, so look at the distribution and set your own
+breaks:{p_end}
+
+{phang2}{cmd:. surveymap, profile(declined = cut(2 10))}{p_end}
 
 {pstd}
-{bf:What the map can and cannot claim.} A lane built this way is descriptive.
-It shows where answers were not obtained; whether that distorts an estimate
-depends on whether the people who declined differ on the thing being measured,
-and response data cannot establish that. Groves and Peytcheva's meta-analysis
-of 59 nonresponse bias studies found the nonresponse rate is by itself a poor
-predictor of nonresponse bias, and Groves (2006) put the variance in bias it
-explains at about 11 percent. A high rate is not, on its own, evidence of a
-biased estimate. Note also that the {it:amount} of declining inside a lane you
-defined by declining is true by construction; the finding is {it:where} it
-happened.{p_end}
+You will find a note in the journal whenever the bands were the default rather
+than yours, which is how a later reader separates your judgement from the
+software's. For {cmd:breakoff} the default splits at reaching the last item,
+which needs no judgement either.{p_end}
 
 {pstd}
-{bf:With a weight.} A lane defined by behaviour observed in the survey is not a
-population subgroup, so a weighted percentage inside it describes the weighted
-sample rather than a population quantity. The journal says so on any weighted
-scan that uses {opt profile()}.{p_end}
+{bf:What you may and may not write up from this.} A lane built this way is
+descriptive: it shows you where answers were not obtained. Whether that distorts
+an estimate depends on whether the people who declined differ on the thing being
+measured, and response data cannot settle that. Groves and Peytcheva's (2008)
+meta-analysis of 59 nonresponse bias studies found the nonresponse rate is by
+itself a poor predictor of nonresponse bias, and Groves (2006) put the variance
+in bias it explains at about 11 percent. So "this item lost 220 of the people it
+was asked, and they sit in the high-decline lane" is a finding you can publish;
+"this item is biased" is not. One more caution when you read the picture: the
+{it:amount} of declining inside a lane you defined by declining is true by
+construction, so read the location rather than the size.{p_end}
 
 {pstd}
-{bf:Two conditions this refuses to build.} Ask for {cmd:profile(exaggerator)}
-and you get a refusal with the reason. People who over-report a socially
-desirable answer resemble people who report it honestly on everything a survey
-records: Ansolabehere and Hersh's fifty-state vote validation found
-over-reporters look like voters on demographics and attitudes alike. A flag
-built from the answers alone therefore reproduces the profile of the behaviour
-rather than of the misreporting, and labels older, better-educated, more
-engaged respondents as liars. Measuring it takes an external record to validate
-against, or an instrument designed for it: a list experiment, randomised
-response, or the planted foils of the over-claiming technique.{p_end}
+{bf:With a weight, report these lanes unweighted.} A weight is built to make a
+sample represent a population, and "respondents who declined a lot of items" is
+not a group that exists in the population, so a weighted percentage inside one
+of these lanes describes the weighted sample and nothing beyond it. You will
+find that warning written into the journal on any weighted scan that uses
+{opt profile()}, so it travels with the file. If a weighted figure has to appear
+in a table, carry the sentence with it.{p_end}
 
 {pstd}
-{cmd:profile(straightlining)} is refused for a different reason. Non-differentiation
-is measurable, but only inside a battery you name, and only where answering the
-same way down the battery would be implausible. Where it is plausible, Schonlau
-and Toepoel found 15 to 40 percent of respondents produce one, against under 2
-percent where it is implausible, and the index cannot tell those two apart. It
-is also more common among respondents with less schooling (Krosnick and Alwin
-1988), so a lane built on it is partly a lane built on education. A survey file does not record which items
-share a response scale, so this package does not guess.{p_end}
+{bf:Why you cannot give anyone an "exaggerator" flag.}
+Ask for {cmd:profile(exaggerator)} and you get a refusal that prints
+its reasoning, so you can forward the message rather than reconstruct the
+argument. People who over-report a socially desirable answer resemble people who
+report it honestly on everything a survey can observe: Ansolabehere and Hersh's (2012)
+fifty-state vote validation found over-reporters look like voters on
+demographics and attitudes alike. Build a flag from the answers alone and you
+reproduce the profile of the behaviour rather than of the misreporting, which
+means labelling older, better-educated, more engaged respondents as liars. To
+measure it you need an external record to validate against, or an instrument
+designed for it: a list experiment, randomised response, or the planted foils of
+the over-claiming technique.{p_end}
 
 {pstd}
-What it will show you instead is {cmd:profile(refused)} against
-{cmd:profile(dontknow)}. Shoemaker, Eichholz and Skewes found don't-know
+{cmd:profile(straightlining)} is refused for a different reason. You can measure
+non-differentiation, but only inside a battery you name, and only where
+answering the same way down that battery would be implausible. Where it is
+plausible, Schonlau and Toepoel (2015) found 15 to 40 percent of respondents produce a
+straight line, against under 2 percent where it is implausible, and no index
+separates those two cases. Non-differentiation also runs higher among
+respondents with less schooling (Krosnick and Alwin 1988), so a lane built on it
+is partly a lane built on education. A survey file does not say which items
+share a response scale, so this package will not guess at the battery for
+you.{p_end}
+
+{pstd}
+Run {cmd:profile(refused)} against {cmd:profile(dontknow)} instead, which is a
+question the data can answer. Shoemaker, Eichholz and Skewes (2002) found don't-know
 associated with the cognitive effort a question demands, and refusal associated
-with effort {it:and} with how sensitive the question is. Refusals stacking on an
-income block is evidence about sensitivity; don't-knows spread across an
-attitude battery is evidence about burden. Those point at different fixes, which
-is why the package keeps them apart instead of adding them together.{p_end}
+with effort {it:and} with how sensitive the question is. So refusals stacking on
+an income block point you at sensitivity, and don't-knows spread across an
+attitude battery point you at burden. Those call for different fixes, rewording
+one question versus shortening a battery, which is why {cmd:surveymap} keeps the
+two counts apart instead of adding them into one "missing".{p_end}
 
 
 {marker detect}{...}
 {title:How routing is found}
 
 {pstd}
-{cmd:surveymap} reads routing out of the answers, because that is the only
-record of the instrument in the data. Category {it:v} of gate {it:g} is
-recorded as routing people around item {it:i} when almost nobody in that lane
+{cmd:surveymap} reads the routing out of the answers, because a delivered file
+contains no other trace of the instrument. It treats category {it:v} of gate
+{it:g} as routing people around item {it:i} when almost nobody in that lane
 answered {it:i} while the other lanes did:{p_end}
 
 {phang2}
@@ -488,23 +585,28 @@ answer rate of {it:i} within {it:g}{cmd:==}{it:v} at most {bf:2%}, and{p_end}
 answer rate of {it:i} among {it:g}'s other answered categories at least {bf:50%}{p_end}
 
 {pstd}
-{opt detect(# #)} sets the two thresholds. Raise the first if a routed item
-still collected a few stray answers; lower the second if the people who were
-asked answer it patchily.{p_end}
+{opt detect(# #)} moves the two thresholds. Raise the first when a routed item
+still collected a handful of stray answers, which happens with back-coded or
+interviewer-entered values. Lower the second when the people who were asked
+answered patchily, which happens on a long or sensitive item where the answer
+rate never reaches 50 percent even among those who saw it.{p_end}
 
 {pstd}
-This is evidence, not a questionnaire spec. An item that everyone in a category
-happened not to answer looks exactly like an item they were never shown, and the
-receipt says so once. Read a detected gate as a claim to check, not a fact, and
-name the gates yourself with {opt branch()} when you know the instrument.{p_end}
+What you get here is evidence, not a questionnaire spec. Where everyone in a
+category happened not to answer an item, you cannot tell that apart from an item
+they were never shown, and no amount of data will separate the two. The receipt
+prints one line saying so. Read a detected gate as a claim to check rather than
+as a fact, and where you know the instrument, name the gates yourself with
+{opt branch()} instead.{p_end}
 
 
 {marker prune}{...}
 {title:Pruning noisy branches}
 
 {pstd}
-A gate with a long tail of small categories draws a map nobody can read. Three
-rules fold the small ones into one {bf:other} lane:{p_end}
+A gate with a long tail of small categories produces a map nobody can read, so
+{cmd:surveymap} folds the small categories into one {bf:other} lane. Three rules
+decide which ones, and a category folds when it fails any of them:{p_end}
 
 {synoptset 26 tabbed}{...}
 {synopt :{opt prune(#)}}fold a category under {it:#} percent of the sample {it:(default 5)}{p_end}
@@ -515,28 +617,31 @@ rules fold the small ones into one {bf:other} lane:{p_end}
 {p2colreset}{...}
 
 {pstd}
-The journal keeps every category whatever the rules say, and the folding happens
-when a map or a tracker is built. So the rules can change at draw time without
-reading the data again:{p_end}
+Whatever the rules say, the journal keeps every category; the folding happens
+when you build a map or a tracker. So you can change the rules at draw time and
+see the result without reading the data again:{p_end}
 
 {phang2}{cmd:. surveymap, branch(party)}{p_end}
 {phang2}{cmd:. surveymap draw, prune(10)}{p_end}
 {phang2}{cmd:. surveymap draw, noprune}{p_end}
 
 {pstd}
-Set them on the scan instead and they become the default every later drawing
-inherits. Categories you leave out of an explicit {cmd:branch(}{it:var}
-{cmd:= ...)} list are a different matter: that is a statement about what the
-lanes are, it is recorded in the journal, and only {opt noprune} shows them
-again.{p_end}
+Set them on the scan instead and every later drawing inherits them as its
+default. Categories you left out of an explicit {cmd:branch(}{it:var}
+{cmd:= ...)} list work differently: naming a list states what you want the lanes
+to be, the journal keeps that statement, and only {opt noprune} brings the rest
+back.{p_end}
 
 
 {marker draw}{...}
 {title:Drawing the map}
 
 {pstd}
-{cmd:surveymap draw} turns the last journal into a picture. With no argument it
-draws whatever the last scan wrote, in this session or a later one.{p_end}
+{cmd:surveymap draw} turns a journal into a picture. Name a journal file, or
+give none and you get whatever the last scan wrote. {cmd:surveymap} keeps that
+path in the global {cmd:$SM_LASTJ}, so it lasts as long as the Stata session
+does and no longer: name the file yourself in a do-file somebody else will run,
+or after you {helpb clear all}.{p_end}
 
 {synoptset 22 tabbed}{...}
 {synopt :{opt export(html)}}a self-contained page: no internet, no JavaScript {it:(the default)}{p_end}
@@ -547,66 +652,71 @@ draws whatever the last scan wrote, in this session or a later one.{p_end}
 {p2colreset}{...}
 
 {pstd}
-{opt png} and {opt svg} come from one {helpb twoway} call, so asking for either
-writes both and you keep whichever the document needs. A figure is readable up
-to a point: past {opt maxnodes(#)} drawn columns (default 14) it stops and names
-the HTML page instead, which scrolls and keeps the full record on hover. A fan
-counts as one column however many items are inside it, so the limit is on what
-the eye has to follow and not on the item count. Narrow the map with a
-{varlist} or {opt exclude()} when you hit it.{p_end}
+{opt png} and {opt svg} come from one {helpb twoway} call, so ask for either and
+you get both; keep whichever the document needs. A figure stays readable only up
+to a point, so past {opt maxnodes(#)} drawn columns (default 14) {cmd:surveymap}
+stops and points you at the HTML page, which scrolls and keeps the full record
+on hover. A fan counts as one column however many items it contains, so the
+limit is on what your eye has to follow rather than on the item count. When you
+hit it, narrow the map with a {varlist} or {opt exclude()}, or draw the whole
+instrument with {help surveymap##band:{cmd:surveymap band}} instead.{p_end}
 
 {pstd}
-{bf:Reading it.} Items run left to right in questionnaire order along a spine.
-Each box shows the item name, its label, and the count and percent who
-answered; {cmd:!!} marks an item a lot of people declined. Where a gate splits
-the sample the spine fans into lanes, headed {bf:split by} the gate's name and
-labelled with each category and its size. Inside a lane, a normal box is an item
-that lane answered and a {bf:dashed grey box} is one it was routed around. The
-lanes rejoin at a dot and the spine continues. Hover any box for the full
-record.{p_end}
+{bf:How to read it.} Follow the spine left to right: that is questionnaire
+order. Each box gives you the item name, its label, and the count and percent
+who answered, with {cmd:!!} on any item where the people who declined come to
+more than 5 percent of the respondents in scope. Where a gate splits the sample the spine fans into lanes, headed
+{bf:split by} the gate's name, each lane labelled with its category and size.
+Inside a lane, read a plain box as an item the respondents in that lane were
+asked, and a {bf:dashed grey box} as one the gate routed them around. The lanes rejoin at a dot and the
+spine continues. Hover any box to get the full record behind it.{p_end}
 
 {pstd}
-The lanes open where the gate's items are, which is not always the next column:
-a party question asked early can decide primary-turnout questions much later, and
-the lanes belong where those questions sit.{p_end}
+Expect the lanes to open where the gate's items are rather than immediately
+after the gate. A party question asked early can decide primary-turnout
+questions much later, and the fan belongs where those questions fall in the
+questionnaire, not where the gate does.{p_end}
 
 {pstd}
 {bf:Which way it runs.} {opt layout(vertical)} turns the map on its side: items
 run down the page and a gate spreads its lanes across it, one column per lane.
-Use it when the map is going into a report or a README, because a page scrolls
-down and a long instrument is taller than any screen is wide. The horizontal
-default suits a slide and a wide monitor. In mermaid the vertical map draws each
-lane as a labelled {cmd:subgraph}, so the grouping is drawn rather than inferred
-from where the boxes sit. Both layouts read from the same journal, so you can
-write one of each without rescanning.{p_end}
+Choose vertical for a report or a README, because a page scrolls downward and a
+long instrument is taller than any screen is wide. Choose the horizontal default
+for a slide or a wide monitor. A vertical mermaid map puts each lane in a
+labelled {cmd:subgraph}, so a reader sees the grouping drawn rather than
+inferring it from where the boxes sit. Both layouts read the same journal, so
+write one of each without rescanning:{p_end}
+
+{phang2}{cmd:. surveymap draw, layout(vertical) saving(flow_tall.html) replace}{p_end}
+{phang2}{cmd:. surveymap draw, export(mermaid) layout(vertical) saving(flow_tall) replace}{p_end}
 
 {pstd}
-{bf:A note on where the lanes land.} In a mermaid file the lanes are declared
-lane 1 first, but which order they are {it:drawn} in belongs to whichever
-mermaid renders the file, and renderers disagree: mermaid-cli and GitHub lay
-the same file out in opposite orders. Every lane is therefore labelled with the
-answer that opened it, and nothing depends on where it sits. When the order has
-to be guaranteed, as it does for a banded gate whose lanes run low to high, use
-the HTML map or the {opt export(png)} figure. Those are laid out here rather
-than by a third party, so lane 1 is always first.{p_end}
+{bf:Do not rely on lane order in a mermaid file.} {cmd:surveymap} declares lane
+1 first, but the renderer controls the order they come out in, and renderers
+disagree: mermaid-cli and GitHub lay the same file out in opposite orders. Every
+lane is labelled with the answer that opened it, so you lose nothing by it. When you do need the order guaranteed, as you do for a
+banded gate whose lanes run low to high, use the HTML map or the
+{opt export(png)} figure, which {cmd:surveymap} lays out itself.{p_end}
 
 {pstd}
-{bf:The same numbers, as text.} Under the figure the page carries a
-{cmd:<details>} block holding the whole map as a table: one row per item, with
-answered, declined, not shown, and what routed it. A diagram is not readable by
-everyone, and the honest fallback for a figure built from a table is that
-table rather than a sentence describing it. The figure itself is marked
-{cmd:role="img"} and points at its own title and description, and is taken out
-of the keyboard tab order so a forty-node map does not become forty tab
-stops.{p_end}
+{bf:The same numbers, as text.} Under the figure you get a {cmd:<details>} block
+containing the whole map as a table: one row per item, with answered, declined,
+not shown, and what routed it. A diagram is not readable by everyone, and the
+honest fallback for a figure built from a table is that table rather than a
+sentence describing it. Use it for an accessibility review, or hand it to a
+reader who wants the numbers rather than the picture, instead of building a
+second table yourself. {cmd:surveymap} marks the figure {cmd:role="img"}, points
+it at its own title and description, and keeps it out of the keyboard tab order,
+so a forty-node map does not turn into forty tab stops.{p_end}
 
 {pstd}
 The page has no height cap and the diagram scrolls sideways, because a survey is
-wider than it is tall. {opt embed} writes a fragment for a report page instead of
-a whole document: scoped styles, no element selectors, and a bounded box, so it
-cannot restyle the page it is dropped into. The package ships the check that
-proves it, {cmd:tests/embedcheck/check_embed_scoping.py}, which refuses a
-fragment carrying an unscoped selector, a script, or a page wrapper.{p_end}
+wider than it is tall. Use {opt embed} to get a fragment for a report page
+rather than a whole document: scoped styles, no element selectors, and a bounded
+box, so dropping it into your page cannot restyle the page. The repository
+includes the check that proves it,
+{cmd:tests/embedcheck/check_embed_scoping.py}, which fails any fragment
+carrying an unscoped selector, a script, or a page wrapper.{p_end}
 
 
 {marker band}{...}
@@ -623,28 +733,32 @@ into answered, declined and not shown, stacking to the whole sample.{p_end}
 {phang2}{cmd:. surveymap band journal.tsv, saving(leaks.png) replace}{p_end}
 
 {pstd}
-It answers a different question from the map, which is why both exist. The map
-tells you who was asked what. The band chart tells you where along the
-instrument the answers stop coming, and it does that on one page for a
-questionnaire of any length. A block of {bf:not shown} is a filter doing its
-job; a swelling band of {bf:declined} is people being asked and not
-answering.{p_end}
+Use it to answer a different question from the map, which is why both exist.
+Go to the map when you want to know who was asked what. Go to the band chart
+when you want to know where along the instrument the answers stop coming, on one
+page, for a questionnaire of any length. Reading it: a wide block of
+{bf:not shown} is a filter doing its job, and a swelling band of {bf:declined}
+is people being asked and not answering. A percent-missing table makes those two
+look identical.{p_end}
 
 {pstd}
-Like {cmd:draw}, it reads the journal the last scan wrote when you do not name
-one. The shape is TraMineR's state-distribution plot, drawn with
-{helpb twoway}: one bar per item on a short survey, and a filled area once
-there are more items than bars can show, which it switches at automatically.
-On a long instrument it names a few landmark positions on the top axis, chosen
-where the not-shown share jumps, which is where the gates are.{p_end}
+Give no journal and, as with {cmd:draw}, you get the one the last scan wrote.
+The shape is the state-distribution plot of Gabadinho et al.'s TraMineR (2011),
+drawn with {helpb twoway}: you
+get one bar per item on a short survey, and a filled area once there are more
+items than separate bars can show, switching over automatically at 60 items.
+Above about 60 items you also get a few landmark positions named on the top
+axis, picked where the not-shown share jumps, which is where the gates
+are.{p_end}
 
 {pstd}
-{bf:Every column is drawn from the three counts, never from a hard-coded 100.}
-A journal whose counts do not add to the sample therefore draws a short column
-rather than a full one that quietly lies, and {cmd:r(devmax)} reports the
-largest shortfall in respondents. On a journal this package wrote it is always
-zero, because the scan checks the same arithmetic; it is there for a journal
-that has been edited by hand.{p_end}
+{bf:Every column comes from the three counts, never from a hard-coded 100.} So a
+journal whose counts do not add to the sample gives you a short column rather
+than a full one that quietly lies about it. Read the largest shortfall, in
+respondents, from {cmd:r(devmax)}, and assert it the way you assert
+{cmd:r(N_unbalanced)} after a scan. Expect zero on any journal
+{cmd:surveymap} wrote, since the scan checks the same arithmetic; the check is
+here for a journal somebody has edited by hand.{p_end}
 
 
 {marker export}{...}
@@ -661,23 +775,25 @@ that has been edited by hand.{p_end}
 {p2colreset}{...}
 
 {pstd}
-Counts arrive as numbers, so Excel sorts and filters them as numbers. The map can
-hide the small lanes while the workbook keeps all of them: pass {opt noprune} to
-the export and the tracker is complete whatever the drawing shows.{p_end}
+Counts arrive as numbers rather than text, so Excel sorts and filters them
+correctly without you cleaning the sheet first. You can also let the map hide the
+small lanes while the workbook keeps every one of them: pass {opt noprune} to the
+export and you get a complete tracker whatever the drawing shows.{p_end}
 
 {pstd}
-{opt format(dta)} and {opt format(csv)} write the whole journal as data, which is
-the form to merge with anything else you track.{p_end}
+Ask for {opt format(dta)} or {opt format(csv)} when you want the whole journal
+as data to merge against something else you track, such as a question bank or a
+fieldwork log.{p_end}
 
 
 {marker dd}{...}
 {title:Working with datadictionary}
 
 {pstd}
-{helpb datadictionary} documents what a survey's variables {it:are}:  types,
-labels, value labels, summary statistics, and how labels changed across waves.
-{cmd:surveymap} documents how respondents {it:moved} through them. The two fit
-together in one codebook, and neither needs the other installed.{p_end}
+Use {helpb datadictionary} to document what a survey's variables {it:are}: types, labels, value labels, summary statistics, and how labels changed across
+waves. Use {cmd:surveymap} to document how respondents {it:moved} through them.
+You can put both in one codebook, and neither needs the other
+installed.{p_end}
 
 {pstd}
 {bf:Flow columns in the codebook.} {cmd:datadictionary}'s {opt flow()} option
@@ -696,9 +812,9 @@ every sheet {cmd:datadictionary} wrote untouched:{p_end}
 {phang2}{cmd:. surveymap export, dictionary(codebook.xlsx)}{p_end}
 
 {pstd}
-One workbook then holds the item definitions, the response distributions, the
-label history, and the flow. The join key on both sides is the variable name,
-so a lookup across sheets is one formula.{p_end}
+You end up with one workbook containing the item definitions, the response
+distributions, the label history, and the flow. Both sides key on the variable
+name, so a lookup across sheets takes one formula.{p_end}
 
 
 {marker options}{...}
@@ -709,10 +825,10 @@ so a lookup across sheets is one formula.{p_end}
 {synoptset 26 tabbed}{...}
 {synopt :{opt br:anch(spec)}}the gates to split the flow by; see {help surveymap##branch:Branching}{p_end}
 {synopt :{opt prof:ile(spec)}}split by what the respondent did rather than by what they answered; see {help surveymap##profile:Splitting by what the respondent did}{p_end}
-{synopt :{opt ref:usedcode(value)}}the value this survey writes for a refusal, such as {cmd:.b} or {cmd:99}; needed by {cmd:profile(refused)}{p_end}
-{synopt :{opt dk:code(value)}}the value this survey writes for don't know; needed by {cmd:profile(dontknow)}{p_end}
+{synopt :{opt ref:usedcode(value)}}which value means refused, such as {cmd:.b} or {cmd:99}; required by {cmd:profile(refused)} and used by nothing else{p_end}
+{synopt :{opt dk:code(value)}}which value means don't know; required by {cmd:profile(dontknow)} and used by nothing else{p_end}
 {synopt :{opt out(filename)}}write the journal here; default {cmd:survey_journal.tsv}{p_end}
-{synopt :{opt non:response(numlist)}}coded values that mean a refusal, such as {cmd:98 99}. Extended missings always count as declined{p_end}
+{synopt :{opt non:response(numlist)}}coded values to count as declined rather than answered, such as {cmd:98 99}; extended missings always count as declined{p_end}
 {synopt :{opt ex:clude(varlist)}}columns to leave out: ids, sample frame, admin{p_end}
 {synopt :{opt nostrings}}leave the string columns out, which are usually verbatims{p_end}
 {synopt :{opt ver:ify(filename)}}check the routing found against a declared skip-logic table{p_end}
@@ -724,9 +840,17 @@ so a lookup across sheets is one formula.{p_end}
 {p2colreset}{...}
 
 {pstd}
-A {varlist} chooses which items to map, not what order they were asked in: the
-columns keep their dataset order either way. {cmd:if} and {cmd:in} restrict the
-respondents in scope, and every count and percent is computed within it.{p_end}
+Use a {varlist} to choose which items to map. It does not reorder anything,
+because {cmd:surveymap} always reads dataset order. {cmd:if} and {cmd:in}
+restrict who is in scope, and every count and percent you get is computed within
+that scope.{p_end}
+
+{pstd}
+{opt nonresponse()} and {opt refusedcode()} do different jobs, so set both when
+your survey codes its refusals numerically. {opt nonresponse()} moves coded
+values out of answered and into declined everywhere in the map.
+{opt refusedcode()} tells {cmd:profile(refused)} which one of those codes is a
+refusal as opposed to a don't know, and changes nothing else.{p_end}
 
 {dlgtab:Pruning (scan, draw and export)}
 
@@ -738,6 +862,12 @@ respondents in scope, and every count and percent is computed within it.{p_end}
 {synoptline}
 {p2colreset}{...}
 
+{pstd}
+A category folds when it fails {it:any} of the three, so at the defaults a
+category with 4 percent of the sample folds even when that is 200 people.
+Raise {opt prune()} and {opt minn()} together, or give {opt noprune}, when you
+want the small categories back.{p_end}
+
 {dlgtab:Draw}
 
 {synoptset 26 tabbed}{...}
@@ -746,7 +876,7 @@ respondents in scope, and every count and percent is computed within it.{p_end}
 {synopt :{opt sav:ing(filename)}}where to write it{p_end}
 {synopt :{opt name(text)}}what to call the survey on the page{p_end}
 {synopt :{opt embed}}a fragment for someone else's page, not a whole document{p_end}
-{synopt :{opt maxn:odes(#)}}how many columns a figure will attempt; default {cmd:14}{p_end}
+{synopt :{opt maxn:odes(#)}}how many columns a {cmd:png}/{cmd:svg} figure will attempt; default {cmd:14}. Past it {cmd:surveymap} writes the HTML page instead and prints its path{p_end}
 {synopt :{opt noopen}}write the page but do not open a browser{p_end}
 {synopt :{opt replace}}overwrite existing output{p_end}
 {synoptline}
@@ -758,15 +888,46 @@ respondents in scope, and every count and percent is computed within it.{p_end}
 {synopt :{opt sav:ing(filename)}}where to write it; the extension picks the format{p_end}
 {synopt :{opt f:ormat(xlsx|dta|csv)}}the format, when {opt saving()} does not say{p_end}
 {synopt :{opt dict:ionary(filename)}}add the sheets to an existing {helpb datadictionary} workbook{p_end}
+{synopt :{opt replace}}overwrite an existing tracker{p_end}
 {synoptline}
 {p2colreset}{...}
 
+{dlgtab:Band}
 
-{marker examples}{...}
+{synoptset 26 tabbed}{...}
+{synopt :{opt sav:ing(filename)}}export the figure here; the extension picks the format{p_end}
+{synopt :{opt ti:tle(text)}}title above the figure{p_end}
+{synopt :{opt sub:title(text)}}subtitle under the title{p_end}
+{synopt :{opt not:e(text)}}note under the figure; the default states the denominator{p_end}
+{synopt :{opt names(spec)}}which items to name on the top axis: {cmd:auto}, {cmd:none}, or a list of variable names or positions{p_end}
+{synopt :{opt nn:ames(#)}}how many items {cmd:auto} names; default {cmd:6}{p_end}
+{synopt :{opt bar}}one discrete bar per item, whatever the item count{p_end}
+{synopt :{opt area}}one filled area, whatever the item count{p_end}
+{synopt :{opt areamin(#)}}switch from bars to area above this many items; default {cmd:60}{p_end}
+{synopt :{opt xsi:ze(#)} {opt ysi:ze(#)} {opt sc:ale(#)}}figure inches and text scaling{p_end}
+{synopt :{opt nolegend}}leave the legend off{p_end}
+{synopt :{opt name(text)}}the Stata graph name{p_end}
+{synopt :{opt replace}}overwrite existing output{p_end}
+{synoptline}
+{p2colreset}{...}
+
+{pstd}
+{opt bar} and {opt area} override the automatic switch at {opt areamin()}.
+Force {opt bar} above 60 items when you need columns a reader can count and can
+accept the seams; force {opt area} below it when the figure is going next to
+another area chart. For a figure the width of a report page rather than a
+landscape slide, {cmd:xsize(6.5) ysize(2.5) scale(1.3)} works; below
+{cmd:ysize(2)} the axis labels start colliding.{p_end}
 {title:Examples}
 
 {pstd}{bf:See it work, with no setup}{p_end}
 {phang2}{stata "surveymap demo":. surveymap demo}{p_end}
+{pstd}
+Writes a 600-person survey and its journal into {cmd:./surveymap_demo}, prints
+the receipt, and offers the drawing commands as clickable links. Name a folder
+as {it:foldername} or in {opt folder()} to put it somewhere else, and add
+{opt replace} to reuse a folder you have already written to. It leaves the data
+in memory alone.{p_end}
 
 {pstd}{bf:Map the survey in memory}{p_end}
 {phang2}{cmd:. surveymap}{p_end}
@@ -780,6 +941,11 @@ respondents in scope, and every count and percent is computed within it.{p_end}
 
 {pstd}{bf:Does the file agree with the questionnaire about who was asked?}{p_end}
 {phang2}{cmd:. surveymap, verify(skiplogic.csv)}{p_end}
+{pstd}
+You get a table of declared against observed, one row per declared gate, and a
+count in {cmd:r(N_mismatch)}. A zero there means every declared gate reproduced.
+Anything else, read the names out of {cmd:r(mismatched)} and open the map: those
+items are marked {cmd:!?}, with the two counts on hover.{p_end}
 
 {pstd}{bf:Completed interviews only}{p_end}
 {phang2}{cmd:. surveymap if status == 1}{p_end}
@@ -795,9 +961,30 @@ respondents in scope, and every count and percent is computed within it.{p_end}
 
 {pstd}{bf:A routed item collected a few stray answers, so loosen the test}{p_end}
 {phang2}{cmd:. surveymap, detect(5 40)}{p_end}
+{pstd}
+Compare the {cmd:routed around by} column against the run before it: the gate
+you expected should now appear there. Loosening also invites false positives, so
+check any new gate against the questionnaire before you keep the setting.{p_end}
 
-{pstd}{bf:I know the instrument; do not guess at gates}{p_end}
+{pstd}{bf:You know the instrument, so stop it guessing at gates}{p_end}
 {phang2}{cmd:. surveymap, branch(screener) noautodetect}{p_end}
+
+{pstd}{bf:Split the lanes by age, banded where you say}{p_end}
+{phang2}{cmd:. surveymap, branch(age = cut(30 45 65))}{p_end}
+{phang2}{cmd:. surveymap, branch(hhinc = q(4))}{p_end}
+
+{pstd}{bf:Do the people who leave items blank take a different route?}{p_end}
+{phang2}{cmd:. surveymap, profile(declined)}{p_end}
+{phang2}{cmd:. surveymap, profile(declined = cut(2 10))}{p_end}
+{pstd}
+The default splits at zero, which on a long instrument puts almost everyone in
+one lane; the second line is what you run once you have looked at the spread.
+Report these lanes unweighted, because a lane defined by behaviour is not a
+population subgroup.{p_end}
+
+{pstd}{bf:Where the refusals are, as against where the don't-knows are}{p_end}
+{phang2}{cmd:. surveymap, profile(refused) refusedcode(.b)}{p_end}
+{phang2}{cmd:. surveymap, profile(dontknow) dkcode(.a)}{p_end}
 
 {pstd}{bf:Draw what was just scanned}{p_end}
 {phang2}{cmd:. surveymap draw}{p_end}
@@ -812,6 +999,17 @@ respondents in scope, and every count and percent is computed within it.{p_end}
 
 {pstd}{bf:A figure for a paper or a slide}{p_end}
 {phang2}{cmd:. surveymap draw, export(png) saving(figures/flow) replace}{p_end}
+
+{pstd}{bf:The same map down a page, for a report or a README}{p_end}
+{phang2}{cmd:. surveymap draw, layout(vertical) saving(flow_tall.html) replace}{p_end}
+{phang2}{cmd:. surveymap draw, export(mermaid) layout(vertical) saving(flow_tall) replace}{p_end}
+
+{pstd}{bf:A 230-item instrument, which is too wide for any flow map}{p_end}
+{phang2}{cmd:. surveymap band, saving(leaks.png) replace}{p_end}
+{pstd}
+One column per item, so the whole instrument fits one page. Look for a wide dark
+block, which is a filter doing its job, and a swelling grey band, which is
+people being asked and not answering.{p_end}
 
 {pstd}{bf:The tracker, with every lane whatever the map shows}{p_end}
 {phang2}{cmd:. surveymap export, saving(flow.xlsx) noprune replace}{p_end}
@@ -834,8 +1032,9 @@ and a category that routes around an item only sometimes is not reported at all.
 Name the gates with {opt branch()} when you know the instrument.{p_end}
 
 {pstd}
-Lanes do not nest. Each item belongs to at most one gate's segment, the nearer
-one when two gates both route it, so a map shows one level of branching at a
+Lanes do not nest. Each item belongs to at most one gate's segment; where two
+gates both route it, the item goes to whichever gate comes latest in
+questionnaire order before it, so a map shows one level of branching at a
 time. Scanning twice with different {opt branch()} gates shows the other
 level.{p_end}
 
@@ -850,8 +1049,10 @@ were asked. A file whose columns have been reordered maps in that order, not in
 the order the instrument ran.{p_end}
 
 {pstd}
-Counts and percentages are unweighted. For weighted estimates, read the journal
-as data and apply your own weights.{p_end}
+{cmd:surveymap} takes a {cmd:pweight} and nothing more of a survey design. It
+does not read {helpb svyset} information, so strata, PSUs and finite population
+corrections play no part and no standard error is available anywhere in the
+output. Every figure it gives you is a count or a share of a count.{p_end}
 
 
 {marker results}{...}
@@ -864,22 +1065,42 @@ as data and apply your own weights.{p_end}
 {synopt:{cmd:r(N)}}respondents in scope{p_end}
 {synopt:{cmd:r(K_items)}}items mapped{p_end}
 {synopt:{cmd:r(N_gates)}}gates drawn{p_end}
-{synopt:{cmd:r(N_mismatch)}}after {opt verify()}: declared gates the data does not agree with{p_end}
+{synopt:{cmd:r(N_unbalanced)}}items whose three counts do not add to the sample; assert this is 0{p_end}
+{synopt:{cmd:r(N_mismatch)}}after {opt verify()}: declared gates the answer counts contradict{p_end}
+{synopt:{cmd:r(nitems)}}after {cmd:band}: columns drawn{p_end}
+{synopt:{cmd:r(devmax)}}after {cmd:band}: largest shortfall in respondents on any column; assert this is 0{p_end}
 {p2col 5 22 26 2: Macros}{p_end}
 {synopt:{cmd:r(journal)}}path to the journal file{p_end}
 {synopt:{cmd:r(gates)}}the gate variables drawn{p_end}
+{synopt:{cmd:r(mismatched)}}after {opt verify()}: the items whose counts disagree{p_end}
+{synopt:{cmd:r(notmapped)}}after {opt verify()}: declared items that are not in the map{p_end}
 {synopt:{cmd:r(output)}}after {cmd:draw}: the file it wrote{p_end}
 {synopt:{cmd:r(file)}}after {cmd:export}: the tracker it wrote{p_end}
 {p2colreset}{...}
 
 {pstd}
-The journal's columns, for reading the file yourself:
+Read the journal yourself with {cmd:import delimited, delimiter(tab)}. Its
+columns, in order:
 {cmd:seq class var position vallabel value gatevar n_asked n_answered}
 {cmd:n_nonresp n_sysmiss pct_answered rate status gate gated_by pooled type}
-{cmd:severity flags w_asked w_answered pct_answered_w}. The last three are `.` unless a
-weight was given. {cmd:class} is one of {cmd:survey item cat cell note}:
-{cmd:item} rows are the tracker, {cmd:cat} rows are a gate's categories, and
-{cmd:cell} rows are one lane against one item.{p_end}
+{cmd:severity flags w_asked w_answered pct_answered_w}. The three weighted
+columns contain {cmd:.} unless you supplied a weight.{p_end}
+
+{pstd}
+The ones whose names do not give them away:{p_end}
+
+{synoptset 18 tabbed}{...}
+{synopt :{cmd:class}}which kind of row: {cmd:survey} once for the scan's own settings, {cmd:item} one per item, {cmd:cat} one per gate category, {cmd:cell} one per lane crossed with one item, {cmd:note} for warnings and for what {opt verify()} found{p_end}
+{synopt :{cmd:n_asked}}the respondents in scope, which is the same on every item row{p_end}
+{synopt :{cmd:pct_answered}}answered as a share of scope, not of the people the item reached{p_end}
+{synopt :{cmd:rate}}answered as a share of the lane, on {cmd:cell} rows only; {cmd:.} on item rows{p_end}
+{synopt :{cmd:status}}on an item row {cmd:open} or {cmd:gated}; on a cell row {cmd:answered}, {cmd:partial} or {cmd:skipped}{p_end}
+{synopt :{cmd:gated_by}}the answers that routed people around this item, semicolon separated{p_end}
+{synopt :{cmd:pooled}}{cmd:1} on a category the prune rules folded into {bf:other}{p_end}
+{synopt :{cmd:severity}}{cmd:note} or {cmd:warn}; {cmd:warn} is what puts {cmd:!!} or {cmd:!?} on the drawing{p_end}
+{synopt :{cmd:flags}}the text of the warning, or the scan's settings on the {cmd:survey} row{p_end}
+{synoptline}
+{p2colreset}{...}
 
 
 {marker related}{...}
@@ -897,11 +1118,12 @@ the better tool when that is the shape you want.{p_end}
 own {cmd:sankey-beta} does the same from three CSV columns. Reach for one of
 them when two or three transitions are the whole story. {cmd:surveymap} does not
 encode counts as widths, for two reasons worth knowing before you go looking for
-the option. A ribbon diagram invites the reader to expect the widths at a node
-to add up, and on a questionnaire they do not: the people who declined an item
-are a gap the eye reads as attrition already explained. And on a 15 to 40 item
-instrument the smallest flows fall below a pixel, so the paths taken by nobody
-disappear, which on a QC map is usually the finding you most wanted.{p_end}
+the option. Readers expect the widths at a node in a ribbon diagram to add up,
+and on a questionnaire they do not: the people who declined an item show up as a
+gap, and a reader takes that gap for attrition the diagram has already accounted
+for, which it has not. Second, on a 15 to 40 item instrument the smallest flows
+fall below a pixel, so a path nobody took vanishes altogether. On a QC map that
+empty path is usually the thing you were checking for.{p_end}
 
 {phang2}
 {bf:For a study-disposition figure in a paper.} {cmd:flowchart} (Dodd) generates
