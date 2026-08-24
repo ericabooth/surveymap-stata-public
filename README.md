@@ -85,6 +85,8 @@ surveymap [pweight=wtfinal], exclude(respid interviewer) nostrings
 
 A respondent whose weight is zero leaves the scope, exactly as they leave a weighted estimate, so the respondent count becomes the positive-weight base. The weight itself is never mapped as an item.
 
+The map follows the same convention: **unweighted counts, weighted percentages**, with the caption saying so. A weighted map cannot be mistaken for an unweighted one, and an unweighted map never claims otherwise.
+
 ## Checking the map against the questionnaire
 
 Survey projects usually keep their own table of the skip logic. That table and this map are two independent accounts of the same thing:

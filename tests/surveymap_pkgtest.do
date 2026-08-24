@@ -712,8 +712,8 @@ sm_assert `=("`r(val)'" == "q3_party")' "nostrings keeps the numeric items"
 capture use fake_a.dta, clear
 quietly gen double wt = cond(q3_party == 1, 1.4, 0.8)
 quietly replace wt = 0 if q1_consent == 0
-capture noisily surveymap q1_consent q3_party q5_voted q6_whovote [pweight=wt], ///
-    out(j17w.tsv) noreceipt replace
+capture noisily surveymap q1_consent q3_party q5_voted q6_whovote q13_income ///
+    [pweight=wt], out(j17w.tsv) noreceipt replace
 sm_assert `=(_rc == 0)' "a pweight is accepted"
 capture sm_jval j17w.tsv w_asked item q3_party
 local wa = real("`r(val)'")
@@ -764,11 +764,33 @@ sm_assert `=(_rc == 459)' "a file that is not a skip-logic table gives r(459)"
 capture noisily surveymap, out(j17v4.tsv) noreceipt replace verify(nosuch17.csv)
 sm_assert `=(_rc == 601)' "a missing verify() file gives r(601)"
 
-* ---- the weighted journal still draws and exports ----
+* ---- the weighted journal draws the survey convention ----
+* unweighted counts, weighted percentages, and the page says which is which,
+* so a weighted scan cannot be read as an unweighted result
 capture noisily surveymap draw j17w.tsv, export(html) saving(m17.html) replace noopen
 sm_assert `=(_rc == 0)' "a weighted journal still draws"
+capture sm_fcount m17.html "counts unweighted, percentages weighted"
+sm_assert `=(r(n) == 1)' "the weighted page states the convention in its caption"
+* the weighted percentage is what gets drawn, not the unweighted one
+* q13_income sits on the spine, so its box carries the item-level share; an
+* item inside a gate's segment is drawn as a lane cell and shows the lane rate
+capture sm_jval j17w.tsv pct_answered   item q13_income
+local pu = "`r(val)'"
+capture sm_jval j17w.tsv pct_answered_w item q13_income
+local pw = "`r(val)'"
+sm_assert `=(`pu' != `pw')' "the fixture's weighted and unweighted shares differ"
+capture sm_fcount m17.html "(`pw'%)"
+local dreww = r(n)
+capture sm_fcount m17.html "(`pu'%)"
+sm_assert `=(`dreww' >= 1 & r(n) == 0)' "the drawing uses the weighted share, not the unweighted one"
+* an unweighted journal must not claim weighting
+capture noisily surveymap draw j17c.tsv, export(html) saving(m17u.html) replace noopen
+capture sm_fcount m17u.html "percentages weighted"
+sm_assert `=(r(n) == 0)' "an unweighted page makes no weighting claim"
 capture noisily surveymap export j17w.tsv, saving(t17.xlsx) replace
 sm_assert `=(_rc == 0)' "a weighted journal still exports"
+capture noisily surveymap draw j17w.tsv, export(mermaid) saving(mm17) replace
+sm_assert `=(_rc == 0)' "a weighted journal renders to mermaid"
 
 * ============================================================================
 sm_block 16 "clear forgets the remembered journal"

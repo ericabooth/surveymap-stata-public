@@ -65,6 +65,18 @@ program define _sm_rendertext
     }
     frame `J': local NR = _N
 
+    * does this journal carry weighted counts?  If it does, the drawing
+    * reports the survey convention: unweighted counts, weighted percentages.
+    local haswt = 0
+    frame `J' {
+        capture confirm variable pct_answered_w
+        if !_rc {
+            quietly count if class == "item" & pct_answered_w != "." & ///
+                pct_answered_w != ""
+            local haswt = (r(N) > 0)
+        }
+    }
+
     * ---- survey + item index (positions 1..K) ----
     local NN "."
     local K = 0
@@ -82,6 +94,10 @@ program define _sm_rendertext
         frame `J': local nn_`p' = n_answered[`i']
         frame `J': local nr_`p' = n_nonresp[`i']
         frame `J': local pa_`p' = pct_answered[`i']
+        if `haswt' {
+            frame `J': local pw = pct_answered_w[`i']
+            if "`pw'" != "." & "`pw'" != "" local pa_`p' "`pw'"
+        }
         frame `J': local g_`p'  = gate[`i']
     }
     if `K' == 0 {
@@ -172,6 +188,10 @@ program define _sm_rendertext
         if `kk' == 0 continue
         frame `J': local cN_`gp'_`kk'_`wp' = n_answered[`i']
         frame `J': local cR_`gp'_`kk'_`wp' = rate[`i']
+        if `haswt' {
+            frame `J': local rw = pct_answered_w[`i']
+            if "`rw'" != "." & "`rw'" != "" local cR_`gp'_`kk'_`wp' "`rw'"
+        }
         frame `J': local cS_`gp'_`kk'_`wp' = status[`i']
     }
     * A gate's segment is the run of items it owns.  That run does not have
@@ -320,6 +340,9 @@ program define _sm_rendertext
     local accd "`accd' into lanes that rejoin the spine at the end of its"
     local accd "`accd' segment. A dashed node is a cell the lane was routed"
     local accd "`accd' around. Two exclamation marks flag a warning."
+    if `haswt' {
+        local accd "`accd' Counts are unweighted and percentages are weighted."
+    }
 
     * ---- emit stub.mmd, then the same fenced as stub.md ----
     * one layout, so the file is named for the stub the caller gave: a

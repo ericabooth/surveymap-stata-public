@@ -101,6 +101,17 @@ program define _sm_renderhtml
     }
     frame `J': local NR = _N
 
+    * does this journal carry weighted counts?
+    local haswt = 0
+    frame `J' {
+        capture confirm variable pct_answered_w
+        if !_rc {
+            quietly count if class == "item" & pct_answered_w != "." & ///
+                pct_answered_w != ""
+            local haswt = (r(N) > 0)
+        }
+    }
+
     * ------------------------------------------------ survey + item index
     * items are indexed by position (1..K, contiguous by schema)
     local NN "."
@@ -121,6 +132,14 @@ program define _sm_renderhtml
         frame `J': local nr_`p' = n_nonresp[`i']
         frame `J': local ns_`p' = n_sysmiss[`i']
         frame `J': local pa_`p' = pct_answered[`i']
+        * A weighted journal is drawn the way survey results are normally
+        * reported: the count is unweighted, because it describes the people
+        * interviewed, and the percentage is weighted, because it describes the
+        * estimate.  The caption says so, so nobody has to guess which is which.
+        if `haswt' {
+            frame `J': local pw = pct_answered_w[`i']
+            if "`pw'" != "." & "`pw'" != "" local pa_`p' "`pw'"
+        }
         frame `J': local g_`p'  = gate[`i']
         frame `J': local gb_`p' = gated_by[`i']
         frame `J': local ty_`p' = type[`i']
@@ -226,6 +245,12 @@ program define _sm_renderhtml
         frame `J': local cA_`gp'_`kk'_`wp' = n_asked[`i']
         frame `J': local cN_`gp'_`kk'_`wp' = n_answered[`i']
         frame `J': local cR_`gp'_`kk'_`wp' = rate[`i']
+        * a weighted journal draws the weighted rate here too, so every
+        * percentage on the page is on the same footing
+        if `haswt' {
+            frame `J': local rw = pct_answered_w[`i']
+            if "`rw'" != "." & "`rw'" != "" local cR_`gp'_`kk'_`wp' "`rw'"
+        }
         frame `J': local cS_`gp'_`kk'_`wp' = status[`i']
     }
 
@@ -514,7 +539,9 @@ program define _sm_renderhtml
         if "`nnf'" == "" local nnf "?"
         local gw = cond(`G' == 1, "gate", "gates")
         local iw = cond(`K' == 1, "item", "items")
-        file write `H' `"<div class="sm-cap">survey: `jname' &#183; `nnf' respondents &#183; `K' `iw' &#183; `G' `gw'</div>"' _n
+        local wnote = cond(`haswt', ///
+            " &#183; counts unweighted, percentages weighted", "")
+        file write `H' `"<div class="sm-cap">survey: `jname' &#183; `nnf' respondents &#183; `K' `iw' &#183; `G' `gw'`wnote'</div>"' _n
         file write `H' `"<div class="sm-leg"><span class="sm-legk">!!</span> = warning (never colour alone) &#183; dashed box = skipped, routed around by the gate &#183; lanes partition the sample &#183; hover a node for detail</div>"' _n
     }
 

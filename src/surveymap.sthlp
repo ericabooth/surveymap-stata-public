@@ -237,6 +237,13 @@ a property of a respondent and not an answer, so the weight variable is
 never mapped as an item.{p_end}
 
 {pstd}
+{bf:What the drawing shows.} A weighted journal is drawn the way survey results
+are normally reported: the count is unweighted, because it describes the people
+interviewed, and the percentage is weighted, because it describes the estimate.
+The page says so in its caption, so a weighted map cannot be mistaken for an
+unweighted one, and an unweighted map never claims otherwise.{p_end}
+
+{pstd}
 Without a weight the three columns hold {cmd:.} and every reader treats that as
 "unweighted only" instead of as zero.{p_end}
 

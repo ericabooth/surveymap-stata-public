@@ -35,6 +35,10 @@ statewide survey, 229 columns) and finding out where it was awkward.
   tolerate unknown trailing columns keeps a v1 reader working.
 - The receipt lays its columns out at fixed positions, so a long routing
   expression cannot run into the column beside it.
+- **A weighted journal is drawn the way survey results are reported**: unweighted
+  counts, weighted percentages, and a caption that says which is which. Before
+  this, a weighted scan produced a map of unweighted numbers with nothing on the
+  page to say so, which is a result somebody could have published as weighted.
 
 ### Documentation
 
