@@ -34,7 +34,12 @@ def check(path):
 
     m = SVG.search(s) or VBOX.search(s)
     if not m:
-        return ["no <svg> with either a width and height or a viewBox"]
+        # a gallery index or a report page is not a map; saying so beats
+        # failing, because the usual way to run this is over a whole folder
+        if "<rect" not in s:
+            print("%s: no map here, skipped" % path)
+            return None
+        return ["boxes are drawn but the <svg> has neither a size nor a viewBox"]
     w, h = int(m.group(1)), int(m.group(2))
     if w < 1 or h < 1:
         fails.append("the canvas is %dx%d" % (w, h))
@@ -92,6 +97,8 @@ def main(argv):
         except OSError as e:
             print("FAIL: %s" % e)
             bad += 1
+            continue
+        if fails is None:
             continue
         if fails:
             bad += 1
