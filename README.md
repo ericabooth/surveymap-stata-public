@@ -8,7 +8,10 @@
 
 ## Why you'd reach for this
 
-You have a survey with skip logic. Some questions were asked of everyone, some only of people who answered an earlier question a particular way, and some collected far fewer answers than you expected. `describe` and `misstable` tell you a column is 52% missing. They do not tell you whether that is 52% of people refusing to answer, or 52% of people never being shown the question at all. Those are opposite problems: one is a question-wording problem you can fix, the other is the instrument working correctly.
+Consider a scenario: You have a survey with skip logic. Some questions were asked of everyone, some only of people who answered an earlier question a particular way, and some collected far fewer answers than you expected. `describe` and `misstable` tell you a column is 52% missing. They do not tell you whether that is 52% of people refusing to answer, or 52% of people never being shown the question at all. Those are opposite problems: one is a question-wording problem you can fix, the other is the instrument working correctly.
+
+<img width="900" alt="surveymap figure exported as PNG" src="images/surveymap_figure.png" />
+
 
 `surveymap` separates them, for every item, and draws the path through the questionnaire that the answers imply.
 
@@ -81,8 +84,8 @@ surveymap [pweight=wtfinal], exclude(respid interviewer) nostrings
 `pweight`s are allowed, and both counts are kept because they answer different questions. The unweighted count describes the people interviewed, which is the honest denominator for who was asked what. The weighted count describes the estimate. The journal gains `w_asked`, `w_answered` and `pct_answered_w`; the receipt gains a `wtd%` column.
 
 ```
-   #  item         answered      declined    not shown   wtd%   routed around by
-   4  Q8                  294 (26.8%)       0     805     28.4  Q7==0
+   #  item         answered      declined    not shown      wtd%    routed around by
+   4  Q8              294        (26.8%)       0     805     28.4   Q7==0
 ```
 
 A respondent whose weight is zero leaves the scope, exactly as they leave a weighted estimate, so the respondent count becomes the positive-weight base. The weight itself is never mapped as an item.
@@ -392,5 +395,5 @@ python3 tests/svgcheck/check_map_geometry.py gallery/*.html
 ## Author and license
 
 Eric A. Booth. MIT licensed; see [LICENSE](LICENSE).
-
+Sr Researcher, Texas 2036.org
 Issues and suggestions: [github.com/ericabooth/surveymap-stata-public/issues](https://github.com/ericabooth/surveymap-stata-public/issues)
