@@ -26,6 +26,7 @@ f src/surveymap.sthlp
 f src/surveymap.ado
 f src/_sm_branch.ado
 f src/_sm_profile.ado
+f src/_sm_renderband.ado
 f src/_sm_draw.ado
 f src/_sm_export.ado
 f src/_sm_isabs.ado

@@ -147,6 +147,15 @@ capture noisily surveymap draw g_profile.tsv, export(mermaid) layout(vertical) /
 gok `=(_rc == 0)' "the same, as mermaid"
 
 display as text _n "{hline 70}"
+display as text "7c. the band chart, which has no node budget"
+display as text "{hline 70}"
+* the flow map refuses past maxnodes(); this is what a long instrument gets
+capture noisily surveymap band g_branched.tsv, saving(g_band.png) replace ///
+    title("Where the instrument leaks")
+gok `=(_rc == 0)' "the band chart"
+gok `=(r(devmax) == 0)' "every column accounts for the whole scope"
+
+display as text _n "{hline 70}"
 display as text "8. the Excel tracker"
 display as text "{hline 70}"
 capture noisily surveymap export g_branched.tsv, saving(g_tracker.xlsx) ///

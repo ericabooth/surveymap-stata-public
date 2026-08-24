@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 0.4.3  24aug2026  Eric Booth}{...}
+{* *! version 0.4.4  24aug2026  Eric Booth}{...}
 {vieweralsosee "datadictionary" "help datadictionary"}{...}
 {vieweralsosee "mergemap" "help mergemap"}{...}
 {vieweralsosee "tabulate" "help tabulate"}{...}
@@ -86,6 +86,12 @@ opens in any browser with no internet connection.{p_end}
 {opt maxn:odes(#)} {opt noopen} {opt replace}]
 
 {p 8 17 2}
+{cmd:surveymap band} [{it:journalfile}] [{cmd:,} {opt sav:ing(filename)}
+{opt ti:tle(text)} {opt sub:title(text)} {opt not:e(text)} {opt names(spec)}
+{opt area} {opt bar} {opt xsi:ze(#)} {opt ysi:ze(#)} {opt sc:ale(#)}
+{opt nolegend} {opt replace}]
+
+{p 8 17 2}
 {cmd:surveymap export} [{it:journalfile}] [{cmd:,} {opt sav:ing(filename)}
 {opt f:ormat(xlsx|dta|csv)} {opt dict:ionary(filename)} {opt prune(#)}
 {opt minn(#)} {opt maxc:ats(#)} {opt noprune} {opt replace}]
@@ -105,6 +111,7 @@ opens in any browser with no internet connection.{p_end}
 {synopt :{opt demo}}write a small survey, scan it, and show the output{p_end}
 {synopt :{opt scan}}read the data and write the journal {it:(the default)}{p_end}
 {synopt :{opt draw}}draw the flow map: a browser page, or mermaid text{p_end}
+{synopt :{opt band}}the band chart: one column per item, for a long instrument{p_end}
 {synopt :{opt export}}the tracker: {cmd:.xlsx}, {cmd:.dta}, or {cmd:.csv}{p_end}
 {synopt :{opt receipt}}reprint the receipt from a saved journal{p_end}
 {synopt :{opt clear}}forget the remembered journal; no file is touched{p_end}
@@ -600,6 +607,44 @@ a whole document: scoped styles, no element selectors, and a bounded box, so it
 cannot restyle the page it is dropped into. The package ships the check that
 proves it, {cmd:tests/embedcheck/check_embed_scoping.py}, which refuses a
 fragment carrying an unscoped selector, a script, or a page wrapper.{p_end}
+
+
+{marker band}{...}
+{title:The band chart, for a long instrument}
+
+{pstd}
+The flow map has a node budget. Past {opt maxnodes()} drawn columns it stops
+and points you at the HTML page, and on a 230-item instrument there is no
+arrangement of boxes and lanes that fits a page at all. {cmd:surveymap band}
+has no budget: one thin column per item, in questionnaire order, each split
+into answered, declined and not shown, stacking to the whole sample.{p_end}
+
+{phang2}{cmd:. surveymap band}{p_end}
+{phang2}{cmd:. surveymap band journal.tsv, saving(leaks.png) replace}{p_end}
+
+{pstd}
+It answers a different question from the map, which is why both exist. The map
+tells you who was asked what. The band chart tells you where along the
+instrument the answers stop coming, and it does that on one page for a
+questionnaire of any length. A block of {bf:not shown} is a filter doing its
+job; a swelling band of {bf:declined} is people being asked and not
+answering.{p_end}
+
+{pstd}
+Like {cmd:draw}, it reads the journal the last scan wrote when you do not name
+one. The shape is TraMineR's state-distribution plot, drawn with
+{helpb twoway}: one bar per item on a short survey, and a filled area once
+there are more items than bars can show, which it switches at automatically.
+On a long instrument it names a few landmark positions on the top axis, chosen
+where the not-shown share jumps, which is where the gates are.{p_end}
+
+{pstd}
+{bf:Every column is drawn from the three counts, never from a hard-coded 100.}
+A journal whose counts do not add to the sample therefore draws a short column
+rather than a full one that quietly lies, and {cmd:r(devmax)} reports the
+largest shortfall in respondents. On a journal this package wrote it is always
+zero, because the scan checks the same arithmetic; it is there for a journal
+that has been edited by hand.{p_end}
 
 
 {marker export}{...}

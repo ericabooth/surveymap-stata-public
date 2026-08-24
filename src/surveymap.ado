@@ -1,4 +1,4 @@
-*! version 0.4.3  24aug2026  Eric Booth
+*! version 0.4.4  24aug2026  Eric Booth
 *! surveymap: map how respondents moved through a survey
 *!
 *! The data in memory are a survey: one row per respondent, one column per
@@ -24,7 +24,7 @@ program define surveymap, rclass
     gettoken sub rest : 0, parse(" ,")
     local sub = strtrim(`"`sub'"')
     if `"`sub'"' == "scan" local 0 `"`rest'"'
-    else if inlist(`"`sub'"', "draw", "export", "receipt", "demo", "clear") {
+    else if inlist(`"`sub'"', "draw", "band", "export", "receipt", "demo", "clear") {
         * pass the rest of the line through untouched: never rebuild an
         * option list with a leading comma and then append it after another
         if `"`sub'"' == "draw" {
@@ -35,6 +35,31 @@ program define surveymap, rclass
                 exit 601
             }
             _sm_draw `rest'
+            return add
+            exit
+        }
+        if `"`sub'"' == "band" {
+            capture which _sm_renderband
+            if _rc {
+                di as err "surveymap band needs _sm_renderband.ado, which is not installed."
+                di as err "    Reinstall the package to get the band chart."
+                exit 601
+            }
+            * band, like draw, falls back on the journal the last scan wrote
+            local 0 `"`rest'"'
+            gettoken bfile brest : 0, parse(" ,")
+            local bfile = strtrim(`"`bfile'"')
+            if `"`bfile'"' == "" | substr(`"`bfile'"', 1, 1) == "," {
+                local brest `"`rest'"'
+                local bfile `"$SM_LASTJ"'
+                if `"`bfile'"' == "" {
+                    di as err "surveymap band: no journal given and none remembered"
+                    di as err "    run a scan first, or name the journal file"
+                    exit 198
+                }
+            }
+            confirm file `"`bfile'"'
+            _sm_renderband using `"`bfile'"' `brest'
             return add
             exit
         }

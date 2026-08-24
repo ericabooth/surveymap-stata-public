@@ -1393,6 +1393,100 @@ sm_assert `=(_rc == 0)' "a journal without verify rows still draws"
 capture sm_fcount h23n.html "!? declared routing disagrees"
 sm_assert `=(r(n) == 0)' "and carries no disagreement mark"
 
+* ============================================================================
+sm_block 24 "the band chart, for the surveys the map is too small for"
+* ============================================================================
+* The flow map has a node budget and refuses past maxnodes() drawn columns,
+* which used to mean a 230-item instrument got no figure at all.  The band
+* chart has no budget: one thin column per item, split into the three states,
+* stacking to the scope.  It answers a different question from the map --
+* where the instrument leaks, rather than who was asked what.
+capture use fake_a.dta, clear
+capture noisily surveymap, out(j24.tsv) noreceipt replace
+sm_assert `=(_rc == 0)' "the scan runs"
+
+capture noisily surveymap band j24.tsv, saving(b24.png) replace
+sm_assert `=(_rc == 0)' "surveymap band draws from a named journal"
+sm_assert `=(r(nitems) == 16)' "it draws one column per item"
+capture confirm file b24.png
+sm_assert `=(_rc == 0)' "the figure is written"
+
+* ---- the arithmetic the figure claims must actually hold ----
+* Every column is drawn from the three counts, never from a hard-coded 100,
+* so a journal that does not partition draws a short column instead of
+* quietly lying.  r(devmax) is the largest gap in respondents.
+sm_assert `=(r(devmax) == 0)' "every column accounts for the whole scope"
+sm_assert `=(abs(r(topmax)) < 0.001)' "every column reaches 100 percent"
+sm_assert `=(r(nbad) == 0)' "no item is flagged as failing to partition"
+
+* ---- it falls back on the remembered journal, the way draw does ----
+capture noisily surveymap band, saving(b24b.png) replace
+sm_assert `=(_rc == 0)' "band uses the journal the last scan wrote"
+sm_assert `=(r(nitems) == 16)' "and gets the same items"
+
+* ---- and refuses clearly when there is nothing to draw ----
+capture noisily surveymap clear
+capture noisily surveymap band, saving(b24c.png) replace
+sm_assert `=(_rc == 198)' "with no journal named and none remembered, it stops"
+capture noisily surveymap band nosuchfile.tsv, saving(b24d.png) replace
+sm_assert `=(_rc == 601)' "a journal that does not exist is a file error"
+
+* ---- it scales past the flow map's node budget, which is the point ----
+* A 230-item instrument: the map refuses, this does not.
+capture erase big24.tsv
+tempname bh
+file open `bh' using big24.tsv, write text replace
+file write `bh' "seq" _tab "class" _tab "var" _tab "position" _tab "vallabel" ///
+    _tab "value" _tab "gatevar" _tab "n_asked" _tab "n_answered" _tab       ///
+    "n_nonresp" _tab "n_sysmiss" _tab "pct_answered" _tab "rate" _tab       ///
+    "status" _tab "gate" _tab "gated_by" _tab "pooled" _tab "type" _tab     ///
+    "severity" _tab "flags" _n
+file write `bh' "1" _tab "survey" _tab "." _tab "230" _tab "." _tab "." _tab ///
+    "." _tab "2000" _tab "." _tab "." _tab "." _tab "." _tab "." _tab "."   ///
+    _tab "." _tab "." _tab "." _tab "." _tab "note" _tab "x" _n
+forvalues i = 1/230 {
+    local ns = cond(`i' > 120 & `i' < 170, 900, 0)
+    local nr = 40 + mod(`i', 60)
+    local na = 2000 - `ns' - `nr'
+    local pc = string(100 * `na' / 2000, "%9.1f")
+    file write `bh' "`=`i'+1'" _tab "item" _tab "q`i'" _tab "`i'" _tab      ///
+        "item `i'" _tab "." _tab "." _tab "2000" _tab "`na'" _tab "`nr'"    ///
+        _tab "`ns'" _tab "`pc'" _tab "." _tab "open" _tab "0" _tab "."      ///
+        _tab "." _tab "byte" _tab "note" _tab "." _n
+}
+file close `bh'
+capture noisily surveymap band big24.tsv, saving(b24big.png) replace
+sm_assert `=(_rc == 0)' "230 items draw"
+sm_assert `=(r(nitems) == 230)' "all 230 columns are there"
+sm_assert `=(r(devmax) == 0)' "and every one of them still partitions the scope"
+
+* the flow map, on the same instrument, correctly refuses
+capture noisily surveymap draw big24.tsv, export(png) saving(b24map) replace
+sm_assert `=(_rc != 0)' "the flow map refuses an instrument this wide"
+
+* ---- a journal whose counts do not partition is reported, not hidden ----
+capture erase bad24.tsv
+tempname xh
+file open `xh' using bad24.tsv, write text replace
+file write `xh' "seq" _tab "class" _tab "var" _tab "position" _tab "vallabel" ///
+    _tab "value" _tab "gatevar" _tab "n_asked" _tab "n_answered" _tab       ///
+    "n_nonresp" _tab "n_sysmiss" _tab "pct_answered" _tab "rate" _tab       ///
+    "status" _tab "gate" _tab "gated_by" _tab "pooled" _tab "type" _tab     ///
+    "severity" _tab "flags" _n
+file write `xh' "1" _tab "survey" _tab "." _tab "2" _tab "." _tab "." _tab  ///
+    "." _tab "1000" _tab "." _tab "." _tab "." _tab "." _tab "." _tab "."   ///
+    _tab "." _tab "." _tab "." _tab "." _tab "note" _tab "x" _n
+file write `xh' "2" _tab "item" _tab "a" _tab "1" _tab "a" _tab "." _tab    ///
+    "." _tab "1000" _tab "500" _tab "100" _tab "100" _tab "50.0" _tab "."   ///
+    _tab "open" _tab "0" _tab "." _tab "." _tab "byte" _tab "note" _tab "." _n
+file write `xh' "3" _tab "item" _tab "b" _tab "2" _tab "b" _tab "." _tab    ///
+    "." _tab "1000" _tab "900" _tab "50" _tab "50" _tab "90.0" _tab "."     ///
+    _tab "open" _tab "0" _tab "." _tab "." _tab "byte" _tab "note" _tab "." _n
+file close `xh'
+capture noisily surveymap band bad24.tsv, saving(b24bad.png) replace
+sm_assert `=(_rc == 0)' "a journal that does not partition still draws"
+sm_assert `=(r(devmax) > 0)' "and the shortfall is reported rather than hidden"
+
 * ---------------------------------------------------------------- summary ----
 display as text _n "{hline 78}"
 display as text "surveymap battery: " as result "$SM_PASS passed" as text ", " ///

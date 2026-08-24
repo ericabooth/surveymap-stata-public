@@ -285,6 +285,23 @@ The page has no height cap and scrolls sideways, because a survey is wider than 
 
 A figure is readable up to a point. Past `maxnodes()` drawn columns (default 14) it stops and points you at the HTML page, which scrolls and keeps the full record on hover. A fan counts as one column however many items sit inside it, so the limit is on what the eye has to follow.
 
+## The band chart, for a long instrument
+
+The flow map has a node budget. Past `maxnodes()` drawn columns it stops and points you at the HTML page, and on a 230-item instrument there is no arrangement of boxes and lanes that fits a page at all. `surveymap band` has no budget: one thin column per item, in questionnaire order, each split into answered, declined and not shown, stacking to the whole sample.
+
+```stata
+surveymap band
+surveymap band journal.tsv, saving(leaks.png) replace
+```
+
+<img width="900" alt="surveymap band chart" src="images/surveymap_band.png" />
+
+*Every column is one item. `q6_whovote` and `q7_whynot` are half **not shown**, which is the vote filter doing its job. `q13_income` was shown to nearly everyone and has the widest **declined** band, which is 220 people refusing. The two look nothing alike here, and in a "percent missing" table they would look the same.*
+
+It answers a different question from the map, which is why both exist. The map tells you who was asked what; the band chart tells you where along the instrument the answers stop coming, on one page, for a questionnaire of any length. Like `draw`, it reads the journal the last scan wrote when you don't name one. The shape is TraMineR's state-distribution plot drawn with `twoway`: one bar per item on a short survey, switching to a filled area once there are more items than bars can show.
+
+**Every column is drawn from the three counts, never from a hard-coded 100.** A journal whose counts don't add to the sample draws a short column rather than a full one that quietly lies, and `r(devmax)` reports the largest shortfall. On a journal this package wrote it is always zero, because the scan checks the same arithmetic.
+
 ## The Excel tracker
 
 ```stata
@@ -357,7 +374,7 @@ cd tests
 do surveymap_pkgtest.do
 ```
 
-281 checks across 23 blocks, run on Stata 16.1 and on the current release, covering the fixture's routing truths, the branch parser, banding a continuous gate, the derived conditions and the ones the package refuses to build, the conservation arithmetic, the drawn verify disagreement, lane partitioning, pruning at scan and at draw time, weights, `exclude()`/`nostrings`, `verify()`, both layouts of all four renderers, the Excel tracker, the fragment's scoping guarantee, and both directions of the `datadictionary` bridge.
+298 checks across 24 blocks, run on Stata 16.1 and on the current release, covering the fixture's routing truths, the branch parser, banding a continuous gate, the derived conditions and the ones the package refuses to build, the conservation arithmetic, the drawn verify disagreement, the band chart at 230 items, lane partitioning, pruning at scan and at draw time, weights, `exclude()`/`nostrings`, `verify()`, both layouts of all four renderers, the Excel tracker, the fragment's scoping guarantee, and both directions of the `datadictionary` bridge.
 
 The gallery is a second, coarser test: it rebuilds every example artifact from one fake survey and counts its own failures, because a Stata do-file can abort and still leave the runner reporting success.
 

@@ -2,6 +2,33 @@
 
 All notable changes to surveymap. Dates are the day the work landed locally.
 
+## 0.4.4 - 2026-08-24
+
+### Added
+
+- `surveymap band`, a status band chart of the whole instrument: one thin
+  column per item in questionnaire order, split into answered, declined and
+  not shown, stacking to the sample. The flow map has a node budget and
+  refuses past `maxnodes()` drawn columns, which meant a 230-item instrument
+  got no figure at all; this has no budget and fits one page at any length.
+  It answers a different question from the map -- where along the instrument
+  the answers stop coming, rather than who was asked what.
+- The shape is TraMineR's state-distribution plot drawn in base Stata, one bar
+  per item on a short survey and a filled area once there are more items than
+  bars can show, switching automatically. On a long instrument it names a few
+  landmark positions where the not-shown share jumps, which is where the gates
+  are.
+- Every column is drawn from the three counts the journal carries, never from
+  a hard-coded 100, so a journal whose counts do not partition draws a short
+  column instead of a full one that quietly lies. `r(devmax)` reports the
+  largest shortfall in respondents.
+
+### Testing
+
+- 298 checks, passing on Stata 16.1 and 19.5. The new block draws a 230-item
+  journal, confirms the flow map refuses the same instrument, and checks that
+  a deliberately non-partitioning journal is reported rather than hidden.
+
 ## 0.4.3 - 2026-08-24
 
 ### Fixed
