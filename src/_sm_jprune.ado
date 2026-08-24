@@ -1,4 +1,4 @@
-*! version 0.1.0  23aug2026  Eric Booth
+*! version 0.2.0  23aug2026  Eric Booth
 *! _sm_jprune -- apply the prune rules to a surveymap journal before a
 *! reader (receipt, HTML map, mermaid, Excel) sees it.
 *!

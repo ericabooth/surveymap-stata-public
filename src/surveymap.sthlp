@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 0.1.0  23aug2026  Eric Booth}{...}
+{* *! version 0.2.0  23aug2026  Eric Booth}{...}
 {vieweralsosee "datadictionary" "help datadictionary"}{...}
 {vieweralsosee "mergemap" "help mergemap"}{...}
 {vieweralsosee "tabulate" "help tabulate"}{...}
@@ -58,7 +58,7 @@ And keep the numbers as a workbook:{p_end}
 {marker install}{...}
 {title:Installation}
 
-{phang2}{cmd:. net install surveymap, from("https://raw.githubusercontent.com/ericabooth/surveymap-stata-public/main/") replace}{p_end}
+{phang2}{cmd:. net install surveymap, from("https://raw.githubusercontent.com/ericabooth/surveymap-stata-public/main/") replace force}{p_end}
 
 {pstd}
 {cmd:surveymap} needs Stata 16 or later and installs nothing else. The HTML map
@@ -69,10 +69,14 @@ opens in any browser with no internet connection.{p_end}
 {title:Syntax}
 
 {p 8 17 2}
-{cmd:surveymap} [{cmd:scan}] [{varlist}] {ifin} [{cmd:,}
+{cmd:surveymap} [{cmd:scan}] [{varlist}] {ifin} {weight} [{cmd:,}
 {opt br:anch(spec)} {opt out(filename)} {opt non:response(numlist)}
+{opt ex:clude(varlist)} {opt nostrings} {opt ver:ify(filename)}
 {opt prune(#)} {opt minn(#)} {opt maxc:ats(#)} {opt det:ect(# #)}
 {opt noautodetect} {opt noreceipt} {opt noprune} {opt replace}]
+
+{pstd}
+{cmd:pweight}s are allowed; see {help surveymap##weights:Weights}.{p_end}
 
 {p 8 17 2}
 {cmd:surveymap draw} [{it:journalfile}] [{cmd:,} {opt exp:ort(html|mermaid)}
@@ -160,6 +164,113 @@ is different. {cmd:q6_whovote} was never shown to 600 people, because it asks
 who you voted for and they said they did not vote. {cmd:q13_income} was shown to
 almost everyone and 220 of them refused. The last column names the answers that
 routed people away, so the two cases read apart at a glance.{p_end}
+
+
+{marker realfile}{...}
+{title:Pointing it at a real survey file}
+
+{pstd}
+A delivered survey file is wider than the questionnaire. Alongside the answers it
+holds record identifiers, sample-frame columns from a voter or panel list,
+interviewer administration, vendor recodes, and verbatim text. Mapping all of it
+produces a picture with more columns than structure, and worse, the columns that
+were never questions can look like branching to the routing detector. Three
+options keep the map to the instrument.{p_end}
+
+{synoptset 26 tabbed}{...}
+{synopt :{opt ex:clude(varlist)}}drop columns that are not questions{p_end}
+{synopt :{opt nostrings}}drop the string columns, which are usually verbatims{p_end}
+{synopt :{it:varlist}}or name the items you want, positively{p_end}
+{synoptline}
+{p2colreset}{...}
+
+{phang2}{cmd:. surveymap, exclude(respid weight_final interviewer) nostrings}{p_end}
+
+{pstd}
+{bf:Watch for blanks that are not skip logic.} An item can be blank for three
+different reasons, and only one of them is routing.{p_end}
+
+{phang2}
+{bf:Skip logic.} The respondent was not asked, because of an earlier answer. This
+is what the map is for.{p_end}
+
+{phang2}
+{bf:A frame property.} Sample-frame columns are blank for respondents who were
+never matched to that frame. In one real file every voter-file column was blank
+for all of the panel respondents, because panel cases are not matched to the
+voter file. Nobody was routed anywhere; the columns simply do not apply. Exclude
+them.{p_end}
+
+{phang2}
+{bf:A split ballot.} Some items are asked of a random half of the sample by
+design. That is missing completely at random, not routing, and the two versions
+are two different questions, not one question with gaps.{p_end}
+
+{pstd}
+The routing detector reports what the data shows, so a frame column or a split
+ballot can satisfy its test. Read a detected gate as a claim to check, and use
+{opt verify()} against the questionnaire when you have it.{p_end}
+
+
+{marker weights}{...}
+{title:Weights}
+
+{pstd}
+{cmd:pweight}s are allowed, and a weighted survey usually wants them:{p_end}
+
+{phang2}{cmd:. surveymap [pweight=wtfinal], exclude(respid) nostrings}{p_end}
+
+{pstd}
+Both counts are kept, because they answer different questions. The unweighted
+count describes the people who were interviewed, which is the honest denominator
+for a statement about fieldwork and about who was asked what. The weighted count
+describes the estimate, which is what a published percentage rests on. The
+journal gains {cmd:w_asked}, {cmd:w_answered} and {cmd:pct_answered_w}, the
+receipt gains a {cmd:wtd%} column, and every unweighted column keeps its
+meaning.{p_end}
+
+{pstd}
+Two consequences worth knowing. A respondent whose weight is zero leaves the
+scope, exactly as they leave a weighted estimate, so the respondent count in the
+receipt is the positive-weight base and not the interview count. And a weight is
+a property of a respondent and not an answer, so the weight variable is
+never mapped as an item.{p_end}
+
+{pstd}
+Without a weight the three columns hold {cmd:.} and every reader treats that as
+"unweighted only" instead of as zero.{p_end}
+
+
+{marker verify}{...}
+{title:Checking the map against a questionnaire}
+
+{pstd}
+Survey projects usually keep their own table of the skip logic, one row per
+gated question with the number of people who should have answered it. That table
+and this map are two independent accounts of the same thing, so it is worth
+asking whether they agree:{p_end}
+
+{phang2}{cmd:. surveymap, verify(skiplogic.csv)}{p_end}
+
+{pstd}
+The file is a CSV whose header names at least {cmd:varname} and
+{cmd:expected_n}; {cmd:study}, {cmd:gate_expr} and {cmd:note} are used when
+present and ignored when absent, so a table written for another purpose usually
+works as it is. Each declared item is compared against what the answers show,
+and the count of disagreements comes back in {cmd:r(N_mismatch)}.{p_end}
+
+{pstd}
+The two outcomes mean different things. An item the map routes but the table does
+not mention is usually an undocumented filter, or a small-cell correlation that
+happens to satisfy the test. {bf:A declared gate the data does not show is the one
+to chase}, because it means the questionnaire and the file disagree about who was
+asked, and every estimate on that item inherits the disagreement.{p_end}
+
+{pstd}
+It also works the other way round. On a new delivery, run the scan first and use
+its {cmd:gated_by} output as the draft of the skip-logic table, then check the
+draft against the questionnaire. The draft is derived from what respondents
+actually saw.{p_end}
 
 
 {marker branch}{...}
@@ -356,6 +467,9 @@ so a lookup across sheets is one formula.{p_end}
 {synopt :{opt br:anch(spec)}}the gates to split the flow by; see {help surveymap##branch:Branching}{p_end}
 {synopt :{opt out(filename)}}write the journal here; default {cmd:survey_journal.tsv}{p_end}
 {synopt :{opt non:response(numlist)}}coded values that mean a refusal, such as {cmd:98 99}. Extended missings always count as declined{p_end}
+{synopt :{opt ex:clude(varlist)}}columns to leave out: ids, sample frame, admin{p_end}
+{synopt :{opt nostrings}}leave the string columns out, which are usually verbatims{p_end}
+{synopt :{opt ver:ify(filename)}}check the routing found against a declared skip-logic table{p_end}
 {synopt :{opt det:ect(# #)}}the two routing thresholds; default {cmd:2 50}{p_end}
 {synopt :{opt noautodetect}}do not look for gates; draw only the ones named in {opt branch()}{p_end}
 {synopt :{opt noreceipt}}skip the receipt table{p_end}
@@ -411,6 +525,13 @@ respondents in scope, and every count and percent is computed within it.{p_end}
 
 {pstd}{bf:Map the questions, leaving the identifiers and paradata out}{p_end}
 {phang2}{cmd:. surveymap q1-q42}{p_end}
+{phang2}{cmd:. surveymap, exclude(respid wtfinal interviewer) nostrings}{p_end}
+
+{pstd}{bf:A weighted survey: both counts, side by side}{p_end}
+{phang2}{cmd:. surveymap [pweight=wtfinal], exclude(respid) nostrings}{p_end}
+
+{pstd}{bf:Does the file agree with the questionnaire about who was asked?}{p_end}
+{phang2}{cmd:. surveymap, verify(skiplogic.csv)}{p_end}
 
 {pstd}{bf:Completed interviews only}{p_end}
 {phang2}{cmd:. surveymap if status == 1}{p_end}
@@ -492,6 +613,7 @@ as data and apply your own weights.{p_end}
 {synopt:{cmd:r(N)}}respondents in scope{p_end}
 {synopt:{cmd:r(K_items)}}items mapped{p_end}
 {synopt:{cmd:r(N_gates)}}gates drawn{p_end}
+{synopt:{cmd:r(N_mismatch)}}after {opt verify()}: declared gates the data does not agree with{p_end}
 {p2col 5 22 26 2: Macros}{p_end}
 {synopt:{cmd:r(journal)}}path to the journal file{p_end}
 {synopt:{cmd:r(gates)}}the gate variables drawn{p_end}
@@ -503,7 +625,8 @@ as data and apply your own weights.{p_end}
 The journal's columns, for reading the file yourself:
 {cmd:seq class var position vallabel value gatevar n_asked n_answered}
 {cmd:n_nonresp n_sysmiss pct_answered rate status gate gated_by pooled type}
-{cmd:severity flags}. {cmd:class} is one of {cmd:survey item cat cell note}:
+{cmd:severity flags w_asked w_answered pct_answered_w}. The last three are `.` unless a
+weight was given. {cmd:class} is one of {cmd:survey item cat cell note}:
 {cmd:item} rows are the tracker, {cmd:cat} rows are a gate's categories, and
 {cmd:cell} rows are one lane against one item.{p_end}
 

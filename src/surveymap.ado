@@ -1,4 +1,4 @@
-*! version 0.1.0  23aug2026  Eric Booth
+*! version 0.2.0  23aug2026  Eric Booth
 *! surveymap: map how respondents moved through a survey
 *!
 *! The data in memory are a survey: one row per respondent, one column per
@@ -74,10 +74,26 @@ program define surveymap, rclass
     }
 
     * ---- scan (the default) ----------------------------------------------
-    syntax [varlist(default=none)] [if] [in] [,                            ///
+    syntax [varlist(default=none)] [if] [in] [pw] [,                       ///
         BRanch(string asis) out(string) NONresponse(string)                ///
+        EXclude(varlist) NOSTRings VERify(string)                          ///
         PRUNE(real 5) MINN(integer 30) MAXCats(integer 6)                  ///
         DETect(numlist min=2 max=2) NOAUTOdetect NORECeipt NOPRUNE replace]
+
+    * the weight, when one is given, counts respondents the way a weighted
+    * estimate would.  Both counts are journaled: the unweighted one describes
+    * the people interviewed, the weighted one describes the estimate.
+    local wvar ""
+    if `"`weight'"' != "" {
+        local wvar = subinstr(`"`exp'"', "=", "", .)
+        local wvar = strtrim(`"`wvar'"')
+        capture confirm numeric variable `wvar'
+        if _rc {
+            di as err "surveymap: the weight must be one numeric variable"
+            di as err "    surveymap [pweight=w1], ..."
+            exit 198
+        }
+    }
 
     if _N == 0 {
         di as err "surveymap: no data in memory"
@@ -141,9 +157,40 @@ program define surveymap, rclass
         }
         local vlist = strtrim(`"`vlist'"')
     }
+    * a survey file carries columns that are not questions: record ids, the
+    * sample frame, interviewer admin, verbatim text.  Mapping them adds
+    * columns to the picture without adding structure to it.
+    if `"`exclude'"' != "" {
+        local keepv ""
+        foreach v of local vlist {
+            local hit : list v in exclude
+            if !`hit' local keepv `"`keepv' `v'"'
+        }
+        local vlist = strtrim(`"`keepv'"')
+    }
+    if "`nostrings'" != "" {
+        local keepv ""
+        foreach v of local vlist {
+            capture confirm numeric variable `v'
+            if !_rc local keepv `"`keepv' `v'"'
+        }
+        local vlist = strtrim(`"`keepv'"')
+    }
+    * the weight is a property of the respondent, not an answer
+    if `"`wvar'"' != "" {
+        local keepv ""
+        foreach v of local vlist {
+            if "`v'" != "`wvar'" local keepv `"`keepv' `v'"'
+        }
+        local vlist = strtrim(`"`keepv'"')
+    }
+
     local K : word count `vlist'
     if `K' == 0 {
         di as err "surveymap: no items to map"
+        if `"`exclude'"' != "" | "`nostrings'" != "" {
+            di as err "    exclude() and nostrings left nothing to map"
+        }
         exit 198
     }
 
@@ -201,10 +248,19 @@ program define surveymap, rclass
     tempvar tflag
     quietly gen byte `tflag' = `touse'
     capture frame drop _smwork
-    frame put `vlist' `tflag', into(_smwork)
+    frame put `vlist' `tflag' `wvar', into(_smwork)
     frame _smwork {
         quietly keep if `tflag'
         quietly drop `tflag'
+    }
+
+    * the weighted scope total, which every item row reports as w_asked
+    local WTOT "."
+    if "`wvar'" != "" {
+        frame _smwork {
+            _sm_wsum "`wvar'" "1"
+            local WTOT "`s(o)'"
+        }
     }
 
     * ---- per item: answered / nonresponse / system missing ---------------
@@ -225,6 +281,8 @@ program define surveymap, rclass
                 local ans = r(N)
                 local nr  = 0
                 local sys = `N' - `ans'
+                _sm_wsum "`wvar'" `"trim(`v') != """'
+                local wans "`s(o)'"
             }
             else {
                 local nrexp "0"
@@ -237,9 +295,12 @@ program define surveymap, rclass
                 local nr = r(N)
                 quietly count if `v' == .
                 local sys = r(N)
+                _sm_wsum "`wvar'" `"!missing(`v') & !(`nrexp')"'
+                local wans "`s(o)'"
             }
         }
         local a_`v' = `ans'
+        local wa_`v' "`wans'"
         local r_`v' = `nr'
         local s_`v' = `sys'
         local t_`v' `"`ty'"'
@@ -444,7 +505,8 @@ program define surveymap, rclass
         "vallabel" _tab "value" _tab "gatevar" _tab "n_asked" _tab          ///
         "n_answered" _tab "n_nonresp" _tab "n_sysmiss" _tab                 ///
         "pct_answered" _tab "rate" _tab "status" _tab "gate" _tab           ///
-        "gated_by" _tab "pooled" _tab "type" _tab "severity" _tab "flags" _n
+        "gated_by" _tab "pooled" _tab "type" _tab "severity" _tab "flags"   ///
+        _tab "w_asked" _tab "w_answered" _tab "pct_answered_w" _n
 
     local seq = 0
     * survey row: the scan's settings travel with the journal, so a later
@@ -455,7 +517,7 @@ program define surveymap, rclass
     if `"`autonote'"' != "" local sflags `"`sflags'; `autonote'"'
     if `"`skipgates'"' != "" local sflags `"`sflags'; skipped `skipgates'"'
     _sm_wrow `JH' `seq' survey "." `K' "." "." "." `N' "." "." "." "." "." ///
-        "." "." "." "." "." note `"`sflags'"'
+        "." "." "." "." "." note `"`sflags'"' `"`WTOT'"' "." "."
 
     * item rows
     foreach v of local vlist {
@@ -476,9 +538,14 @@ program define surveymap, rclass
             local fl "!! nobody was shown this item"
         }
         local gbv = cond(`"`gb_`v''"' == "", ".", `"`gb_`v''"')
+        local pctw "."
+        if "`wvar'" != "" & "`WTOT'" != "." & "`WTOT'" != "0" {
+            local pctw = string(100 * real("`wa_`v''") / real("`WTOT'"), "%9.1f")
+        }
         _sm_wrow `JH' `seq' item `"`v'"' `p_`v'' `"`lab_`v''"' "." "."     ///
             `N' `a_`v'' `r_`v'' `s_`v'' `"`pct'"' "." `"`st'"' `isg'      ///
-            `"`gbv'"' "." `"`t_`v''"' `"`sev'"' `"`fl'"'
+            `"`gbv'"' "." `"`t_`v''"' `"`sev'"' `"`fl'"'                    ///
+            `"`WTOT'"' `"`wa_`v''"' `"`pctw'"'
     }
 
     * category and cell rows, gate by gate
@@ -520,6 +587,8 @@ program define surveymap, rclass
             frame _smwork {
                 quietly count if `g' == `c'
                 local nc = r(N)
+                _sm_wsum "`wvar'" "`g' == `c'"
+                local wnc "`s(o)'"
             }
             local ctext "`c'"
             if `"`vlbl'"' != "" {
@@ -533,19 +602,21 @@ program define surveymap, rclass
             local pct = string(100 * `nc' / `N', "%9.1f")
             _sm_wrow `JH' `seq' cat `"`g'"' `p_`g'' `"`ctext'"' `"`c'"'    ///
                 `"`g'"' `nc' "." "." "." `"`pct'"' "." "." "." "."         ///
-                `"`pooled'"' "." note "."
+                `"`pooled'"' "." note "." `"`wnc'"' "." "."
         }
         * one row for the respondents who left the gate blank
         frame _smwork {
             quietly count if missing(`g')
             local nblank = r(N)
+            _sm_wsum "`wvar'" "missing(`g')"
+            local wnblank "`s(o)'"
         }
         if `nblank' > 0 {
             local ++seq
             local pct = string(100 * `nblank' / `N', "%9.1f")
             _sm_wrow `JH' `seq' cat `"`g'"' `p_`g'' "no answer" "noanswer" ///
                 `"`g'"' `nblank' "." "." "." `"`pct'"' "." "." "." "."     ///
-                "." "." note "."
+                "." "." note "." `"`wnblank'"' "." "."
         }
         if `capped' {
             local ++seq
@@ -575,6 +646,8 @@ program define surveymap, rclass
                     quietly count if `cond'
                     local nlane = r(N)
                     if `nlane' == 0 continue
+                    _sm_wsum "`wvar'" "`cond'"
+                    local wlane "`s(o)'"
                     local nrexp "0"
                     if !`str_`it'' {
                         foreach z of local nrcodes {
@@ -586,6 +659,8 @@ program define surveymap, rclass
                         local ain = r(N)
                         local nrin = 0
                         local sysin = `nlane' - `ain'
+                        _sm_wsum "`wvar'" `"`cond' & trim(`it') != """'
+                        local wain "`s(o)'"
                     }
                     else {
                         quietly count if `cond' & !missing(`it') & !(`nrexp')
@@ -594,16 +669,22 @@ program define surveymap, rclass
                         local nrin = r(N)
                         quietly count if `cond' & `it' == .
                         local sysin = r(N)
+                        _sm_wsum "`wvar'" `"`cond' & !missing(`it') & !(`nrexp')"'
+                        local wain "`s(o)'"
                     }
                 }
                 if `nlane' == 0 continue
                 local rt = 100 * `ain' / `nlane'
                 local stt = cond(`rt' <= 5, "skipped", cond(`rt' >= 80, "answered", "partial"))
                 local ++seq
+                local rtw "."
+                if "`wvar'" != "" & real("`wlane'") > 0 & real("`wlane'") < . {
+                    local rtw = string(100 * real("`wain'") / real("`wlane'"), "%9.1f")
+                }
                 _sm_wrow `JH' `seq' cell `"`it'"' `p' "." `"`c'"' `"`g'"' ///
                     `nlane' `ain' `nrin' `sysin' "."                       ///
                     `"`=string(`rt', "%9.1f")'"' `"`stt'"' "." "." "." "." ///
-                    note "."
+                    note "." `"`wlane'"' `"`wain'"' `"`rtw'"'
             }
         }
     }
@@ -621,11 +702,35 @@ program define surveymap, rclass
         _sm_receipt using `"`out'"'
     }
 
+    local nbad = 0
+    if `"`verify'"' != "" {
+        _sm_verify using `"`out'"', declared(`"`verify'"')
+        local nbad = `r(n_mismatch)'
+    }
+
     return local journal `"`out'"'
     return local gates   `"`drawn'"'
     return scalar N        = `N'
     return scalar K_items  = `K'
     return scalar N_gates  = `NG'
+    if `"`verify'"' != "" return scalar N_mismatch = `nbad'
+end
+
+
+* ------------------------------------------------------------ weighted sum
+* Sum of the weight over the rows the condition selects, as text, or "." when
+* no weight was given.  Called inside the working frame.
+program define _sm_wsum, sclass
+    args wvar cond
+    sreturn clear
+    sreturn local o "."
+    if `"`wvar'"' == "" exit
+    quietly summarize `wvar' if `cond', meanonly
+    if r(N) == 0 {
+        sreturn local o "0"
+        exit
+    }
+    sreturn local o = string(r(sum), "%20.4f")
 end
 
 
@@ -636,7 +741,7 @@ end
 program define _sm_wrow
     args JH seq class var position vallabel value gatevar n_asked         ///
         n_answered n_nonresp n_sysmiss pct_answered rate status gate      ///
-        gated_by pooled type severity flags
+        gated_by pooled type severity flags w_asked w_answered pct_answered_w
     foreach f in class var vallabel value gatevar status gated_by pooled  ///
         type severity flags {
         local `f' = subinstr(`"``f''"', char(9), " ", .)
@@ -646,7 +751,7 @@ program define _sm_wrow
         if `"``f''"' == "" local `f' "."
     }
     foreach f in seq position n_asked n_answered n_nonresp n_sysmiss      ///
-        pct_answered rate gate {
+        pct_answered rate gate w_asked w_answered pct_answered_w {
         local `f' = strtrim(`"``f''"')
         if `"``f''"' == "" local `f' "."
     }
@@ -656,7 +761,126 @@ program define _sm_wrow
         `"`n_nonresp'"' _tab `"`n_sysmiss'"' _tab `"`pct_answered'"' _tab  ///
         `"`rate'"' _tab `"`status'"' _tab `"`gate'"' _tab `"`gated_by'"'   ///
         _tab `"`pooled'"' _tab `"`type'"' _tab `"`severity'"' _tab         ///
-        `"`flags'"' _n
+        `"`flags'"' _tab `"`w_asked'"' _tab `"`w_answered'"' _tab           ///
+        `"`pct_answered_w'"' _n
+end
+
+
+* ----------------------------------------------------------------- verify
+* Compare the routing surveymap found against routing somebody declared.
+*
+* A survey project usually keeps a hand-written table of its skip logic, one
+* row per gated question with the number of people who should have answered.
+* That table and this journal are two independent accounts of the same thing,
+* so disagreement is worth knowing about: a declared gate the data does not
+* show is the stronger signal, because it means the instrument and the file
+* disagree.
+*
+* The declared file is a CSV with a header naming at least varname and
+* expected_n.  study, gate_expr and note are used when present and ignored
+* when absent, so a table written for another purpose usually just works.
+*
+* returns r(n_checked) r(n_match) r(n_mismatch) r(n_missing)
+program define _sm_verify, rclass
+    version 16
+    syntax using/, DECLARED(string)
+    capture confirm file `"`declared'"'
+    if _rc {
+        di as err `"surveymap verify: `declared' not found"'
+        exit 601
+    }
+
+    capture frame drop _smvj
+    capture frame drop _smvd
+    frame create _smvj
+    frame _smvj {
+        quietly import delimited using `"`using'"', delimiter(tab)        ///
+            varnames(1) stringcols(_all) clear
+        quietly keep if class == "item"
+    }
+    frame create _smvd
+    local bad = 0
+    frame _smvd {
+        quietly import delimited using `"`declared'"', varnames(1)        ///
+            stringcols(_all) clear
+        foreach need in varname expected_n {
+            capture confirm variable `need'
+            if _rc local bad = 1
+        }
+    }
+    if `bad' {
+        frame drop _smvj
+        frame drop _smvd
+        di as err `"surveymap verify: `declared' needs varname and expected_n columns"'
+        di as err "    a study column is used when present and ignored when absent"
+        exit 459
+    }
+
+    local nchk = 0
+    local nmat = 0
+    local nmis = 0
+    local nabs = 0
+    di as txt _n "{hline 78}"
+    di as txt "surveymap verify: declared routing against what the answers show"
+    di as txt "{hline 78}"
+    di as txt "  item" _col(20) "declared" _col(34) "answered" _col(46) "verdict"
+    di as txt "{hline 78}"
+    frame _smvd {
+        local ND = _N
+        forvalues i = 1/`ND' {
+            local vn = varname[`i']
+            local ex = expected_n[`i']
+            local ge = ""
+            capture confirm variable gate_expr
+            if !_rc local ge = gate_expr[`i']
+            local ++nchk
+            local got ""
+            local gb ""
+            frame _smvj {
+                quietly count if var == "`vn'"
+                if r(N) > 0 {
+                    quietly levelsof n_answered if var == "`vn'", local(g) clean
+                    local got "`g'"
+                    quietly levelsof gated_by if var == "`vn'", local(g2) clean
+                    local gb "`g2'"
+                }
+            }
+            if "`got'" == "" {
+                local ++nabs
+                di as txt "  " %-16s "`vn'" _col(20) %8s "`ex'" _col(34) ///
+                    %8s "-" _col(46) as err "not in the journal"
+                continue
+            }
+            if real("`got'") == real("`ex'") {
+                local ++nmat
+                di as txt "  " %-16s "`vn'" _col(20) %8s "`ex'" _col(34) ///
+                    %8s "`got'" _col(46) as txt "match"
+            }
+            else {
+                local ++nmis
+                di as txt "  " %-16s "`vn'" _col(20) %8s "`ex'" _col(34) ///
+                    %8s "`got'" _col(46) as err "MISMATCH"
+                if "`gb'" == "." | "`gb'" == "" {
+                    di as err "        the data shows no routing on this item"
+                }
+                else di as txt "        the data shows: `gb'"
+            }
+        }
+    }
+    frame drop _smvj
+    frame drop _smvd
+    di as txt "{hline 78}"
+    di as txt "  `nchk' declared, " as res "`nmat' match" as txt ", " ///
+        as res "`nmis' disagree" as txt ", " as res "`nabs' not mapped"
+    if `nmis' > 0 | `nabs' > 0 {
+        di as txt "  A declared gate the data does not show is the one to chase:"
+        di as txt "  it means the instrument and the file disagree about who was asked."
+    }
+    di as txt "{hline 78}"
+    return scalar n_checked  = `nchk'
+    return scalar n_match    = `nmat'
+    return scalar n_mismatch = `nmis'
+    return scalar n_missing  = `nabs'
 end
 
 
@@ -698,14 +922,20 @@ program define _sm_receipt
         local NR = r(N)
         quietly count if class == "item" & severity == "warn"
         local NW = r(N)
+        local haswt = 0
+        capture confirm variable pct_answered_w
+        if !_rc {
+            quietly count if class == "item" & pct_answered_w != "."
+            local haswt = (r(N) > 0)
+        }
     }
 
     * one short of the line width: a rule exactly as wide as the line wraps
     local ls = c(linesize) - 1
     if `ls' < 79 local ls 79
     if `ls' > 119 local ls 119
-    local wlab = `ls' - 62
-    if `wlab' < 16 local wlab 16
+    local wlab = `ls' - cond(`haswt', 69, 62)
+    if `wlab' < 14 local wlab 14
 
     di as txt ""
     di as txt "{hline `ls'}"
@@ -713,8 +943,16 @@ program define _sm_receipt
         as res "`NN'" as txt " respondents, `NG' gate" ///
         cond(`NG' == 1, "", "s") ")"
     di as txt "{hline `ls'}"
-    di as txt "   #  item" _col(20) "answered" _col(34) "declined" _col(46) "not shown" ///
-        _col(58) "routed around by"
+    * the routing column starts later when a weighted share sits before it
+    local gcol = cond(`haswt', 65, 58)
+    if `haswt' {
+        di as txt "   #  item" _col(20) "answered" _col(34) "declined" ///
+            _col(46) "not shown" _col(58) "wtd%" _col(`gcol') "routed around by"
+    }
+    else {
+        di as txt "   #  item" _col(20) "answered" _col(34) "declined" ///
+            _col(46) "not shown" _col(`gcol') "routed around by"
+    }
     di as txt "{hline `ls'}"
 
     frame _smrc {
@@ -728,6 +966,11 @@ program define _sm_receipt
             local p   = pct_answered[`i']
             local gb  = gated_by[`i']
             local sv  = severity[`i']
+            local pw  = ""
+            if `haswt' {
+                local pw = pct_answered_w[`i']
+                if "`pw'" == "." local pw ""
+            }
             if "`gb'" == "." local gb ""
             local af = trim(string(real("`a'"), "%20.0fc"))
             local rf = trim(string(real("`r'"), "%20.0fc"))
@@ -735,10 +978,18 @@ program define _sm_receipt
             if strlen("`vn'") > 15 local vn = substr("`vn'", 1, 14) + "~"
             local gbs "`gb'"
             if strlen("`gbs'") > `wlab' local gbs = substr("`gbs'", 1, `wlab' - 1) + "~"
-            di as txt %4s "`pos'" "  " as res %-15s "`vn'" as txt ///
-                _col(20) %8s "`af'" as txt " (" %4s "`p'" "%)" ///
-                _col(34) %8s "`rf'" _col(46) %8s "`sf2'" "  " ///
-                as res %-1s "`gbs'"
+            if `haswt' {
+                di as txt %4s "`pos'" "  " as res %-15s "`vn'" as txt ///
+                    _col(20) %8s "`af'" as txt " (" %4s "`p'" "%)" ///
+                    _col(34) %8s "`rf'" _col(46) %8s "`sf2'" ///
+                    _col(58) %5s "`pw'" _col(`gcol') as res %-1s "`gbs'"
+            }
+            else {
+                di as txt %4s "`pos'" "  " as res %-15s "`vn'" as txt ///
+                    _col(20) %8s "`af'" as txt " (" %4s "`p'" "%)" ///
+                    _col(34) %8s "`rf'" _col(46) %8s "`sf2'" ///
+                    _col(`gcol') as res %-1s "`gbs'"
+            }
             if "`sv'" == "warn" {
                 local fl = flags[`i']
                 if "`fl'" != "." di as err "        `fl'"
@@ -749,6 +1000,9 @@ program define _sm_receipt
     di as txt "answered = a real answer.  declined = don't know, refused, or a " ///
         "nonresponse code."
     di as txt "not shown = system missing, which is where skip logic lands."
+    if `haswt' {
+        di as txt "wtd% = the same answered share, weighted; the count beside it is unweighted."
+    }
     if `NR' > 0 {
         di as txt "Routing is read from the responses, not from a questionnaire " ///
             "spec: an item that"

@@ -1,6 +1,6 @@
-# surveymap journal schema, v1
+# surveymap journal schema, v2
 
-One tab-separated line per event, **20 columns**, header row present. Missing
+One tab-separated line per event, **23 columns**, header row present. Missing
 value is a single period `.`. The journal is the package's one intermediate
 artifact: the scan writes it, and the receipt, the HTML map, the mermaid text
 and the Excel tracker are all read from it. **Read columns by name** from the
@@ -28,6 +28,15 @@ header row and tolerate unknown trailing columns.
 | 18 | type | storage type (`byte` `int` `float` `long` `double` `str#`) |
 | 19 | severity | `note` `warn` |
 | 20 | flags | human-readable diagnostics; `!!` marks a warning; `; `-separated |
+| 21 | w_asked | weighted respondents in scope (item rows) or in the lane/category; `.` when no weight was given |
+| 22 | w_answered | weighted count of `n_answered`; `.` when no weight was given |
+| 23 | pct_answered_w | 100 * w_answered / w_asked, one decimal; `.` when no weight was given |
+
+**Columns 21 to 23 arrived in v2 and are appended, not inserted**, so a reader
+written against v1 keeps working: the rule has always been to read by name and
+tolerate unknown trailing columns. A journal written without a weight carries `.`
+in all three, and every reader must treat that as "unweighted only" rather than
+as zero.
 
 ## Row classes
 

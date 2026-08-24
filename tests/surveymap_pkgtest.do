@@ -277,10 +277,14 @@ capture sm_jcount j2.tsv item
 sm_assert `=(r(n) == 16)' "16 item rows, in questionnaire order"    // * INTEGRATION: verify (15 if resp_id is auto-excluded as an id)
 * the 20-column header, exactly as proto/JOURNAL_SCHEMA.md orders it
 local T = char(9)
-local want "seq`T'class`T'var`T'position`T'vallabel`T'value`T'gatevar`T'n_asked`T'n_answered`T'n_nonresp`T'n_sysmiss`T'pct_answered`T'rate`T'status`T'gate`T'gated_by`T'pooled`T'type`T'severity`T'flags"
+local want "seq`T'class`T'var`T'position`T'vallabel`T'value`T'gatevar`T'n_asked`T'n_answered`T'n_nonresp`T'n_sysmiss`T'pct_answered`T'rate`T'status`T'gate`T'gated_by`T'pooled`T'type`T'severity`T'flags`T'w_asked`T'w_answered`T'pct_answered_w"
 capture sm_jhdr j2.tsv
 local ok = (`"`r(hdr)'"' == `"`want'"')
-sm_assert `=(`ok')' "the header carries the 20 schema columns, by name and in order"
+sm_assert `=(`ok')' "the header carries the 23 schema columns, by name and in order"
+* the three weighted columns are appended, so a v1 reader still finds the first
+* twenty where it expects them
+local w20 = strpos(`"`r(hdr)'"', `"`T'w_asked`T'w_answered`T'pct_answered_w"')
+sm_assert `=(`w20' > 0)' "the weighted columns are appended after flags, not inserted"
 
 * ============================================================================
 sm_block 3 "nonresponse accounting: refusal is not routing"
@@ -677,6 +681,94 @@ file write `nj' "1" _tab "2" _n
 file close `nj'
 capture noisily _sm_jprune using notajournal.tsv
 sm_assert `=(_rc == 459)' "_sm_jprune refuses a non-journal file with r(459)"
+
+* ============================================================================
+sm_block 17 "working on a real survey file: exclude, nostrings, weights, verify"
+* ============================================================================
+* Everything in this block came from running surveymap against a real poll:
+* a survey file carries record ids, a sample frame and verbatim text that are
+* not questions, its estimates are weighted, and the project keeps its own
+* table of the skip logic that the map can be checked against.
+capture use fake_a.dta, clear
+
+* ---- exclude() drops columns that are not questions ----
+capture noisily surveymap, out(j17a.tsv) noreceipt replace
+local kall = r(K_items)
+capture noisily surveymap, exclude(resp_id st) out(j17b.tsv) noreceipt replace
+sm_assert `=(_rc == 0)' "exclude() is accepted"
+sm_assert `=(r(K_items) == `kall' - 2)' "exclude() drops exactly the named columns"
+capture sm_jval j17b.tsv var item resp_id
+sm_assert `=("`r(val)'" == "")' "an excluded column has no item row"
+
+* ---- nostrings drops the verbatim columns ----
+capture noisily surveymap, nostrings out(j17c.tsv) noreceipt replace
+sm_assert `=(_rc == 0)' "nostrings is accepted"
+capture sm_jval j17c.tsv var item q14_zip
+sm_assert `=("`r(val)'" == "")' "nostrings leaves the string item out"
+capture sm_jval j17c.tsv var item q3_party
+sm_assert `=("`r(val)'" == "q3_party")' "nostrings keeps the numeric items"
+
+* ---- a weight adds the three weighted columns and changes nothing else ----
+capture use fake_a.dta, clear
+quietly gen double wt = cond(q3_party == 1, 1.4, 0.8)
+quietly replace wt = 0 if q1_consent == 0
+capture noisily surveymap q1_consent q3_party q5_voted q6_whovote [pweight=wt], ///
+    out(j17w.tsv) noreceipt replace
+sm_assert `=(_rc == 0)' "a pweight is accepted"
+capture sm_jval j17w.tsv w_asked item q3_party
+local wa = real("`r(val)'")
+capture sm_jval j17w.tsv n_asked item q3_party
+local na = real("`r(val)'")
+sm_assert `=(`wa' > 0 & `wa' < .)' "w_asked is populated when a weight is given"
+sm_assert `=(abs(`wa' - `na') > 0.5)' "the weighted scope differs from the unweighted one"
+capture sm_jval j17w.tsv pct_answered_w item q6_whovote
+sm_assert `=(real("`r(val)'") > 0 & real("`r(val)'") < 100)' "pct_answered_w is a percentage"
+* zero-weight respondents leave the scope, which is what a weighted estimate does
+capture sm_jval j17w.tsv n_asked survey "*"
+local nw = real("`r(val)'")
+capture use fake_a.dta, clear
+quietly count if q1_consent == 1
+sm_assert `=(`nw' == r(N))' "a zero weight takes a respondent out of scope"
+
+* ---- with no weight, the three columns are all "." ----
+capture sm_jval j17c.tsv w_asked item q3_party
+sm_assert `=("`r(val)'" == ".")' "without a weight the weighted columns stay missing"
+
+* ---- verify() against a declared skip-logic table ----
+capture use fake_a.dta, clear
+capture erase decl17.csv
+file open fh using decl17.csv, write text replace
+file write fh "study,varname,gate_expr,expected_n,note" _n
+* the true counts, taken from the scan itself
+capture noisily surveymap, out(j17v.tsv) noreceipt replace
+capture sm_jval j17v.tsv n_answered item q6_whovote
+local n6 = "`r(val)'"
+capture sm_jval j17v.tsv n_answered item q7_whynot
+local n7 = "`r(val)'"
+file write fh "1,q6_whovote,q5_voted==1,`n6'," _n
+file write fh "1,q7_whynot,q5_voted==0,`n7'," _n
+file write fh "1,q10_dem_prim,inlist(q3_party 1 3),999," _n
+file write fh "1,nosuchitem,x==1,50," _n
+file close fh
+capture noisily surveymap, out(j17v2.tsv) noreceipt replace verify(decl17.csv)
+sm_assert `=(_rc == 0)' "verify() runs"
+sm_assert `=(r(N_mismatch) == 1)' "verify() finds the one declared count that disagrees"
+* a file without the required columns is refused, not crashed
+capture erase bad17.csv
+file open fh using bad17.csv, write text replace
+file write fh "a,b" _n
+file write fh "1,2" _n
+file close fh
+capture noisily surveymap, out(j17v3.tsv) noreceipt replace verify(bad17.csv)
+sm_assert `=(_rc == 459)' "a file that is not a skip-logic table gives r(459)"
+capture noisily surveymap, out(j17v4.tsv) noreceipt replace verify(nosuch17.csv)
+sm_assert `=(_rc == 601)' "a missing verify() file gives r(601)"
+
+* ---- the weighted journal still draws and exports ----
+capture noisily surveymap draw j17w.tsv, export(html) saving(m17.html) replace noopen
+sm_assert `=(_rc == 0)' "a weighted journal still draws"
+capture noisily surveymap export j17w.tsv, saving(t17.xlsx) replace
+sm_assert `=(_rc == 0)' "a weighted journal still exports"
 
 * ============================================================================
 sm_block 16 "clear forgets the remembered journal"
