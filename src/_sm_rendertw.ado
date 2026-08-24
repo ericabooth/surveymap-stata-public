@@ -1,4 +1,4 @@
-*! version 0.4.4  24aug2026  Eric Booth
+*! version 0.4.5  24aug2026  Eric Booth
 *! _sm_rendertw : draw a surveymap journal (schema v2) as a native twoway
 *!            boxes-and-arrows figure, for a paper or a slide
 *!
