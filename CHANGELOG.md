@@ -2,7 +2,39 @@
 
 All notable changes to surveymap. Dates are the day the work landed locally.
 
+## 0.3.0 — 2026-08-24
+
+### Added
+
+- **`export(png)` and `export(svg)`**, drawing the same figure through Stata's
+  own graph engine for a paper or a slide. Both come from one `twoway` call, so
+  asking for either writes both. A figure is readable up to a point: past
+  `maxnodes()` drawn columns (default 14) it stops and names the HTML page,
+  which scrolls and keeps the full record on hover. A fan counts as one column
+  however many items sit inside it, so the limit is on what the eye has to
+  follow and not on the item count.
+- **A gallery.** `gallery/runall.do` rebuilds every example artifact from one
+  fake survey: three journals, three HTML maps, a fragment, mermaid text, a
+  PNG and an SVG, the Excel tracker, a `verify()` run against a deliberately
+  wrong declared table, and an index page. It counts its own failures and
+  prints a verdict, because a Stata do-file can abort and still leave the
+  runner reporting success.
+- **The fragment-scoping check now ships with the package**, at
+  `tests/embedcheck/check_embed_scoping.py`. It refuses a fragment carrying an
+  unscoped selector, a script, an un-namespaced id, or a page wrapper, and its
+  exit status can gate a build.
+
+### Fixed
+
+- The figure's caption used `char(183)` for a middle dot, which is a lone
+  `0xB7` byte and invalid UTF-8, so `graph export` refused the file with
+  "failed to export to the specified format" after drawing it successfully.
+  `uchar(183)` is the Unicode form.
+- A `{bf:}` directive in the help file spanned a line break, which SMCL does
+  not allow, so it rendered literally in the plain-text help.
+
 ## 0.2.0 — 2026-08-23
+
 
 Everything here came from running 0.1.0 against a real poll (a 1,105-respondent
 statewide survey, 229 columns) and finding out where it was awkward.

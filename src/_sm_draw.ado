@@ -1,4 +1,4 @@
-*! version 0.1.0  23aug2026  Eric Booth
+*! version 0.3.0  24aug2026  Eric Booth
 *! _sm_draw -- dispatcher behind -surveymap draw-.  Resolves which journal to
 *! draw, picks the renderer from export(), applies the read-time prune rules,
 *! and handles the open-in-browser courtesy for HTML output.
@@ -17,7 +17,7 @@ program define _sm_draw, rclass
     version 16
     syntax [anything(name=jspec)] [, EXPort(string) SAVing(string)          ///
         LAYout(string) PRUNE(real -1) MINN(integer -1) MAXCats(integer -1)  ///
-        NOPRUNE NAME(string) NOOPen EMBed replace]
+        NOPRUNE NAME(string) NOOPen EMBed MAXnodes(integer -1) replace]
 
     * ---- which journal --------------------------------------------------
     gettoken w1 rest : jspec
@@ -48,8 +48,8 @@ program define _sm_draw, rclass
     * ---- which renderer -------------------------------------------------
     if `"`export'"' == "" local export "html"
     local export = strlower(`"`export'"')
-    if !inlist("`export'", "html", "mermaid") {
-        di as err "surveymap draw: export() must be html or mermaid"
+    if !inlist("`export'", "html", "mermaid", "png", "svg") {
+        di as err "surveymap draw: export() must be html, mermaid, png or svg"
         exit 198
     }
 
@@ -88,6 +88,20 @@ program define _sm_draw, rclass
         if `"`hf'"' == "" local hf "surveymap_map.html"
         _sm_draw_html `"`jfile'"' `"`hf'"' `"`jname'"' "`embed'" "`replace'" "`noopen'"
         return local output `"`s(out)'"'
+        exit
+    }
+
+    * ---- png / svg: one figure, through Stata's own graph engine -------
+    * png and svg come from the same twoway call, so asking for either
+    * writes both and the caller keeps whichever it needs
+    if inlist("`export'", "png", "svg") {
+        local stub `"`saving'"'
+        if `"`stub'"' == "" local stub "surveymap_map"
+        local o `"`replace'"'
+        if `"`nameopt'"' != "" local o `"`o' `nameopt'"'
+        if `maxnodes' >= 0 local o `"`o' maxnodes(`maxnodes')"'
+        _sm_rendertw using `"`jfile'"', saving(`"`stub'"') `o'
+        return local output `"`stub'.`export'"'
         exit
     }
 

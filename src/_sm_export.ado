@@ -1,4 +1,4 @@
-*! version 0.1.0  23aug2026  Eric Booth
+*! version 0.3.0  24aug2026  Eric Booth
 *! _sm_export -- the journal as a dataset or an Excel tracker.  Count and
 *! percentage columns arrive numeric; text columns stay text.  The xlsx form
 *! is the point: a three-sheet tracker (items, branch lanes, lane-by-item

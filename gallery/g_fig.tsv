@@ -1,0 +1,28 @@
+seq	class	var	position	vallabel	value	gatevar	n_asked	n_answered	n_nonresp	n_sysmiss	pct_answered	rate	status	gate	gated_by	pooled	type	severity	flags	w_asked	w_answered	pct_answered_w
+1	survey	.	7	.	.	.	1200	.	.	.	.	.	.	.	.	.	.	note	prune=5 minn=30 maxcats=6 dlow=2 dhigh=50 nonresp=none; gates found in the data: q1_consent q5_voted; name your own with branch()	.	.	.
+2	item	q1_consent	1	Consented to be interviewed	.	.	1200	1200	0	0	100.0	.	open	1	.	.	byte	note	.	.	.	.
+3	item	q3_party	2	Party identification	.	.	1200	1074	87	39	89.5	.	gated	0	q1_consent==0	.	byte	note	.	.	.	.
+4	item	q5_voted	3	Voted in the 2024 general election	.	.	1200	1133	28	39	94.4	.	gated	1	q1_consent==0	.	byte	note	.	.	.	.
+5	item	q6_whovote	4	Vote choice for president in 2024	.	.	1200	578	22	600	48.2	.	gated	0	q5_voted==0	.	byte	note	.	.	.	.
+6	item	q7_whynot	5	Main reason for not voting	.	.	1200	507	26	667	42.2	.	gated	0	q5_voted==1	.	byte	note	.	.	.	.
+7	item	q8_approve	6	Approval of the governor	.	.	1200	1053	108	39	87.8	.	gated	0	q1_consent==0	.	byte	note	.	.	.	.
+8	item	q13_income	7	Total household income last year	.	.	1200	941	220	39	78.4	.	gated	0	q1_consent==0	.	byte	note	.	.	.	.
+9	cat	q1_consent	1	No	0	q1_consent	39	.	.	.	3.2	.	.	.	.	.	.	note	.	.	.	.
+10	cat	q1_consent	1	Yes	1	q1_consent	1161	.	.	.	96.8	.	.	.	.	.	.	note	.	.	.	.
+11	cell	q3_party	2	.	0	q1_consent	39	0	0	39	.	0.0	skipped	.	.	.	.	note	.	.	.	.
+12	cell	q3_party	2	.	1	q1_consent	1161	1074	87	0	.	92.5	answered	.	.	.	.	note	.	.	.	.
+13	cell	q5_voted	3	.	0	q1_consent	39	0	0	39	.	0.0	skipped	.	.	.	.	note	.	.	.	.
+14	cell	q5_voted	3	.	1	q1_consent	1161	1133	28	0	.	97.6	answered	.	.	.	.	note	.	.	.	.
+15	cell	q8_approve	6	.	0	q1_consent	39	0	0	39	.	0.0	skipped	.	.	.	.	note	.	.	.	.
+16	cell	q8_approve	6	.	1	q1_consent	1161	1053	108	0	.	90.7	answered	.	.	.	.	note	.	.	.	.
+17	cell	q13_income	7	.	0	q1_consent	39	0	0	39	.	0.0	skipped	.	.	.	.	note	.	.	.	.
+18	cell	q13_income	7	.	1	q1_consent	1161	941	220	0	.	81.1	answered	.	.	.	.	note	.	.	.	.
+19	cat	q5_voted	3	No	0	q5_voted	533	.	.	.	44.4	.	.	.	.	.	.	note	.	.	.	.
+20	cat	q5_voted	3	Yes	1	q5_voted	600	.	.	.	50.0	.	.	.	.	.	.	note	.	.	.	.
+21	cat	q5_voted	3	no answer	noanswer	q5_voted	67	.	.	.	5.6	.	.	.	.	.	.	note	.	.	.	.
+22	cell	q6_whovote	4	.	0	q5_voted	533	0	0	533	.	0.0	skipped	.	.	.	.	note	.	.	.	.
+23	cell	q6_whovote	4	.	1	q5_voted	600	578	22	0	.	96.3	answered	.	.	.	.	note	.	.	.	.
+24	cell	q6_whovote	4	.	noanswer	q5_voted	67	0	0	67	.	0.0	skipped	.	.	.	.	note	.	.	.	.
+25	cell	q7_whynot	5	.	0	q5_voted	533	507	26	0	.	95.1	answered	.	.	.	.	note	.	.	.	.
+26	cell	q7_whynot	5	.	1	q5_voted	600	0	0	600	.	0.0	skipped	.	.	.	.	note	.	.	.	.
+27	cell	q7_whynot	5	.	noanswer	q5_voted	67	0	0	67	.	0.0	skipped	.	.	.	.	note	.	.	.	.

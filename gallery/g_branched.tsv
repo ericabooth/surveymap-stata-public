@@ -1,0 +1,38 @@
+seq	class	var	position	vallabel	value	gatevar	n_asked	n_answered	n_nonresp	n_sysmiss	pct_answered	rate	status	gate	gated_by	pooled	type	severity	flags	w_asked	w_answered	pct_answered_w
+1	survey	.	12	.	.	.	1161	.	.	.	.	.	.	.	.	.	.	note	prune=5 minn=30 maxcats=6 dlow=2 dhigh=50 nonresp=none	1224.3400	.	.
+2	item	q1_consent	1	Consented to be interviewed	.	.	1161	1161	0	0	100.0	.	open	0	.	.	byte	note	.	1224.3400	1224.3400	100.0
+3	item	q3_party	2	Party identification	.	.	1161	1074	87	0	92.5	.	open	1	.	.	byte	note	.	1224.3400	1156.4800	94.5
+4	item	q4_reg	3	Registered to vote at this address	.	.	1161	1161	0	0	100.0	.	open	0	.	.	byte	note	.	1224.3400	1224.3400	100.0
+5	item	q5_voted	4	Voted in the 2024 general election	.	.	1161	1133	28	0	97.6	.	open	1	.	.	byte	note	.	1224.3400	1196.2600	97.7
+6	item	q6_whovote	5	Vote choice for president in 2024	.	.	1161	578	22	561	49.8	.	gated	0	q4_reg==0; q5_voted==0	.	byte	note	.	1224.3400	612.0400	50.0
+7	item	q7_whynot	6	Main reason for not voting	.	.	1161	507	26	628	43.7	.	gated	0	q5_voted==1	.	byte	note	.	1224.3400	535.3400	43.7
+8	item	q8_approve	7	Approval of the governor	.	.	1161	1053	108	0	90.7	.	open	0	.	.	byte	note	.	1224.3400	1112.5400	90.9
+9	item	q9_econ	8	Rating of economic conditions today	.	.	1161	1088	73	0	93.7	.	open	0	.	.	byte	note	.	1224.3400	1142.4400	93.3
+10	item	q10_dem_prim	9	Plans to vote in the Democratic primary	.	.	1161	591	22	548	50.9	.	gated	0	q3_party==2 4	.	byte	note	.	1224.3400	768.3000	62.8
+11	item	q11_rep_prim	10	Plans to vote in the Republican primary	.	.	1161	566	15	580	48.8	.	gated	0	q3_party==1 4	.	byte	note	.	1224.3400	557.9600	45.6
+12	item	q12_ideol	11	Ideological self-placement	.	.	1161	1081	80	0	93.1	.	open	0	.	.	byte	note	.	1224.3400	1134.9000	92.7
+13	item	q13_income	12	Total household income last year	.	.	1161	941	220	0	81.1	.	open	0	.	.	byte	note	.	1224.3400	989.8200	80.8
+14	cat	q3_party	2	Democrat	1	q3_party	384	.	.	.	33.1	.	.	.	.	.	.	note	.	499.2000	.	.
+15	cat	q3_party	2	Republican	2	q3_party	352	.	.	.	30.3	.	.	.	.	.	.	note	.	274.5600	.	.
+16	cat	q3_party	2	Independent	3	q3_party	229	.	.	.	19.7	.	.	.	.	.	.	note	.	297.7000	.	.
+17	cat	q3_party	2	Something else	4	q3_party	109	.	.	.	9.4	.	.	.	.	1	.	note	.	85.0200	.	.
+18	cat	q3_party	2	no answer	noanswer	q3_party	87	.	.	.	7.5	.	.	.	.	.	.	note	.	67.8600	.	.
+19	cell	q10_dem_prim	9	.	1	q3_party	384	375	9	0	.	97.7	answered	.	.	.	.	note	.	499.2000	487.5000	97.7
+20	cell	q10_dem_prim	9	.	2	q3_party	352	0	0	352	.	0.0	skipped	.	.	.	.	note	.	274.5600	0	0.0
+21	cell	q10_dem_prim	9	.	3	q3_party	229	216	13	0	.	94.3	answered	.	.	.	.	note	.	297.7000	280.8000	94.3
+22	cell	q10_dem_prim	9	.	4	q3_party	109	0	0	109	.	0.0	skipped	.	.	.	.	note	.	85.0200	0	0.0
+23	cell	q10_dem_prim	9	.	noanswer	q3_party	87	0	0	87	.	0.0	skipped	.	.	.	.	note	.	67.8600	0	0.0
+24	cell	q11_rep_prim	10	.	1	q3_party	384	0	0	384	.	0.0	skipped	.	.	.	.	note	.	499.2000	0	0.0
+25	cell	q11_rep_prim	10	.	2	q3_party	352	342	10	0	.	97.2	answered	.	.	.	.	note	.	274.5600	266.7600	97.2
+26	cell	q11_rep_prim	10	.	3	q3_party	229	224	5	0	.	97.8	answered	.	.	.	.	note	.	297.7000	291.2000	97.8
+27	cell	q11_rep_prim	10	.	4	q3_party	109	0	0	109	.	0.0	skipped	.	.	.	.	note	.	85.0200	0	0.0
+28	cell	q11_rep_prim	10	.	noanswer	q3_party	87	0	0	87	.	0.0	skipped	.	.	.	.	note	.	67.8600	0	0.0
+29	cat	q5_voted	4	No	0	q5_voted	533	.	.	.	45.9	.	.	.	.	.	.	note	.	562.3800	.	.
+30	cat	q5_voted	4	Yes	1	q5_voted	600	.	.	.	51.7	.	.	.	.	.	.	note	.	633.8800	.	.
+31	cat	q5_voted	4	no answer	noanswer	q5_voted	28	.	.	.	2.4	.	.	.	.	.	.	note	.	28.0800	.	.
+32	cell	q6_whovote	5	.	0	q5_voted	533	0	0	533	.	0.0	skipped	.	.	.	.	note	.	562.3800	0	0.0
+33	cell	q6_whovote	5	.	1	q5_voted	600	578	22	0	.	96.3	answered	.	.	.	.	note	.	633.8800	612.0400	96.6
+34	cell	q6_whovote	5	.	noanswer	q5_voted	28	0	0	28	.	0.0	skipped	.	.	.	.	note	.	28.0800	0	0.0
+35	cell	q7_whynot	6	.	0	q5_voted	533	507	26	0	.	95.1	answered	.	.	.	.	note	.	562.3800	535.3400	95.2
+36	cell	q7_whynot	6	.	1	q5_voted	600	0	0	600	.	0.0	skipped	.	.	.	.	note	.	633.8800	0	0.0
+37	cell	q7_whynot	6	.	noanswer	q5_voted	28	0	0	28	.	0.0	skipped	.	.	.	.	note	.	28.0800	0	0.0

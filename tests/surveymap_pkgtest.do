@@ -793,6 +793,57 @@ capture noisily surveymap draw j17w.tsv, export(mermaid) saving(mm17) replace
 sm_assert `=(_rc == 0)' "a weighted journal renders to mermaid"
 
 * ============================================================================
+sm_block 18 "the figure renderer, and the fragment's scoping guarantee"
+* ============================================================================
+capture use fake_a.dta, clear
+capture noisily surveymap q1_consent q3_party q5_voted q6_whovote q7_whynot ///
+    q8_approve, out(j18.tsv) noreceipt replace
+sm_assert `=(_rc == 0)' "the figure fixture scans"
+
+* ---- png and svg come from one twoway call, so asking for either writes both
+capture noisily surveymap draw j18.tsv, export(png) saving(f18) replace
+sm_assert `=(_rc == 0)' "export(png) runs"
+capture confirm file f18.png
+local a = _rc
+capture confirm file f18.svg
+sm_assert `=(`a' == 0 & _rc == 0)' "png and svg are both written"
+capture noisily surveymap draw j18.tsv, export(svg) saving(f18b) replace
+capture confirm file f18b.png
+local a = _rc
+capture confirm file f18b.svg
+sm_assert `=(`a' == 0 & _rc == 0)' "export(svg) writes the same pair"
+* a pasted extension on the stub is forgiven
+capture noisily surveymap draw j18.tsv, export(png) saving(f18c.png) replace
+capture confirm file f18c.png
+sm_assert `=(_rc == 0)' "a pasted .png on saving() is forgiven, not doubled"
+capture confirm file f18c.png.png
+sm_assert `=(_rc != 0)' "and it does not write f18c.png.png"
+* replace is required, as everywhere else
+capture noisily surveymap draw j18.tsv, export(png) saving(f18)
+sm_assert `=(_rc == 602)' "an existing figure needs replace"
+
+* ---- a figure is only readable up to a point ----
+capture use fake_a.dta, clear
+capture noisily surveymap, nostrings out(j18w.tsv) noreceipt replace
+capture noisily surveymap draw j18w.tsv, export(png) saving(f18d) replace maxnodes(3)
+sm_assert `=(_rc == 134)' "past maxnodes() the figure is refused with r(134)"
+capture noisily surveymap draw j18w.tsv, export(html) saving(f18d.html) replace noopen
+sm_assert `=(_rc == 0)' "and the same journal still draws as HTML"
+
+* ---- the fragment cannot restyle the page it is dropped into ----
+capture noisily surveymap draw j18.tsv, export(html) saving(fr18.html) replace embed
+sm_assert `=(_rc == 0)' "an embed fragment is written"
+capture sm_fcount fr18.html "<script"
+sm_assert `=(r(n) == 0)' "the fragment carries no script"
+capture sm_fcount fr18.html "<!DOCTYPE"
+local d = r(n)
+capture sm_fcount fr18.html "<body"
+sm_assert `=(`d' == 0 & r(n) == 0)' "the fragment is a fragment, not a page"
+* the vendored checker agrees, and it is the one the gallery and CI would run
+capture confirm file ../embedcheck/check_embed_scoping.py
+sm_assert `=(_rc == 0)' "the scoping checker ships with the package"
+
+* ============================================================================
 sm_block 16 "clear forgets the remembered journal"
 * ============================================================================
 capture use fake_a.dta, clear

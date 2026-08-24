@@ -177,11 +177,18 @@ surveymap draw, noprune
 surveymap draw                                        // HTML, opens in your browser
 surveymap draw, saving(flow_frag.html) embed replace  // a fragment for a report page
 surveymap draw, export(mermaid) saving(flow) replace  // text GitHub renders itself
+surveymap draw, export(png) saving(figures/flow)      // a figure for a paper
 ```
 
 Items run left to right on a spine, each box carrying the name, the label, and the count and percent who answered, with `!!` on items a lot of people declined. Where a gate splits the sample the spine fans into lanes; a dashed grey box is an item that lane was routed around. The lanes rejoin at a dot and the spine continues. Hover any box for its full record.
 
-The page has no height cap and scrolls sideways, because a survey is wider than it is tall. The `embed` fragment is scoped so it cannot restyle the page you drop it into.
+The page has no height cap and scrolls sideways, because a survey is wider than it is tall. The `embed` fragment is scoped so it cannot restyle the page you drop it into, and the package ships the check that proves it (`tests/embedcheck/check_embed_scoping.py`), which refuses a fragment carrying an unscoped selector, a script, or a page wrapper.
+
+`export(png)` and `export(svg)` draw the same figure through Stata's own graph engine, for a paper or a slide; asking for either writes both.
+
+<img width="900" alt="surveymap figure exported as PNG" src="images/surveymap_figure.png" />
+
+A figure is readable up to a point. Past `maxnodes()` drawn columns (default 14) it stops and points you at the HTML page, which scrolls and keeps the full record on hover. A fan counts as one column however many items sit inside it, so the limit is on what the eye has to follow.
 
 ## The Excel tracker
 
@@ -243,7 +250,8 @@ A varlist chooses which items to map; the columns keep their dataset order eithe
 | path | contents |
 |---|---|
 | `src/` | the package: `surveymap.ado`, the `_sm_*` helpers, and the help file |
-| `tests/` | the regression battery and the fake-survey fixture |
+| `tests/` | the regression battery, the fake-survey fixture, and the fragment-scoping check |
+| `gallery/` | every example output, regenerated from scratch by `gallery/runall.do` |
 | `proto/` | the journal schema and the contract fixtures every reader is tested against |
 | `images/` | the screenshot in this README |
 
@@ -254,7 +262,14 @@ cd tests
 do surveymap_pkgtest.do
 ```
 
-132 checks across 17 blocks, run on Stata 16.1 and on the current release, covering the fixture's routing truths, the branch parser, lane partitioning, pruning at scan and at draw time, weights, `exclude()`/`nostrings`, `verify()`, the HTML and mermaid renderers, the Excel tracker, and both directions of the `datadictionary` bridge.
+150 checks across 18 blocks, run on Stata 16.1 and on the current release, covering the fixture's routing truths, the branch parser, lane partitioning, pruning at scan and at draw time, weights, `exclude()`/`nostrings`, `verify()`, all four renderers, the Excel tracker, the fragment's scoping guarantee, and both directions of the `datadictionary` bridge.
+
+The gallery is a second, coarser test: it rebuilds every example artifact from one fake survey and counts its own failures, because a Stata do-file can abort and still leave the runner reporting success.
+
+```stata
+cd gallery
+do runall.do
+```
 
 ## Author and license
 

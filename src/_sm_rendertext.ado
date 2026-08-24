@@ -1,4 +1,4 @@
-*! version 0.1.0  23aug2026  Eric Booth
+*! version 0.3.0  24aug2026  Eric Booth
 *! _sm_rendertext -- emit a mermaid flowchart LR from a surveymap journal
 *! (TSV, 20 columns).
 *!

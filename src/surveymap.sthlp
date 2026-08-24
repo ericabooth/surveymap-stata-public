@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 0.2.0  23aug2026  Eric Booth}{...}
+{* *! version 0.3.0  24aug2026  Eric Booth}{...}
 {vieweralsosee "datadictionary" "help datadictionary"}{...}
 {vieweralsosee "mergemap" "help mergemap"}{...}
 {vieweralsosee "tabulate" "help tabulate"}{...}
@@ -79,9 +79,10 @@ opens in any browser with no internet connection.{p_end}
 {cmd:pweight}s are allowed; see {help surveymap##weights:Weights}.{p_end}
 
 {p 8 17 2}
-{cmd:surveymap draw} [{it:journalfile}] [{cmd:,} {opt exp:ort(html|mermaid)}
+{cmd:surveymap draw} [{it:journalfile}] [{cmd:,} {opt exp:ort(html|mermaid|png|svg)}
 {opt sav:ing(filename)} {opt prune(#)} {opt minn(#)} {opt maxc:ats(#)}
-{opt noprune} {opt name(text)} {opt embed} {opt noopen} {opt replace}]
+{opt noprune} {opt name(text)} {opt embed} {opt maxn:odes(#)} {opt noopen}
+{opt replace}]
 
 {p 8 17 2}
 {cmd:surveymap export} [{it:journalfile}] [{cmd:,} {opt sav:ing(filename)}
@@ -203,8 +204,8 @@ them.{p_end}
 
 {phang2}
 {bf:A split ballot.} Some items are asked of a random half of the sample by
-design. That is missing completely at random, not routing, and the two versions
-are two different questions, not one question with gaps.{p_end}
+design. That is missing completely at random by construction, and the two
+versions are two different questions, not one question with gaps.{p_end}
 
 {pstd}
 The routing detector reports what the data shows, so a frame column or a split
@@ -269,9 +270,9 @@ and the count of disagreements comes back in {cmd:r(N_mismatch)}.{p_end}
 {pstd}
 The two outcomes mean different things. An item the map routes but the table does
 not mention is usually an undocumented filter, or a small-cell correlation that
-happens to satisfy the test. {bf:A declared gate the data does not show is the one
-to chase}, because it means the questionnaire and the file disagree about who was
-asked, and every estimate on that item inherits the disagreement.{p_end}
+happens to satisfy the test. {bf:A declared gate the data does not show is the one to chase.} It means
+the questionnaire and the file disagree about who was asked, and every estimate
+on that item inherits the disagreement.{p_end}
 
 {pstd}
 It also works the other way round. On a new delivery, run the scan first and use
@@ -386,8 +387,19 @@ draws whatever the last scan wrote, in this session or a later one.{p_end}
 {synoptset 22 tabbed}{...}
 {synopt :{opt export(html)}}a self-contained page: no internet, no JavaScript {it:(the default)}{p_end}
 {synopt :{opt export(mermaid)}}text that GitHub, Quarto and VS Code render{p_end}
+{synopt :{opt export(png)}}a figure through Stata's own graph engine{p_end}
+{synopt :{opt export(svg)}}the same figure, scalable{p_end}
 {synoptline}
 {p2colreset}{...}
+
+{pstd}
+{opt png} and {opt svg} come from one {helpb twoway} call, so asking for either
+writes both and you keep whichever the document needs. A figure is readable up
+to a point: past {opt maxnodes(#)} drawn columns (default 14) it stops and names
+the HTML page instead, which scrolls and keeps the full record on hover. A fan
+counts as one column however many items are inside it, so the limit is on what
+the eye has to follow and not on the item count. Narrow the map with a
+{varlist} or {opt exclude()} when you hit it.{p_end}
 
 {pstd}
 {bf:Reading it.} Items run left to right in questionnaire order along a spine.
@@ -408,7 +420,9 @@ the lanes belong where those questions sit.{p_end}
 The page has no height cap and the diagram scrolls sideways, because a survey is
 wider than it is tall. {opt embed} writes a fragment for a report page instead of
 a whole document: scoped styles, no element selectors, and a bounded box, so it
-cannot restyle the page it is dropped into.{p_end}
+cannot restyle the page it is dropped into. The package ships the check that
+proves it, {cmd:tests/embedcheck/check_embed_scoping.py}, which refuses a
+fragment carrying an unscoped selector, a script, or a page wrapper.{p_end}
 
 
 {marker export}{...}
@@ -502,10 +516,11 @@ respondents in scope, and every count and percent is computed within it.{p_end}
 {dlgtab:Draw}
 
 {synoptset 26 tabbed}{...}
-{synopt :{opt exp:ort(html|mermaid)}}the medium; default {cmd:html}{p_end}
+{synopt :{opt exp:ort(html|mermaid|png|svg)}}the medium; default {cmd:html}{p_end}
 {synopt :{opt sav:ing(filename)}}where to write it{p_end}
 {synopt :{opt name(text)}}what to call the survey on the page{p_end}
 {synopt :{opt embed}}a fragment for someone else's page, not a whole document{p_end}
+{synopt :{opt maxn:odes(#)}}how many columns a figure will attempt; default {cmd:14}{p_end}
 {synopt :{opt noopen}}write the page but do not open a browser{p_end}
 {synopt :{opt replace}}overwrite existing output{p_end}
 {synoptline}
@@ -568,6 +583,9 @@ respondents in scope, and every count and percent is computed within it.{p_end}
 {pstd}{bf:A fragment for a report page, and text for a README}{p_end}
 {phang2}{cmd:. surveymap draw, saving(flow_frag.html) embed replace}{p_end}
 {phang2}{cmd:. surveymap draw, export(mermaid) saving(flow) replace}{p_end}
+
+{pstd}{bf:A figure for a paper or a slide}{p_end}
+{phang2}{cmd:. surveymap draw, export(png) saving(figures/flow) replace}{p_end}
 
 {pstd}{bf:The tracker, with every lane whatever the map shows}{p_end}
 {phang2}{cmd:. surveymap export, saving(flow.xlsx) noprune replace}{p_end}

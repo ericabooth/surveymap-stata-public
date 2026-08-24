@@ -1,0 +1,33 @@
+seq	class	var	position	vallabel	value	gatevar	n_asked	n_answered	n_nonresp	n_sysmiss	pct_answered	rate	status	gate	gated_by	pooled	type	severity	flags	w_asked	w_answered	pct_answered_w
+1	survey	.	7	.	.	.	1200	.	.	.	.	.	.	.	.	.	.	note	prune=5 minn=30 maxcats=6 dlow=2 dhigh=50 nonresp=none; gates found in the data: q3_party q5_voted; name your own with branch()	.	.	.
+2	item	q1_consent	1	Consented to be interviewed	.	.	1200	1200	0	0	100.0	.	open	0	.	.	byte	note	.	.	.	.
+3	item	q3_party	2	Party identification	.	.	1200	1074	87	39	89.5	.	gated	1	q1_consent==0	.	byte	note	.	.	.	.
+4	item	q5_voted	3	Voted in the 2024 general election	.	.	1200	1133	28	39	94.4	.	gated	1	q1_consent==0	.	byte	note	.	.	.	.
+5	item	q6_whovote	4	Vote choice for president in 2024	.	.	1200	578	22	600	48.2	.	gated	0	q5_voted==0	.	byte	note	.	.	.	.
+6	item	q7_whynot	5	Main reason for not voting	.	.	1200	507	26	667	42.2	.	gated	0	q5_voted==1	.	byte	note	.	.	.	.
+7	item	q10_dem_prim	6	Plans to vote in the Democratic primary	.	.	1200	591	22	587	49.2	.	gated	0	q1_consent==0; q3_party==2 4	.	byte	note	.	.	.	.
+8	item	q11_rep_prim	7	Plans to vote in the Republican primary	.	.	1200	566	15	619	47.2	.	gated	0	q3_party==1 4	.	byte	note	.	.	.	.
+9	cat	q3_party	2	Democrat	1	q3_party	384	.	.	.	32.0	.	.	.	.	.	.	note	.	.	.	.
+10	cat	q3_party	2	Republican	2	q3_party	352	.	.	.	29.3	.	.	.	.	.	.	note	.	.	.	.
+11	cat	q3_party	2	Independent	3	q3_party	229	.	.	.	19.1	.	.	.	.	.	.	note	.	.	.	.
+12	cat	q3_party	2	Something else	4	q3_party	109	.	.	.	9.1	.	.	.	.	.	.	note	.	.	.	.
+13	cat	q3_party	2	no answer	noanswer	q3_party	126	.	.	.	10.5	.	.	.	.	.	.	note	.	.	.	.
+14	cell	q10_dem_prim	6	.	1	q3_party	384	375	9	0	.	97.7	answered	.	.	.	.	note	.	.	.	.
+15	cell	q10_dem_prim	6	.	2	q3_party	352	0	0	352	.	0.0	skipped	.	.	.	.	note	.	.	.	.
+16	cell	q10_dem_prim	6	.	3	q3_party	229	216	13	0	.	94.3	answered	.	.	.	.	note	.	.	.	.
+17	cell	q10_dem_prim	6	.	4	q3_party	109	0	0	109	.	0.0	skipped	.	.	.	.	note	.	.	.	.
+18	cell	q10_dem_prim	6	.	noanswer	q3_party	126	0	0	126	.	0.0	skipped	.	.	.	.	note	.	.	.	.
+19	cell	q11_rep_prim	7	.	1	q3_party	384	0	0	384	.	0.0	skipped	.	.	.	.	note	.	.	.	.
+20	cell	q11_rep_prim	7	.	2	q3_party	352	342	10	0	.	97.2	answered	.	.	.	.	note	.	.	.	.
+21	cell	q11_rep_prim	7	.	3	q3_party	229	224	5	0	.	97.8	answered	.	.	.	.	note	.	.	.	.
+22	cell	q11_rep_prim	7	.	4	q3_party	109	0	0	109	.	0.0	skipped	.	.	.	.	note	.	.	.	.
+23	cell	q11_rep_prim	7	.	noanswer	q3_party	126	0	0	126	.	0.0	skipped	.	.	.	.	note	.	.	.	.
+24	cat	q5_voted	3	No	0	q5_voted	533	.	.	.	44.4	.	.	.	.	.	.	note	.	.	.	.
+25	cat	q5_voted	3	Yes	1	q5_voted	600	.	.	.	50.0	.	.	.	.	.	.	note	.	.	.	.
+26	cat	q5_voted	3	no answer	noanswer	q5_voted	67	.	.	.	5.6	.	.	.	.	.	.	note	.	.	.	.
+27	cell	q6_whovote	4	.	0	q5_voted	533	0	0	533	.	0.0	skipped	.	.	.	.	note	.	.	.	.
+28	cell	q6_whovote	4	.	1	q5_voted	600	578	22	0	.	96.3	answered	.	.	.	.	note	.	.	.	.
+29	cell	q6_whovote	4	.	noanswer	q5_voted	67	0	0	67	.	0.0	skipped	.	.	.	.	note	.	.	.	.
+30	cell	q7_whynot	5	.	0	q5_voted	533	507	26	0	.	95.1	answered	.	.	.	.	note	.	.	.	.
+31	cell	q7_whynot	5	.	1	q5_voted	600	0	0	600	.	0.0	skipped	.	.	.	.	note	.	.	.	.
+32	cell	q7_whynot	5	.	noanswer	q5_voted	67	0	0	67	.	0.0	skipped	.	.	.	.	note	.	.	.	.
