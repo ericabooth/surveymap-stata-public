@@ -1,4 +1,4 @@
-*! version 0.7.0  27aug2026  Eric Booth
+*! version 0.8.0  28aug2026  Eric Booth
 *! _sm_renderflow -- draw a paths journal (pnode/pflow/ppath rows) as a
 *! self-contained HTML page: one column per item, one block per common
 *! answer, ribbons between consecutive columns sized by the people who gave
@@ -82,6 +82,14 @@ program define _sm_renderflow, sclass
         di as err "surveymap paths: `using' has no item rows to draw"
         di as err "    write the journal with  surveymap paths varlist, out(...)"
         exit 459
+    }
+    local NSEQ ""
+    if ustrregexm(`"`sflags'"', "([0-9]+) distinct full sequences") {
+        local NSEQ = ustrregexs(1)
+    }
+    local NUNI ""
+    if ustrregexm(`"`sflags'"', "([0-9]+) interviews on unique routes") {
+        local NUNI = ustrregexs(1)
     }
     local scopetxt ""
     local p = strpos(`"`sflags'"', "; scope: ")
@@ -359,7 +367,12 @@ program define _sm_renderflow, sclass
     if "`hlmode'" == "paths" {
         local hlw "the `hln' most common complete paths, together"
         if `hln' == 1 local hlw "the most common complete path,"
-        file write `h' `"<p class="sm-cap"><b>highlighted:</b> `hlw' `=strtrim("`hlpct'")'% of respondents; every other ribbon is faded, and the picked paths print bold in the table below</p>"' _n
+        local hlnote ""
+        if real(strtrim("`hlpct'")) < 5 {
+            local hlnote " That is a small slice of the sample, so the fade mutes most of the braid; highlight(var = value) picks out one answer block instead."
+            di as txt "note: the highlighted paths cover only " as res strtrim("`hlpct'") "%" as txt " of the sample; consider highlight(var = value)"
+        }
+        file write `h' `"<p class="sm-cap"><b>highlighted:</b> `hlw' `=strtrim("`hlpct'")'% of respondents; every other ribbon is faded, and the picked paths print bold in the table below.`hlnote'</p>"' _n
     }
     if "`hlmode'" == "block" {
         _srf_map `"`dk_`t0'_`s0''"'
@@ -474,6 +487,57 @@ program define _sm_renderflow, sclass
     file write `h' `"</svg>"' _n
     file write `h' `"</div>"' _n
 
+    * ---- the largest flows, visible: hover is never the only way ---------
+    local nfl = 0
+    forvalues t = 1/`=`K'-1' {
+        forvalues a = 1/`KM' {
+            forvalues b = 1/`KM' {
+                if `"`fn_`t'_`a'_`b''"' == "" continue
+                local ++nfl
+                local fl`nfl' "`fn_`t'_`a'_`b'' `t' `a' `b'"
+            }
+        }
+    }
+    local nshow = min(8, `nfl')
+    if `nshow' > 0 {
+        file write `h' `"<p class="sm-read"><b>The largest flows</b>, each counting the people who gave one pair of answers on two neighboring items:</p>"' _n
+        file write `h' `"<table class="sm-ptbl"><tr><th>share</th><th>people</th><th>flow</th></tr>"' _n
+        forvalues r = 1/`nshow' {
+            local best = 0
+            local bi = 0
+            forvalues i = 1/`nfl' {
+                if "`fl`i''" == "" continue
+                gettoken bn rest : fl`i'
+                if `bn' > `best' {
+                    local best = `bn'
+                    local bi = `i'
+                }
+            }
+            if !`bi' continue
+            gettoken bn rest : fl`bi'
+            gettoken bt rest : rest
+            gettoken ba rest : rest
+            gettoken bb rest : rest
+            local fl`bi' ""
+            local bu = `bt' + 1
+            _srf_n "`bn'"
+            local nf "`s(o)'"
+            local pc = strtrim(`"`fp_`bt'_`ba'_`bb''"')
+            _srf_mell 22 `"`dk_`bt'_`ba''"'
+            _srf_map `"`s(o)'"'
+            local la "`s(o)'"
+            _srf_mell 22 `"`dk_`bu'_`bb''"'
+            _srf_map `"`s(o)'"'
+            local lb "`s(o)'"
+            _srf_map `"`v_`bt''"'
+            local va "`s(o)'"
+            _srf_map `"`v_`bu''"'
+            local vb "`s(o)'"
+            file write `h' `"<tr><td class="n">`pc'%</td><td class="n">`nf'</td><td>`va' `la' &#8594; `vb' `lb'</td></tr>"' _n
+        }
+        file write `h' "</table>" _n
+    }
+
     * ---- the most common full sequences ----------------------------------
     if "`NPATH'" != "" {
         local order ""
@@ -482,7 +546,17 @@ program define _sm_renderflow, sclass
             if `t' == 1 local order "`s(o)'"
             else        local order "`order' &#8594; `s(o)'"
         }
-        file write `h' `"<p class="sm-read"><b>The most common full paths</b>, reading `order':</p>"' _n
+        * the claim needs the singleton-interview count the writer journals,
+        * not the distinct-route count: with N interviews on N/2 routes of
+        * two people each, every route is shared and the sentence would lie
+        local fragtxt ""
+        if "`NUNI'" != "" {
+            if `NUNI' >= 0.5 * `N' {
+                _srf_n "`NUNI'"
+                local fragtxt " `s(o)' of the `Nfmt' interviews follow a unique route, so no single complete route is common; the ribbons above show the structure."
+            }
+        }
+        file write `h' `"<p class="sm-read"><b>The most common full paths</b>, reading `order'.`fragtxt'</p>"' _n
         file write `h' `"<table class="sm-ptbl"><tr><th>share</th><th>people</th><th>path</th></tr>"' _n
         forvalues r = 1/`NPATH' {
             if `"`sq_`r''"' == "" continue
