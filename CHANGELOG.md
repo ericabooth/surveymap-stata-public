@@ -2,6 +2,34 @@
 
 All notable changes to surveymap. Dates are the day the work landed locally.
 
+## 0.7.0 - 2026-08-27
+
+### Added
+
+- **`highlight()` on the response braid**, so a page can lead the reader
+  to its key paths. `highlight(paths 3)` keeps the three most common
+  complete paths in full colour with a stroke, prints them bold in the
+  table, and states their combined share in the caption; every other
+  ribbon fades to pale grey, while the blocks keep their colour so the
+  columns stay readable. `highlight(var = value)` keeps the ribbons into
+  and out of one answer block, with `other` and `noanswer` naming the two
+  grey blocks. Works on `surveymap paths` and on `surveymap draw` over a
+  paths journal, so one journal redraws under different highlights with
+  no rescan; on a scan journal, `highlight()` is refused with a message.
+- A worked, click-to-run example set in the help file on `nlsw88`, the
+  practice data Stata ships, with the numbers on the page quoted in the
+  text (2,246 women; Married 64.2%; the top path Married, Not college
+  grad, Nonunion at 32.9%). The README gains the same runnable example
+  and two screenshots: the braid, and the braid with its two most common
+  paths highlighted.
+
+### Testing
+
+- 373 checks, passing on Stata 16.1 and 19.5. The new checks cover both
+  highlight forms, the exact count of bold table rows and stroked blocks,
+  the faded-ribbon colour, redraw-with-highlight, and four refusals
+  (unknown item, undrawn value, unreadable spec, scan journal).
+
 ## 0.6.0 - 2026-08-27
 
 ### Added

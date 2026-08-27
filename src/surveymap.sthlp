@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 0.6.0  27aug2026  Eric Booth}{...}
+{* *! version 0.7.0  27aug2026  Eric Booth}{...}
 {vieweralsosee "datadictionary" "help datadictionary"}{...}
 {vieweralsosee "mergemap" "help mergemap"}{...}
 {vieweralsosee "tabulate" "help tabulate"}{...}
@@ -82,7 +82,7 @@ opens in any browser with no internet connection.{p_end}
 {p 8 17 2}
 {cmd:surveymap paths} {varlist} {ifin} {weight} [{cmd:,} {opt top(#)}
 {opt out(filename)} {opt sav:ing(filename)} {opt titl:e(text)}
-{opt nodr:aw} {opt noop:en} {opt replace}]
+{opt high:light(spec)} {opt nodr:aw} {opt noop:en} {opt replace}]
 
 {p 8 17 2}
 {cmd:surveymap draw} [{it:journalfile}] [{cmd:,} {opt exp:ort(html|mermaid|png|svg)}
@@ -225,7 +225,8 @@ survey's own item and gate names.{p_end}
 {pstd}
 {cmd:surveymap paths} {varlist} {ifin} [{cmd:[pweight=}{it:w}{cmd:]}]
 [{cmd:,} {opt top(#)} {opt out(filename)} {opt sav:ing(filename)}
-{opt titl:e(text)} {opt nodr:aw} {opt noop:en} {opt replace}]{p_end}
+{opt titl:e(text)} {opt high:light(spec)} {opt nodr:aw} {opt noop:en}
+{opt replace}]{p_end}
 
 {pstd}
 Give two to twelve numeric items in the order the questionnaire asks them.
@@ -244,6 +245,18 @@ map the banded variable. String items are refused: {cmd:encode} them first.
 With a {cmd:pweight}, weighted counts are journaled alongside; the drawing
 reports unweighted counts, because a route through a questionnaire is a
 property of the fieldwork rather than of the population.{p_end}
+
+{pstd}
+{opt highlight(spec)} picks out the flows you want a reader to see first
+and fades every other ribbon; the blocks keep their colour so the columns
+stay readable. Two forms. {cmd:highlight(paths 3)} keeps the three most
+common complete paths, prints them bold in the table, and states their
+combined share in the caption; give any whole number from 1 to 10.
+{cmd:highlight(}{it:var}{cmd: = }{it:value}{cmd:)} keeps the ribbons into
+and out of one answer block, named by its value; {cmd:other} and
+{cmd:noanswer} name the two grey blocks. The option also works on
+{cmd:surveymap draw} over a paths journal, so you can redraw the same
+journal with different highlights without rescanning.{p_end}
 
 {pstd}
 Stored results: {cmd:r(N)} respondents in scope, {cmd:r(K_items)} items,
@@ -1025,6 +1038,50 @@ the receipt, and offers the drawing commands as clickable links. Name a folder
 as {it:foldername} or in {opt folder()} to put it somewhere else, and add
 {opt replace} to reuse a folder you have already written to. It leaves the data
 in memory alone.{p_end}
+
+{pstd}{bf:A worked response braid, on data Stata ships}{p_end}
+
+{pstd}
+The lines below run as typed on the {cmd:nlsw88} practice data, so you can
+follow along by clicking them. Load the data and draw three items as a
+braid, keeping each item's two most common answers:{p_end}
+
+{phang2}{stata "sysuse nlsw88, clear":. sysuse nlsw88, clear}{p_end}
+{phang2}{stata `"surveymap paths married collgrad union, top(2) out(flows.tsv) saving(flows.html) replace"':. surveymap paths married collgrad union, top(2) out(flows.tsv) saving(flows.html) replace}{p_end}
+
+{pstd}
+The page opens with three columns, one per item, each stacking all 2,246
+women. Reading the first column: {bf:Married} at 64.2%, {bf:Single} at
+35.8%. Follow any ribbon rightward to see where each group goes on
+{cmd:collgrad}, and on to {cmd:union}, where a light grey block appears:
+368 women have no union answer recorded, and the ribbons show which earlier
+answers they came from. Under the figure, a table of the most common
+complete paths; the top line reads
+{bf:Married} &#8594; {bf:Not college grad} &#8594; {bf:Nonunion}, 740 women
+and 32.9% of the sample.{p_end}
+
+{pstd}{bf:Pick out the key paths}{p_end}
+{phang2}{stata `"surveymap paths married collgrad union, top(2) highlight(paths 2) out(flows.tsv) saving(flows.html) replace"':. surveymap paths married collgrad union, top(2) highlight(paths 2) ...}{p_end}
+{phang2}{stata `"surveymap paths married collgrad union, top(2) highlight(union = 1) out(flows.tsv) saving(flows.html) replace"':. surveymap paths married collgrad union, top(2) highlight(union = 1) ...}{p_end}
+
+{pstd}
+The first line keeps the two most common complete paths in full colour and
+fades every other ribbon; the picked paths print bold in the table, and the
+caption states their combined share. The second keeps only the ribbons into
+and out of the {cmd:union} members block, so you read at a glance who the
+members are and where they go next. {cmd:highlight(union = other)} and
+{cmd:highlight(union = noanswer)} pick the two grey blocks the same
+way.{p_end}
+
+{pstd}{bf:One subgroup's braid, and a redraw without rescanning}{p_end}
+{phang2}{stata `"surveymap paths collgrad union if south == 1, top(2) out(flows_s.tsv) saving(flows_s.html) replace"':. surveymap paths collgrad union if south == 1, ...}{p_end}
+{phang2}{stata `"surveymap draw flows.tsv, saving(flows2.html) highlight(paths 1) replace"':. surveymap draw flows.tsv, saving(flows2.html) highlight(paths 1) replace}{p_end}
+
+{pstd}
+The scoped page opens with {bf:scope: only respondents where south == 1}
+and every count on it describes the 942 women it selects. The second line
+redraws an existing paths journal with a different highlight, no rescan
+needed.{p_end}
 
 {pstd}{bf:Map the survey in memory}{p_end}
 {phang2}{cmd:. surveymap}{p_end}

@@ -1,4 +1,4 @@
-*! version 0.6.0  27aug2026  Eric Booth
+*! version 0.7.0  27aug2026  Eric Booth
 *! _sm_draw -- dispatcher behind -surveymap draw-.  Resolves which journal to
 *! draw, picks the renderer from export(), applies the read-time prune rules,
 *! and handles the open-in-browser courtesy for HTML output.
@@ -17,7 +17,8 @@ program define _sm_draw, rclass
     version 16
     syntax [anything(name=jspec)] [, EXPort(string) SAVing(string)          ///
         LAYout(string) PRUNE(real -1) MINN(integer -1) MAXCats(integer -1)  ///
-        NOPRUNE NAME(string) NOOPen EMBed MAXnodes(integer -1) replace]
+        NOPRUNE NAME(string) HIGHlight(string) NOOPen EMBed                 ///
+        MAXnodes(integer -1) replace]
 
     * ---- which journal --------------------------------------------------
     gettoken w1 rest : jspec
@@ -94,6 +95,7 @@ program define _sm_draw, rclass
         if strlower(substr(`"`hf'"', -5, .)) != ".html" local hf `"`hf'.html"'
         local no ""
         if `"`name'"' != "" local no `"name(`name')"'
+        if `"`highlight'"' != "" local no `"`no' highlight(`highlight')"'
         _sm_renderflow using `"`jfile'"', saving(`"`hf'"') `no' `embed' `replace'
         return local journal `"`jfile'"'
         return local output `"`s(out)'"'
@@ -107,6 +109,13 @@ program define _sm_draw, rclass
             capture _sm_open
         }
         exit
+    }
+
+    if `"`highlight'"' != "" {
+        di as err "surveymap draw: highlight() picks out flows on a paths map"
+        di as err "    this journal is a scan journal, which draws no ribbons;"
+        di as err "    write one with  surveymap paths varlist, out(...)"
+        exit 198
     }
 
     * ---- prune the journal before any renderer sees it ------------------
