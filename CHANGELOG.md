@@ -2,7 +2,45 @@
 
 All notable changes to surveymap. Dates are the day the work landed locally.
 
-## 0.4.6 (2026-08-24)
+## 0.5.0 - 2026-08-27
+
+### Added
+
+- **Three declared ways to start a map**, so a survey without much routing no
+  longer draws as a featureless chain. (1) `responses(k)` adds each item's k
+  most common answers to its box, drawn as share bars with the remainder
+  pooled into `other answers` and the declined share on its own row; the
+  denominator is the people the item was put to, so the rows in a box add to
+  100. (2) An `if`/`in` restriction traces one subgroup through the whole
+  questionnaire, and the map now says so: the journal records the expression
+  and the page opens with `scope: only respondents where ...`. (3) The
+  `profile()` conditions from 0.4 cover the outlier paths: heavy decliners,
+  refusals, don't-knows, and where people stopped.
+- **Every HTML map now carries its own reading guide**: a `How to read this
+  map, step by step` section generated with the survey's own item and gate
+  names, walking from the first box through splits, lanes, the rejoin dot,
+  and the `!!`/`!?` marks.
+- New journal class `resp` (see JOURNAL_SCHEMA.md). All values journaled with
+  a pooled marker up to 30 distinct values; an item past the cap gets a note
+  advising `branch(var = cut(...))` instead. String items are skipped.
+- Mermaid nodes carry the same response lines, and the accessibility
+  description states the scope and the response-share rule.
+
+### Fixed
+
+- The `!?` disagreement line now counts toward box height, so a box with a
+  verify mark cannot overflow its frame.
+- The geometry checker treats a bar drawn inside its own box as containment
+  rather than a collision.
+
+### Testing
+
+- 331 checks, passing on Stata 16.1 and 19.5. The new block verifies the
+  response rows partition the answered count exactly, the 30-value cap, the
+  string-item skip, the scope round-trip to the page, and that a scan
+  without `responses()` is unchanged byte-for-byte in behaviour.
+
+## 0.4.6 - 2026-08-24
 
 The item wording is now drawn inside the boxes, not only in the hover. Lane
 cells (the fanned follow-up items a gate routes people through) previously

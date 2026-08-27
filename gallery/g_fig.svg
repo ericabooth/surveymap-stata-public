@@ -337,41 +337,41 @@
 	<line x1="6938.96" y1="1080.00" x2="6918.24" y2="1068.59" stroke-linecap="round" style="stroke:#404040;stroke-width:4.32"/>
 	<line x1="8214.29" y1="1080.00" x2="8193.57" y2="1091.41" stroke-linecap="round" style="stroke:#404040;stroke-width:4.32"/>
 	<line x1="8214.29" y1="1080.00" x2="8193.57" y2="1068.59" stroke-linecap="round" style="stroke:#404040;stroke-width:4.32"/>
-	<text x="424.21" y="1030.04" style="font-family:'Helvetica';font-weight:bold;font-size:36.33px;fill:#000000" text-anchor="middle">q1_consent</text>
+	<text x="678.19" y="1030.04" style="font-family:'Helvetica';font-weight:bold;font-size:36.33px;fill:#000000" text-anchor="middle">q1_consent · Consented to~e interviewed</text>
 	<text x="441.32" y="1153.97" style="font-family:'Helvetica';font-size:31.82px;fill:#404040" text-anchor="middle">1,200 (100.0%)</text>
 	<text x="1705.84" y="213.33" style="font-family:'Helvetica';font-weight:bold;font-size:34.53px;fill:#404040" text-anchor="middle">split by q1_consent</text>
 	<text x="1640.40" y="348.08" style="font-family:'Helvetica';font-size:30.92px;fill:#505050" text-anchor="middle">Yes · 1,161</text>
-	<text x="1676.42" y="548.74" style="font-family:'Helvetica';font-weight:bold;font-size:36.33px;fill:#000000" text-anchor="middle">q3_party</text>
+	<text x="1852.95" y="548.74" style="font-family:'Helvetica';font-weight:bold;font-size:36.33px;fill:#000000" text-anchor="middle">q3_party · Party identification</text>
 	<text x="1707.64" y="672.67" style="font-family:'Helvetica';font-size:31.82px;fill:#404040" text-anchor="middle">1,074 (92.5%)</text>
-	<text x="2955.65" y="548.74" style="font-family:'Helvetica';font-weight:bold;font-size:36.33px;fill:#000000" text-anchor="middle">q5_voted</text>
+	<text x="3190.12" y="548.74" style="font-family:'Helvetica';font-weight:bold;font-size:36.33px;fill:#000000" text-anchor="middle">q5_voted · Voted in the~eral election</text>
 	<text x="2983.27" y="672.67" style="font-family:'Helvetica';font-size:31.82px;fill:#404040" text-anchor="middle">1,133 (97.6%)</text>
 	<text x="1689.63" y="829.38" style="font-family:'Helvetica';font-size:30.92px;fill:#505050" text-anchor="middle">other (pooled) · 39</text>
-	<text x="1676.42" y="1030.04" style="font-family:'Helvetica';font-size:36.33px;fill:#808080" text-anchor="middle">q3_party</text>
+	<text x="1852.95" y="1030.04" style="font-family:'Helvetica';font-size:36.33px;fill:#808080" text-anchor="middle">q3_party · Party identification</text>
 	<text x="1782.10" y="1153.97" style="font-family:'Helvetica';font-size:31.82px;fill:#808080" text-anchor="middle">skipped · routed around</text>
-	<text x="2955.65" y="1030.04" style="font-family:'Helvetica';font-size:36.33px;fill:#808080" text-anchor="middle">q5_voted</text>
+	<text x="3190.12" y="1030.04" style="font-family:'Helvetica';font-size:36.33px;fill:#808080" text-anchor="middle">q5_voted · Voted in the~eral election</text>
 	<text x="3057.73" y="1153.97" style="font-family:'Helvetica';font-size:31.82px;fill:#808080" text-anchor="middle">skipped · routed around</text>
 	<text x="4400.01" y="213.33" style="font-family:'Helvetica';font-weight:bold;font-size:34.53px;fill:#404040" text-anchor="middle">split by q5_voted</text>
 	<text x="4332.46" y="348.08" style="font-family:'Helvetica';font-size:30.92px;fill:#505050" text-anchor="middle">No · 533</text>
-	<text x="4416.82" y="548.74" style="font-family:'Helvetica';font-size:36.33px;fill:#808080" text-anchor="middle">q6_whovote</text>
+	<text x="4660.60" y="548.74" style="font-family:'Helvetica';font-size:36.33px;fill:#808080" text-anchor="middle">q6_whovote · Vote choice ~ident in 2024</text>
 	<text x="4495.18" y="672.67" style="font-family:'Helvetica';font-size:31.82px;fill:#808080" text-anchor="middle">skipped · routed around</text>
-	<text x="5682.24" y="548.74" style="font-family:'Helvetica';font-weight:bold;font-size:36.33px;fill:#000000" text-anchor="middle">q7_whynot</text>
+	<text x="5921.21" y="548.74" style="font-family:'Helvetica';font-weight:bold;font-size:36.33px;fill:#000000" text-anchor="middle">q7_whynot · Main reason for not voting</text>
 	<text x="5682.24" y="672.67" style="font-family:'Helvetica';font-size:31.82px;fill:#404040" text-anchor="middle">507 (95.1%)</text>
 	<text x="4339.96" y="829.38" style="font-family:'Helvetica';font-size:30.92px;fill:#505050" text-anchor="middle">Yes · 600</text>
-	<text x="4416.82" y="1030.04" style="font-family:'Helvetica';font-weight:bold;font-size:36.33px;fill:#000000" text-anchor="middle">q6_whovote</text>
+	<text x="4660.60" y="1030.04" style="font-family:'Helvetica';font-weight:bold;font-size:36.33px;fill:#000000" text-anchor="middle">q6_whovote · Vote choice ~ident in 2024</text>
 	<text x="4406.91" y="1153.97" style="font-family:'Helvetica';font-size:31.82px;fill:#404040" text-anchor="middle">578 (96.3%)</text>
-	<text x="5682.24" y="1030.04" style="font-family:'Helvetica';font-size:36.33px;fill:#808080" text-anchor="middle">q7_whynot</text>
+	<text x="5921.21" y="1030.04" style="font-family:'Helvetica';font-size:36.33px;fill:#808080" text-anchor="middle">q7_whynot · Main reason for not voting</text>
 	<text x="5770.50" y="1153.97" style="font-family:'Helvetica';font-size:31.82px;fill:#808080" text-anchor="middle">skipped · routed around</text>
 	<text x="4376.59" y="1310.68" style="font-family:'Helvetica';font-size:30.92px;fill:#505050" text-anchor="middle">no answer · 67</text>
-	<text x="4416.82" y="1511.34" style="font-family:'Helvetica';font-size:36.33px;fill:#808080" text-anchor="middle">q6_whovote</text>
+	<text x="4660.60" y="1511.34" style="font-family:'Helvetica';font-size:36.33px;fill:#808080" text-anchor="middle">q6_whovote · Vote choice ~ident in 2024</text>
 	<text x="4495.18" y="1635.27" style="font-family:'Helvetica';font-size:31.82px;fill:#808080" text-anchor="middle">skipped · routed around</text>
-	<text x="5682.24" y="1511.34" style="font-family:'Helvetica';font-size:36.33px;fill:#808080" text-anchor="middle">q7_whynot</text>
+	<text x="5921.21" y="1511.34" style="font-family:'Helvetica';font-size:36.33px;fill:#808080" text-anchor="middle">q7_whynot · Main reason for not voting</text>
 	<text x="5770.50" y="1635.27" style="font-family:'Helvetica';font-size:31.82px;fill:#808080" text-anchor="middle">skipped · routed around</text>
-	<text x="7127.49" y="1030.04" style="font-family:'Helvetica';font-weight:bold;font-size:36.33px;fill:#000000" text-anchor="middle">q8_approve</text>
+	<text x="7355.06" y="1030.04" style="font-family:'Helvetica';font-weight:bold;font-size:36.33px;fill:#000000" text-anchor="middle">q8_approve · Approval of the governor</text>
 	<text x="7133.50" y="1153.97" style="font-family:'Helvetica';font-size:31.82px;fill:#404040" text-anchor="middle">1,053 (87.8%)</text>
 	<text x="7136.50" y="1195.70" style="font-family:'Helvetica';font-weight:bold;font-size:31.82px;fill:#4A6D8c" text-anchor="middle">!! nonresp 108</text>
-	<text x="8406.13" y="1030.04" style="font-family:'Helvetica';font-weight:bold;font-size:36.33px;fill:#000000" text-anchor="middle">q13_income</text>
+	<text x="8660.71" y="1030.04" style="font-family:'Helvetica';font-weight:bold;font-size:36.33px;fill:#000000" text-anchor="middle">q13_income · Total househ~ome last year</text>
 	<text x="8395.32" y="1153.97" style="font-family:'Helvetica';font-size:31.82px;fill:#404040" text-anchor="middle">941 (78.4%)</text>
 	<text x="8412.13" y="1195.70" style="font-family:'Helvetica';font-weight:bold;font-size:31.82px;fill:#4A6D8c" text-anchor="middle">!! nonresp 220</text>
-	<text x="828.00" y="128.93" style="font-family:'Helvetica';font-size:32.72px;fill:#606060" text-anchor="middle">survey: St11336.000003.tsv  ·  1,200 respondents  ·  7 items  ·  2 gates</text>
-	<text x="538.29" y="2041.31" style="font-family:'Helvetica';font-size:26.12px;fill:#A0A0a0" text-anchor="middle">surveymap · 24 Aug 2026 · Stata 19.5 MP</text>
+	<text x="828.00" y="128.93" style="font-family:'Helvetica';font-size:32.72px;fill:#606060" text-anchor="middle">survey: St28114.000003.tsv  ·  1,200 respondents  ·  7 items  ·  2 gates</text>
+	<text x="538.29" y="2041.31" style="font-family:'Helvetica';font-size:26.12px;fill:#A0A0a0" text-anchor="middle">surveymap · 27 Aug 2026 · Stata 19.5 MP</text>
 </svg>

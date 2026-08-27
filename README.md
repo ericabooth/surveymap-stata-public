@@ -69,6 +69,30 @@ Three kinds of blank are counted separately throughout:
 
 **The arithmetic is checked, not assumed.** Every respondent in scope lands in exactly one of answered, declined or not shown at every item, so those three counts have to add to the sample on every row. The scan checks it and the receipt reports it, because a map whose arithmetic is wrong looks exactly like one whose arithmetic is right. `r(N_unbalanced)` is the number of items that failed, and the journal records the verdict so a reader coming to the file later can see the check was run.
 
+## Three ways to start a map
+
+A survey with little skip logic draws as a single line of boxes, which answers who was asked what and nothing else. Three starting points turn that line into a path a reader can follow, and they combine freely.
+
+**1. The line with its splits.** `responses(3)` adds each item's three most common answers to its box, drawn as share bars, with the rest pooled into *other answers* and the declined share on its own row. The denominator is the people the item was put to (answered plus declined), so the rows inside a box account for everyone who saw the question. Items with more than 30 distinct values are skipped with a note advising `branch(age = cut(...))` instead.
+
+```stata
+surveymap, responses(3)
+```
+
+**2. One subgroup's path.** An `if` restriction traces the respondents it selects through the whole questionnaire, and the page says so: the map opens with `scope: only respondents where ...`.
+
+```stata
+surveymap if inlist(party, 2, 3) & age > 40, responses(3)
+```
+
+**3. The outlier paths.** `profile()` splits the map by what respondents did rather than what they answered; see the section below.
+
+```stata
+surveymap, profile(declined)
+```
+
+Every HTML page now carries **How to read this map, step by step**, generated with the survey's own item and gate names, plus the full record as a table.
+
 ## Pointing it at a real survey file
 
 A delivered survey file is wider than the questionnaire: record ids, sample-frame columns from a voter or panel list, interviewer admin, vendor recodes, verbatim text. Mapping all of it gives you a picture with more columns than structure, and the columns that were never questions can look like branching to the routing detector.
@@ -377,7 +401,7 @@ cd tests
 do surveymap_pkgtest.do
 ```
 
-298 checks across 24 blocks, run on Stata 16.1 and on the current release, covering the fixture's routing truths, the branch parser, banding a continuous gate, the derived conditions and the ones the package refuses to build, the conservation arithmetic, the drawn verify disagreement, the band chart at 230 items, lane partitioning, pruning at scan and at draw time, weights, `exclude()`/`nostrings`, `verify()`, both layouts of all four renderers, the Excel tracker, the fragment's scoping guarantee, and both directions of the `datadictionary` bridge.
+331 checks across 25 blocks, run on Stata 16.1 and on the current release, covering the fixture's routing truths, the branch parser, banding a continuous gate, the derived conditions and the ones the package refuses to build, the conservation arithmetic, the drawn verify disagreement, the band chart at 230 items, the response rows and their exact partition of the answered count, the scope round-trip to the page, lane partitioning, pruning at scan and at draw time, weights, `exclude()`/`nostrings`, `verify()`, both layouts of all four renderers, the Excel tracker, the fragment's scoping guarantee, and both directions of the `datadictionary` bridge.
 
 The gallery is a second, coarser test: it rebuilds every example artifact from one fake survey and counts its own failures, because a Stata do-file can abort and still leave the runner reporting success.
 

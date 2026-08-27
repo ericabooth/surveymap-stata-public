@@ -9,7 +9,7 @@ header row and tolerate unknown trailing columns.
 | # | name | meaning |
 |---|---|---|
 | 1 | seq | event number, 1..N |
-| 2 | class | `survey` `item` `cat` `cell` `note` |
+| 2 | class | `survey` `item` `cat` `cell` `resp` `note` |
 | 3 | var | the item (or gate) variable name |
 | 4 | position | 1-based order of the item among the mapped items |
 | 5 | vallabel | item rows: the variable label; cat rows: the value's label text |
@@ -55,6 +55,14 @@ as zero.
 - `cell` (one per gate-category x item within the gate's segment): the lane
   cell. `status`: `skipped` when rate <= the skip threshold, `answered` when
   rate >= 80, else `partial`.
+- `resp` (v0.5.0, only when the scan ran with `responses(k)`): one row per
+  distinct answer of each numeric item, up to a hard cap of 30 distinct
+  values (past the cap the item gets a `note` advising banding instead).
+  `n`/`pct` live in n_asked/pct_answered; the percentage's denominator is
+  the people the item was put to (answered plus declined), so an item's
+  response shares, its pooled remainder and its declined share add to 100.
+  ALL values are journaled and `pooled` marks the ones ranked below the
+  scan's `responses(k)`, mirroring the `cat` convention: the reader folds.
 - `note`: anything worth keeping that is not a row above (auto-detection
   summary, pooling notice past the hard cap, string gates declined).
 

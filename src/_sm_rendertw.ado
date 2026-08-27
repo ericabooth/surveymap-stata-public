@@ -1,4 +1,4 @@
-*! version 0.4.6  24aug2026  Eric Booth
+*! version 0.5.0  27aug2026  Eric Booth
 *! _sm_rendertw : draw a surveymap journal (schema v2) as a native twoway
 *!            boxes-and-arrows figure, for a paper or a slide
 *!
@@ -37,7 +37,7 @@ program define _sm_rendertw
     frame create `J'
     frame `J' {
         quietly import delimited using "`using'", delimiter(tab) ///
-            varnames(1) stringcols(_all) clear
+            varnames(1) stringcols(_all) encoding("utf-8") clear
         capture confirm variable class
         local badc = _rc
         capture confirm variable gatevar

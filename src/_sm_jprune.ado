@@ -1,4 +1,4 @@
-*! version 0.4.5  24aug2026  Eric Booth
+*! version 0.5.0  27aug2026  Eric Booth
 *! _sm_jprune -- apply the prune rules to a surveymap journal before a
 *! reader (receipt, HTML map, mermaid, Excel) sees it.
 *!
@@ -35,7 +35,7 @@ program define _sm_jprune, sclass
     capture frame drop _smpr
     frame create _smpr
     frame _smpr {
-        quietly import delimited `"`using'"', delimiter(tab) varnames(1) ///
+        quietly import delimited `"`using'"', delimiter(tab) varnames(1) encoding("utf-8") ///
             stringcols(_all) clear
         capture confirm variable class
         if _rc {
