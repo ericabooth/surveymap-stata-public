@@ -15,6 +15,9 @@ h1 { font-size: 19px; margin: 0 0 2px 0; font-weight: 600; }
 .sm-g-profile .sm-foot { font-family: -apple-system, Segoe UI, Helvetica, Arial, sans-serif; font-size: 10px; color: #999; margin: 10px 0 0 0; line-height: 1.5; }
 .sm-g-profile .sm-alt { font-family: -apple-system, Segoe UI, Helvetica, Arial, sans-serif; font-size: 12px; color: #333; margin: 12px 0 0 0; }
 .sm-g-profile .sm-alts { cursor: pointer; color: #555; padding: 2px 0; }
+.sm-g-profile .sm-read { font-family: -apple-system, Segoe UI, Helvetica, Arial, sans-serif; font-size: 12.5px; color: #333; margin: 6px 0 2px 0; }
+.sm-g-profile .sm-rdl { margin: 6px 0 4px 18px; padding: 0; max-width: 760px; }
+.sm-g-profile .sm-rdl li { margin: 0 0 6px 0; line-height: 1.45; }
 .sm-g-profile .sm-tbl { border-collapse: collapse; margin: 8px 0 0 0; font-size: 12px; }
 .sm-g-profile .sm-tcap { text-align: left; color: #666; padding: 0 0 6px 0; font-size: 11px; }
 .sm-g-profile .sm-tbl th, .sm-g-profile .sm-tbl td { border: 1px solid #ddd; padding: 3px 8px; text-align: right; font-variant-numeric: tabular-nums; }
@@ -27,6 +30,8 @@ h1 { font-size: 19px; margin: 0 0 2px 0; font-weight: 600; }
 .sm-g-profile .sm-bl { font-size: 11px; fill: #333; }
 .sm-g-profile .sm-bn { font-size: 11px; fill: #666; }
 .sm-g-profile .sm-bf { font-size: 11px; font-weight: 700; fill: #4a6d8c; }
+.sm-g-profile .sm-rt { font-size: 10.5px; fill: #222; }
+.sm-g-profile .sm-rt2 { font-size: 10.5px; fill: #777; }
 .sm-g-profile .sm-gt { font-size: 11px; fill: #8a8a8a; }
 .sm-g-profile .sm-ll { font-size: 11px; fill: #333; }
 .sm-g-profile .sm-lh { font-size: 11px; font-weight: 700; fill: #222222; }
@@ -43,6 +48,13 @@ h1 { font-size: 19px; margin: 0 0 2px 0; font-weight: 600; }
 <div class="sm-embed sm-g-profile">
 <div class="sm-cap">survey: g_profile.tsv &#183; 1,200 respondents &#183; 13 items &#183; 1 gate</div>
 <div class="sm-leg"><span class="sm-legk">!!</span> = warning (never colour alone) &#183; <span class="sm-legk">!?</span> = the declared routing and the data disagree &#183; dashed box = skipped, routed around by the gate &#183; lanes partition the sample &#183; hover a node for detail</div>
+<details class="sm-read"><summary class="sm-alts">How to read this map, step by step</summary><ol class="sm-rdl">
+<li>Each solid box is one survey item, in questionnaire order, top to bottom. Start at the top box, <b>sm_declined</b>: 1,200 respondents were in scope there, and the count line inside each box says how many answered it and what share of the scope that is.</li>
+<li>Follow the arrow out of a box to the next item the survey asked.</li>
+<li>Where a heading says <b>split by sm_declined</b>, the sample fans into lanes, one per answer to sm_declined, each headed by the answer and the number of people in that lane. Inside a lane, a solid box is an item that lane was asked and a dashed grey box is an item the skip logic routed that lane around.</li>
+<li>The lanes rejoin the spine at a small dot, and the single path continues. Lane counts add back to the sample: nobody is lost and nobody is counted twice.</li>
+<li><span class="sm-legk">!!</span> flags an item that many people declined to answer; <span class="sm-legk">!?</span> flags an item where the declared skip logic and the data disagree. Hover any box for its full record, and the table at the bottom of the page repeats every number as text.</li>
+</ol></details>
 <div class="sm-wrap">
 <svg xmlns="http://www.w3.org/2000/svg" class="sm-svg" role="img" focusable="false" aria-labelledby="sm-g-profile-ti sm-g-profile-de" viewBox="0 0 422 2148" width="422" height="2148">
 <title id="sm-g-profile-ti">surveymap flow map for g_profile.tsv</title>
@@ -88,136 +100,148 @@ Consented to be interviewed
 in lane 660 &#183; answered 660 (100.0%)
 status: answered
 </title>
-<rect x="24" y="216" width="176" height="54" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
-<text x="32" y="233" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q1_consent</text>
-<text x="32" y="247" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">660 (100.0%)</text>
+<rect x="24" y="216" width="176" height="68" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
+<text x="32" y="231" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q1_consent</text>
+<text x="32" y="244" class="sm-t sm-bl" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#333">Consented t&#8230;interviewed</text>
+<text x="32" y="258" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">660 (100.0%)</text>
 </g>
-<line x1="112" y1="270" x2="112" y2="378" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
+<line x1="112" y1="284" x2="112" y2="378" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
 <g class="sm-node">
 <title>q3_party &#183; lane sm_declined == 1
 Party identification
 in lane 660 &#183; answered 621 (94.1%)
 status: answered
 </title>
-<rect x="24" y="380" width="176" height="54" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
-<text x="32" y="397" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q3_party</text>
-<text x="32" y="411" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">621 (94.1%)</text>
+<rect x="24" y="380" width="176" height="68" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
+<text x="32" y="395" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q3_party</text>
+<text x="32" y="408" class="sm-t sm-bl" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#333">Party identification</text>
+<text x="32" y="422" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">621 (94.1%)</text>
 </g>
-<line x1="112" y1="434" x2="112" y2="542" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
+<line x1="112" y1="448" x2="112" y2="542" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
 <g class="sm-node">
 <title>q4_reg &#183; lane sm_declined == 1
 Registered to vote at this address
 in lane 660 &#183; answered 621 (94.1%)
 status: answered
 </title>
-<rect x="24" y="544" width="176" height="54" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
-<text x="32" y="561" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q4_reg</text>
-<text x="32" y="575" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">621 (94.1%)</text>
+<rect x="24" y="544" width="176" height="68" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
+<text x="32" y="559" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q4_reg</text>
+<text x="32" y="572" class="sm-t sm-bl" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#333">Registered &#8230;his address</text>
+<text x="32" y="586" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">621 (94.1%)</text>
 </g>
-<line x1="112" y1="598" x2="112" y2="706" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
+<line x1="112" y1="612" x2="112" y2="706" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
 <g class="sm-node">
 <title>q5_voted &#183; lane sm_declined == 1
 Voted in the 2024 general election
 in lane 660 &#183; answered 621 (94.1%)
 status: answered
 </title>
-<rect x="24" y="708" width="176" height="54" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
-<text x="32" y="725" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q5_voted</text>
-<text x="32" y="739" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">621 (94.1%)</text>
+<rect x="24" y="708" width="176" height="68" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
+<text x="32" y="723" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q5_voted</text>
+<text x="32" y="736" class="sm-t sm-bl" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#333">Voted in th&#8230;al election</text>
+<text x="32" y="750" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">621 (94.1%)</text>
 </g>
-<line x1="112" y1="762" x2="112" y2="870" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
+<line x1="112" y1="776" x2="112" y2="870" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
 <g class="sm-node">
 <title>q6_whovote &#183; lane sm_declined == 1
 Vote choice for president in 2024
 in lane 660 &#183; answered 345 (52.3%)
 status: partial
 </title>
-<rect x="24" y="872" width="176" height="54" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
-<text x="32" y="889" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q6_whovote</text>
-<text x="32" y="903" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">345 answered</text>
-<text x="32" y="917" class="sm-t sm-bf" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="bold" fill="#4a6d8c">!! partial 52.3%</text>
+<rect x="24" y="872" width="176" height="68" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
+<text x="32" y="887" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q6_whovote</text>
+<text x="32" y="900" class="sm-t sm-bl" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#333">Vote choice&#8230;ent in 2024</text>
+<text x="32" y="914" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">345 answered</text>
+<text x="32" y="928" class="sm-t sm-bf" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="bold" fill="#4a6d8c">!! partial 52.3%</text>
 </g>
-<line x1="112" y1="926" x2="112" y2="1034" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
+<line x1="112" y1="940" x2="112" y2="1034" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
 <g class="sm-node">
 <title>q7_whynot &#183; lane sm_declined == 1
 Main reason for not voting
 in lane 660 &#183; answered 276 (41.8%)
 status: partial
 </title>
-<rect x="24" y="1036" width="176" height="54" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
-<text x="32" y="1053" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q7_whynot</text>
-<text x="32" y="1067" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">276 answered</text>
-<text x="32" y="1081" class="sm-t sm-bf" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="bold" fill="#4a6d8c">!! partial 41.8%</text>
+<rect x="24" y="1036" width="176" height="68" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
+<text x="32" y="1051" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q7_whynot</text>
+<text x="32" y="1064" class="sm-t sm-bl" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#333">Main reason&#8230; not voting</text>
+<text x="32" y="1078" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">276 answered</text>
+<text x="32" y="1092" class="sm-t sm-bf" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="bold" fill="#4a6d8c">!! partial 41.8%</text>
 </g>
-<line x1="112" y1="1090" x2="112" y2="1198" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
+<line x1="112" y1="1104" x2="112" y2="1198" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
 <g class="sm-node">
 <title>q8_approve &#183; lane sm_declined == 1
 Approval of the governor
 in lane 660 &#183; answered 621 (94.1%)
 status: answered
 </title>
-<rect x="24" y="1200" width="176" height="54" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
-<text x="32" y="1217" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q8_approve</text>
-<text x="32" y="1231" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">621 (94.1%)</text>
+<rect x="24" y="1200" width="176" height="68" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
+<text x="32" y="1215" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q8_approve</text>
+<text x="32" y="1228" class="sm-t sm-bl" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#333">Approval of&#8230;he governor</text>
+<text x="32" y="1242" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">621 (94.1%)</text>
 </g>
-<line x1="112" y1="1254" x2="112" y2="1362" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
+<line x1="112" y1="1268" x2="112" y2="1362" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
 <g class="sm-node">
 <title>q9_econ &#183; lane sm_declined == 1
 Rating of economic conditions today
 in lane 660 &#183; answered 621 (94.1%)
 status: answered
 </title>
-<rect x="24" y="1364" width="176" height="54" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
-<text x="32" y="1381" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q9_econ</text>
-<text x="32" y="1395" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">621 (94.1%)</text>
+<rect x="24" y="1364" width="176" height="68" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
+<text x="32" y="1379" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q9_econ</text>
+<text x="32" y="1392" class="sm-t sm-bl" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#333">Rating of e&#8230;tions today</text>
+<text x="32" y="1406" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">621 (94.1%)</text>
 </g>
-<line x1="112" y1="1418" x2="112" y2="1526" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
+<line x1="112" y1="1432" x2="112" y2="1526" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
 <g class="sm-node">
 <title>q10_dem_prim &#183; lane sm_declined == 1
 Plans to vote in the Democratic primary
 in lane 660 &#183; answered 344 (52.1%)
 status: partial
 </title>
-<rect x="24" y="1528" width="176" height="54" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
-<text x="32" y="1545" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q10_dem_prim</text>
-<text x="32" y="1559" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">344 answered</text>
-<text x="32" y="1573" class="sm-t sm-bf" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="bold" fill="#4a6d8c">!! partial 52.1%</text>
+<rect x="24" y="1528" width="176" height="68" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
+<text x="32" y="1543" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q10_dem_prim</text>
+<text x="32" y="1556" class="sm-t sm-bl" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#333">Plans to vo&#8230;tic primary</text>
+<text x="32" y="1570" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">344 answered</text>
+<text x="32" y="1584" class="sm-t sm-bf" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="bold" fill="#4a6d8c">!! partial 52.1%</text>
 </g>
-<line x1="112" y1="1582" x2="112" y2="1690" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
+<line x1="112" y1="1596" x2="112" y2="1690" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
 <g class="sm-node">
 <title>q11_rep_prim &#183; lane sm_declined == 1
 Plans to vote in the Republican primary
 in lane 660 &#183; answered 347 (52.6%)
 status: partial
 </title>
-<rect x="24" y="1692" width="176" height="54" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
-<text x="32" y="1709" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q11_rep_prim</text>
-<text x="32" y="1723" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">347 answered</text>
-<text x="32" y="1737" class="sm-t sm-bf" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="bold" fill="#4a6d8c">!! partial 52.6%</text>
+<rect x="24" y="1692" width="176" height="68" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
+<text x="32" y="1707" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q11_rep_prim</text>
+<text x="32" y="1720" class="sm-t sm-bl" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#333">Plans to vo&#8230;can primary</text>
+<text x="32" y="1734" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">347 answered</text>
+<text x="32" y="1748" class="sm-t sm-bf" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="bold" fill="#4a6d8c">!! partial 52.6%</text>
 </g>
-<line x1="112" y1="1746" x2="112" y2="1854" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
+<line x1="112" y1="1760" x2="112" y2="1854" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
 <g class="sm-node">
 <title>q12_ideol &#183; lane sm_declined == 1
 Ideological self-placement
 in lane 660 &#183; answered 621 (94.1%)
 status: answered
 </title>
-<rect x="24" y="1856" width="176" height="54" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
-<text x="32" y="1873" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q12_ideol</text>
-<text x="32" y="1887" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">621 (94.1%)</text>
+<rect x="24" y="1856" width="176" height="68" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
+<text x="32" y="1871" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q12_ideol</text>
+<text x="32" y="1884" class="sm-t sm-bl" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#333">Ideological&#8230;f-placement</text>
+<text x="32" y="1898" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">621 (94.1%)</text>
 </g>
-<line x1="112" y1="1910" x2="112" y2="2018" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
+<line x1="112" y1="1924" x2="112" y2="2018" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
 <g class="sm-node">
 <title>q13_income &#183; lane sm_declined == 1
 Total household income last year
 in lane 660 &#183; answered 621 (94.1%)
 status: answered
 </title>
-<rect x="24" y="2020" width="176" height="54" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
-<text x="32" y="2037" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q13_income</text>
-<text x="32" y="2051" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">621 (94.1%)</text>
+<rect x="24" y="2020" width="176" height="68" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
+<text x="32" y="2035" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q13_income</text>
+<text x="32" y="2048" class="sm-t sm-bl" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#333">Total house&#8230;e last year</text>
+<text x="32" y="2062" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">621 (94.1%)</text>
 </g>
-<line x1="112" y1="2074" x2="112" y2="2136" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
+<line x1="112" y1="2088" x2="112" y2="2136" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
 <line x1="112" y1="2136" x2="211" y2="2136" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
 <line x1="310" y1="196" x2="310" y2="214" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
 <g class="sm-node">
@@ -234,137 +258,149 @@ Consented to be interviewed
 in lane 540 &#183; answered 540 (100.0%)
 status: answered
 </title>
-<rect x="222" y="216" width="176" height="54" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
-<text x="230" y="233" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q1_consent</text>
-<text x="230" y="247" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">540 (100.0%)</text>
+<rect x="222" y="216" width="176" height="68" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
+<text x="230" y="231" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q1_consent</text>
+<text x="230" y="244" class="sm-t sm-bl" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#333">Consented t&#8230;interviewed</text>
+<text x="230" y="258" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">540 (100.0%)</text>
 </g>
-<line x1="310" y1="270" x2="310" y2="378" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
+<line x1="310" y1="284" x2="310" y2="378" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
 <g class="sm-node">
 <title>q3_party &#183; lane sm_declined == 2
 Party identification
 in lane 540 &#183; answered 453 (83.9%)
 status: answered
 </title>
-<rect x="222" y="380" width="176" height="54" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
-<text x="230" y="397" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q3_party</text>
-<text x="230" y="411" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">453 (83.9%)</text>
+<rect x="222" y="380" width="176" height="68" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
+<text x="230" y="395" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q3_party</text>
+<text x="230" y="408" class="sm-t sm-bl" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#333">Party identification</text>
+<text x="230" y="422" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">453 (83.9%)</text>
 </g>
-<line x1="310" y1="434" x2="310" y2="542" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
+<line x1="310" y1="448" x2="310" y2="542" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
 <g class="sm-node">
 <title>q4_reg &#183; lane sm_declined == 2
 Registered to vote at this address
 in lane 540 &#183; answered 540 (100.0%)
 status: answered
 </title>
-<rect x="222" y="544" width="176" height="54" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
-<text x="230" y="561" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q4_reg</text>
-<text x="230" y="575" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">540 (100.0%)</text>
+<rect x="222" y="544" width="176" height="68" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
+<text x="230" y="559" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q4_reg</text>
+<text x="230" y="572" class="sm-t sm-bl" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#333">Registered &#8230;his address</text>
+<text x="230" y="586" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">540 (100.0%)</text>
 </g>
-<line x1="310" y1="598" x2="310" y2="706" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
+<line x1="310" y1="612" x2="310" y2="706" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
 <g class="sm-node">
 <title>q5_voted &#183; lane sm_declined == 2
 Voted in the 2024 general election
 in lane 540 &#183; answered 512 (94.8%)
 status: answered
 </title>
-<rect x="222" y="708" width="176" height="54" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
-<text x="230" y="725" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q5_voted</text>
-<text x="230" y="739" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">512 (94.8%)</text>
+<rect x="222" y="708" width="176" height="68" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
+<text x="230" y="723" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q5_voted</text>
+<text x="230" y="736" class="sm-t sm-bl" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#333">Voted in th&#8230;al election</text>
+<text x="230" y="750" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">512 (94.8%)</text>
 </g>
-<line x1="310" y1="762" x2="310" y2="870" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
+<line x1="310" y1="776" x2="310" y2="870" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
 <g class="sm-node">
 <title>q6_whovote &#183; lane sm_declined == 2
 Vote choice for president in 2024
 in lane 540 &#183; answered 233 (43.1%)
 status: partial
 </title>
-<rect x="222" y="872" width="176" height="54" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
-<text x="230" y="889" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q6_whovote</text>
-<text x="230" y="903" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">233 answered</text>
-<text x="230" y="917" class="sm-t sm-bf" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="bold" fill="#4a6d8c">!! partial 43.1%</text>
+<rect x="222" y="872" width="176" height="68" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
+<text x="230" y="887" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q6_whovote</text>
+<text x="230" y="900" class="sm-t sm-bl" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#333">Vote choice&#8230;ent in 2024</text>
+<text x="230" y="914" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">233 answered</text>
+<text x="230" y="928" class="sm-t sm-bf" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="bold" fill="#4a6d8c">!! partial 43.1%</text>
 </g>
-<line x1="310" y1="926" x2="310" y2="1034" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
+<line x1="310" y1="940" x2="310" y2="1034" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
 <g class="sm-node">
 <title>q7_whynot &#183; lane sm_declined == 2
 Main reason for not voting
 in lane 540 &#183; answered 231 (42.8%)
 status: partial
 </title>
-<rect x="222" y="1036" width="176" height="54" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
-<text x="230" y="1053" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q7_whynot</text>
-<text x="230" y="1067" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">231 answered</text>
-<text x="230" y="1081" class="sm-t sm-bf" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="bold" fill="#4a6d8c">!! partial 42.8%</text>
+<rect x="222" y="1036" width="176" height="68" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
+<text x="230" y="1051" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q7_whynot</text>
+<text x="230" y="1064" class="sm-t sm-bl" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#333">Main reason&#8230; not voting</text>
+<text x="230" y="1078" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">231 answered</text>
+<text x="230" y="1092" class="sm-t sm-bf" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="bold" fill="#4a6d8c">!! partial 42.8%</text>
 </g>
-<line x1="310" y1="1090" x2="310" y2="1198" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
+<line x1="310" y1="1104" x2="310" y2="1198" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
 <g class="sm-node">
 <title>q8_approve &#183; lane sm_declined == 2
 Approval of the governor
 in lane 540 &#183; answered 432 (80.0%)
 status: answered
 </title>
-<rect x="222" y="1200" width="176" height="54" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
-<text x="230" y="1217" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q8_approve</text>
-<text x="230" y="1231" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">432 (80.0%)</text>
+<rect x="222" y="1200" width="176" height="68" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
+<text x="230" y="1215" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q8_approve</text>
+<text x="230" y="1228" class="sm-t sm-bl" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#333">Approval of&#8230;he governor</text>
+<text x="230" y="1242" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">432 (80.0%)</text>
 </g>
-<line x1="310" y1="1254" x2="310" y2="1362" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
+<line x1="310" y1="1268" x2="310" y2="1362" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
 <g class="sm-node">
 <title>q9_econ &#183; lane sm_declined == 2
 Rating of economic conditions today
 in lane 540 &#183; answered 467 (86.5%)
 status: answered
 </title>
-<rect x="222" y="1364" width="176" height="54" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
-<text x="230" y="1381" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q9_econ</text>
-<text x="230" y="1395" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">467 (86.5%)</text>
+<rect x="222" y="1364" width="176" height="68" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
+<text x="230" y="1379" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q9_econ</text>
+<text x="230" y="1392" class="sm-t sm-bl" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#333">Rating of e&#8230;tions today</text>
+<text x="230" y="1406" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">467 (86.5%)</text>
 </g>
-<line x1="310" y1="1418" x2="310" y2="1526" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
+<line x1="310" y1="1432" x2="310" y2="1526" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
 <g class="sm-node">
 <title>q10_dem_prim &#183; lane sm_declined == 2
 Plans to vote in the Democratic primary
 in lane 540 &#183; answered 247 (45.7%)
 status: partial
 </title>
-<rect x="222" y="1528" width="176" height="54" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
-<text x="230" y="1545" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q10_dem_prim</text>
-<text x="230" y="1559" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">247 answered</text>
-<text x="230" y="1573" class="sm-t sm-bf" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="bold" fill="#4a6d8c">!! partial 45.7%</text>
+<rect x="222" y="1528" width="176" height="68" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
+<text x="230" y="1543" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q10_dem_prim</text>
+<text x="230" y="1556" class="sm-t sm-bl" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#333">Plans to vo&#8230;tic primary</text>
+<text x="230" y="1570" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">247 answered</text>
+<text x="230" y="1584" class="sm-t sm-bf" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="bold" fill="#4a6d8c">!! partial 45.7%</text>
 </g>
-<line x1="310" y1="1582" x2="310" y2="1690" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
+<line x1="310" y1="1596" x2="310" y2="1690" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
 <g class="sm-node">
 <title>q11_rep_prim &#183; lane sm_declined == 2
 Plans to vote in the Republican primary
 in lane 540 &#183; answered 219 (40.6%)
 status: partial
 </title>
-<rect x="222" y="1692" width="176" height="54" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
-<text x="230" y="1709" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q11_rep_prim</text>
-<text x="230" y="1723" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">219 answered</text>
-<text x="230" y="1737" class="sm-t sm-bf" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="bold" fill="#4a6d8c">!! partial 40.6%</text>
+<rect x="222" y="1692" width="176" height="68" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
+<text x="230" y="1707" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q11_rep_prim</text>
+<text x="230" y="1720" class="sm-t sm-bl" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#333">Plans to vo&#8230;can primary</text>
+<text x="230" y="1734" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">219 answered</text>
+<text x="230" y="1748" class="sm-t sm-bf" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="bold" fill="#4a6d8c">!! partial 40.6%</text>
 </g>
-<line x1="310" y1="1746" x2="310" y2="1854" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
+<line x1="310" y1="1760" x2="310" y2="1854" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
 <g class="sm-node">
 <title>q12_ideol &#183; lane sm_declined == 2
 Ideological self-placement
 in lane 540 &#183; answered 460 (85.2%)
 status: answered
 </title>
-<rect x="222" y="1856" width="176" height="54" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
-<text x="230" y="1873" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q12_ideol</text>
-<text x="230" y="1887" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">460 (85.2%)</text>
+<rect x="222" y="1856" width="176" height="68" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
+<text x="230" y="1871" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q12_ideol</text>
+<text x="230" y="1884" class="sm-t sm-bl" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#333">Ideological&#8230;f-placement</text>
+<text x="230" y="1898" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">460 (85.2%)</text>
 </g>
-<line x1="310" y1="1910" x2="310" y2="2018" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
+<line x1="310" y1="1924" x2="310" y2="2018" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
 <g class="sm-node">
 <title>q13_income &#183; lane sm_declined == 2
 Total household income last year
 in lane 540 &#183; answered 320 (59.3%)
 status: partial
 </title>
-<rect x="222" y="2020" width="176" height="54" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
-<text x="230" y="2037" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q13_income</text>
-<text x="230" y="2051" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">320 answered</text>
-<text x="230" y="2065" class="sm-t sm-bf" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="bold" fill="#4a6d8c">!! partial 59.3%</text>
+<rect x="222" y="2020" width="176" height="68" class="sm-cx" fill="#fcfcfc" stroke="#666" stroke-width="1" />
+<text x="230" y="2035" class="sm-t sm-bh" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12" font-weight="bold" fill="#111">q13_income</text>
+<text x="230" y="2048" class="sm-t sm-bl" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#333">Total house&#8230;e last year</text>
+<text x="230" y="2062" class="sm-t sm-bn" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="normal" fill="#666">320 answered</text>
+<text x="230" y="2076" class="sm-t sm-bf" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="bold" fill="#4a6d8c">!! partial 59.3%</text>
 </g>
-<line x1="310" y1="2074" x2="310" y2="2136" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
+<line x1="310" y1="2088" x2="310" y2="2136" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
 <line x1="310" y1="2136" x2="211" y2="2136" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
 <line x1="211" y1="2136" x2="211" y2="2149" class="sm-sp" stroke="#444444" stroke-width="1.2" fill="none" marker-end="url(#sm-g-profile-aa)" />
 <circle cx="211" cy="2150" r="3.5" class="sm-jp" fill="#444444" />
@@ -391,7 +427,7 @@ status: partial
 <tr class="sm-tr"><td>13</td><th scope="row">q13_income</th><td>941 (78.4%)</td><td>220</td><td>39</td><td>q1_consent==0</td></tr>
 </tbody></table>
 </details>
-<div class="sm-foot">surveymap &#183; journal g_profile.tsv &#183; generated 24 Aug 2026 08:01:14 &#183; Stata 19.5 MP</div>
+<div class="sm-foot">surveymap &#183; journal g_profile.tsv &#183; generated 27 Aug 2026 15:51:37 &#183; Stata 19.5 MP</div>
 </div>
 </body>
 </html>

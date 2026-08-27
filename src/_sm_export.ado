@@ -1,4 +1,4 @@
-*! version 0.4.5  24aug2026  Eric Booth
+*! version 0.5.0  27aug2026  Eric Booth
 *! _sm_export -- the journal as a dataset or an Excel tracker.  Count and
 *! percentage columns arrive numeric; text columns stay text.  The xlsx form
 *! is the point: a three-sheet tracker (items, branch lanes, lane-by-item
@@ -114,7 +114,7 @@ program define _sm_export, rclass
     frame create _smexp
     local bad = 0
     frame _smexp {
-        quietly import delimited `"`src'"', delimiter(tab) varnames(1) ///
+        quietly import delimited `"`src'"', delimiter(tab) varnames(1) encoding("utf-8") ///
             stringcols(_all) clear
         capture confirm variable class
         if _rc local bad = 1

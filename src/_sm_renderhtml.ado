@@ -1,4 +1,4 @@
-*! version 0.4.6  24aug2026  Eric Booth
+*! version 0.5.0  27aug2026  Eric Booth
 *! _sm_renderhtml -- render a surveymap journal (TSV, 20 columns) as HTML
 *! with one inline SVG flow map.
 *!
@@ -81,7 +81,7 @@ program define _sm_renderhtml
     frame create `J'
     frame `J' {
         quietly import delimited using "`using'", delimiter(tab) ///
-            varnames(1) stringcols(_all) clear
+            varnames(1) stringcols(_all) encoding("utf-8") clear
         capture confirm variable class
         local badc = _rc
         capture confirm variable gatevar
@@ -180,6 +180,71 @@ program define _sm_renderhtml
         }
         local vd_`vv' `"`vf'"'
     }
+    * ---- response rows, when the scan was run with responses(k) --------
+    * Per item: the unpooled answers sorted largest first, one pooled
+    * remainder, and the declined share.  Shares are of those shown the item
+    * (answered plus declined), so the rows inside a box add to 100.
+    local HASRESP = 0
+    frame `J' {
+        quietly count if class == "resp"
+        if r(N) > 0 local HASRESP = 1
+    }
+    if `HASRESP' {
+        forvalues p = 1/`K' {
+            local rsN_`p' = 0
+            local rso_`p' = 0
+        }
+        frame `J' {
+            quietly count
+            local NR = r(N)
+            forvalues i = 1/`NR' {
+                if class[`i'] != "resp" continue
+                local p = real(position[`i'])
+                if `p' >= . continue
+                local rn = real(n_asked[`i'])
+                if pooled[`i'] == "1" {
+                    local rso_`p' = `rso_`p'' + `rn'
+                    continue
+                }
+                * insert into this item's list, largest count first
+                local k = `rsN_`p'' + 1
+                local rsN_`p' = `k'
+                local rsn_`p'_`k' = `rn'
+                local rsl_`p'_`k' = vallabel[`i']
+                local rsp_`p'_`k' = pct_answered[`i']
+                local j = `k'
+                while `j' > 1 {
+                    local jm = `j' - 1
+                    if `rsn_`p'_`jm'' >= `rsn_`p'_`j'' continue, break
+                    foreach t in n l p {
+                        local sw `"`rs`t'_`p'_`jm''"'
+                        local rs`t'_`p'_`jm' `"`rs`t'_`p'_`j''"'
+                        local rs`t'_`p'_`j' `"`sw'"'
+                    }
+                    local --j
+                }
+            }
+        }
+    }
+
+    * the scope, when the scan carried an if/in restriction
+    local scopetxt ""
+    frame `J' {
+        quietly levelsof flags if class == "survey", local(svf) clean
+    }
+    local spos = strpos(`"`svf'"', "scope: ")
+    if `spos' {
+        local scopetxt = substr(`"`svf'"', `spos' + 7, .)
+        local send = strpos(`"`scopetxt'"', ";")
+        if `send' local scopetxt = substr(`"`scopetxt'"', 1, `send' - 1)
+        local scopetxt = strtrim(`"`scopetxt'"')
+        * the journal records the expression verbatim, "if" included; the
+        * sentence built from it reads better without the keyword
+        if strlower(substr(`"`scopetxt'"', 1, 3)) == "if " {
+            local scopetxt = strtrim(substr(`"`scopetxt'"', 4, .))
+        }
+    }
+
     if `K' == 0 {
         frame drop `J'
         display as error "`using' has no item rows; nothing to draw"
@@ -323,7 +388,13 @@ program define _sm_renderhtml
         if `rr' < . & `aa' < . & `aa' > 0 {
             if `rr' > 0.05 * `aa' local flag_`p' = 1
         }
-        local maxnl = max(`maxnl', 2 + `nlab_`p'' + `flag_`p'')
+        local xtra_`p' = 0
+        if `HASRESP' {
+            local xtra_`p' = `rsN_`p'' + (`rso_`p'' > 0)
+            if `rr' < . & `rr' > 0 local xtra_`p' = `xtra_`p'' + 1
+        }
+        if `"`vd_`v_`p'''"' != "" local xtra_`p' = `xtra_`p'' + 1
+        local maxnl = max(`maxnl', 2 + `nlab_`p'' + `flag_`p'' + `xtra_`p'')
     }
     local SH = 14 * `maxnl' + 12
     * tallest lane block across gates that own a segment
@@ -555,6 +626,37 @@ program define _sm_renderhtml
         }
         local ty = `ty' + `LH'
         _srh_wtext `B' `=`xl'+8' `ty' bn `"`nnf' (`pa_`p''%)"'
+        if `HASRESP' {
+            local shp = real(`"`nn_`p''"') + real(`"`nr_`p''"')
+            if `shp' < . & `shp' > 0 {
+                forvalues j = 1/`rsN_`p'' {
+                    local ty = `ty' + `LH'
+                    local pc = strtrim(`"`rsp_`p'_`j''"')
+                    local bw2 = round((`BW' - 16) * real("`pc'") / 100)
+                    if `bw2' < 2 local bw2 2
+                    _srh_rect `B' `=`xl'+8' `=`ty'-9' `bw2' 11 rb
+                    _srh_mell 22 `"`rsl_`p'_`j''"'
+                    _srh_wtext `B' `=`xl'+10' `ty' rt `"`pc'% `s(o)'"'
+                }
+                if `rso_`p'' > 0 {
+                    local ty = `ty' + `LH'
+                    local po = string(100 * `rso_`p'' / `shp', "%9.1f")
+                    local bw2 = round((`BW' - 16) * `rso_`p'' / `shp')
+                    if `bw2' < 2 local bw2 2
+                    _srh_rect `B' `=`xl'+8' `=`ty'-9' `bw2' 11 ro
+                    _srh_wtext `B' `=`xl'+10' `ty' rt2 `"`=strtrim("`po'")'% other answers"'
+                }
+                local dcl = real(`"`nr_`p''"')
+                if `dcl' < . & `dcl' > 0 {
+                    local ty = `ty' + `LH'
+                    local pd = string(100 * `dcl' / `shp', "%9.1f")
+                    local bw2 = round((`BW' - 16) * `dcl' / `shp')
+                    if `bw2' < 2 local bw2 2
+                    _srh_rect `B' `=`xl'+8' `=`ty'-9' `bw2' 11 ro
+                    _srh_wtext `B' `=`xl'+10' `ty' rt2 `"`=strtrim("`pd'")'% no answer"'
+                }
+            }
+        }
         if `flag_`p'' {
             _srh_n `"`nr_`p''"'
             local ty = `ty' + `LH'
@@ -737,6 +839,37 @@ program define _sm_renderhtml
         local ty = `ty' + `LH'
         if "`naf'" == "" local naf "."
         _srh_wtext `B' `=`x'+8' `ty' bn `"`nnf' (`pa_`p''%)"'
+        if `HASRESP' {
+            local shp = real(`"`nn_`p''"') + real(`"`nr_`p''"')
+            if `shp' < . & `shp' > 0 {
+                forvalues j = 1/`rsN_`p'' {
+                    local ty = `ty' + `LH'
+                    local pc = strtrim(`"`rsp_`p'_`j''"')
+                    local bw2 = round((`BW' - 16) * real("`pc'") / 100)
+                    if `bw2' < 2 local bw2 2
+                    _srh_rect `B' `=`x'+8' `=`ty'-9' `bw2' 11 rb
+                    _srh_mell 22 `"`rsl_`p'_`j''"'
+                    _srh_wtext `B' `=`x'+10' `ty' rt `"`pc'% `s(o)'"'
+                }
+                if `rso_`p'' > 0 {
+                    local ty = `ty' + `LH'
+                    local po = string(100 * `rso_`p'' / `shp', "%9.1f")
+                    local bw2 = round((`BW' - 16) * `rso_`p'' / `shp')
+                    if `bw2' < 2 local bw2 2
+                    _srh_rect `B' `=`x'+8' `=`ty'-9' `bw2' 11 ro
+                    _srh_wtext `B' `=`x'+10' `ty' rt2 `"`=strtrim("`po'")'% other answers"'
+                }
+                local dcl = real(`"`nr_`p''"')
+                if `dcl' < . & `dcl' > 0 {
+                    local ty = `ty' + `LH'
+                    local pd = string(100 * `dcl' / `shp', "%9.1f")
+                    local bw2 = round((`BW' - 16) * `dcl' / `shp')
+                    if `bw2' < 2 local bw2 2
+                    _srh_rect `B' `=`x'+8' `=`ty'-9' `bw2' 11 ro
+                    _srh_wtext `B' `=`x'+10' `ty' rt2 `"`=strtrim("`pd'")'% no answer"'
+                }
+            }
+        }
         if `flag_`p'' {
             _srh_n `"`nr_`p''"'
             local ty = `ty' + `LH'
@@ -797,7 +930,40 @@ program define _sm_renderhtml
         local wnote = cond(`haswt', ///
             " &#183; counts unweighted, percentages weighted", "")
         file write `H' `"<div class="sm-cap">survey: `jname' &#183; `nnf' respondents &#183; `K' `iw' &#183; `G' `gw'`wnote'</div>"' _n
+        if `"`scopetxt'"' != "" {
+            _srh_map `"`scopetxt'"'
+            file write `H' `"<div class="sm-cap"><b>scope:</b> only respondents where `s(o)' &#183; every count and share on this page describes that group</div>"' _n
+        }
         file write `H' `"<div class="sm-leg"><span class="sm-legk">!!</span> = warning (never colour alone) &#183; <span class="sm-legk">!?</span> = the declared routing and the data disagree &#183; dashed box = skipped, routed around by the gate &#183; lanes partition the sample &#183; hover a node for detail</div>"' _n
+
+        * ---- how to read this map, generated with this survey's own names --
+        local rdir "left to right"
+        local rd1  "leftmost"
+        if `vert' {
+            local rdir "top to bottom"
+            local rd1  "top"
+        }
+        _srh_n `"`na_1'"'
+        local rn1 `"`s(o)'"'
+        local gname ""
+        forvalues p = 1/`K' {
+            if "`gname'" == "" & "`g_`p''" == "1" local gname `"`v_`p''"'
+        }
+        file write `H' `"<details class="sm-read"><summary class="sm-alts">How to read this map, step by step</summary><ol class="sm-rdl">"' _n
+        file write `H' `"<li>Each solid box is one survey item, in questionnaire order, `rdir'. Start at the `rd1' box, <b>`v_1'</b>: `rn1' respondents were in scope there, and the count line inside each box says how many answered it and what share of the scope that is.</li>"' _n
+        if `HASRESP' {
+            file write `H' `"<li>The shaded rows inside a box are that item's most common answers. Each row's bar length is its share of the people the item was put to, so the answer rows, the <i>other answers</i> row and the <i>no answer</i> row account for everyone who saw the question.</li>"' _n
+        }
+        file write `H' `"<li>Follow the arrow out of a box to the next item the survey asked.</li>"' _n
+        if "`gname'" != "" {
+            file write `H' `"<li>Where a heading says <b>split by `gname'</b>, the sample fans into lanes, one per answer to `gname', each headed by the answer and the number of people in that lane. Inside a lane, a solid box is an item that lane was asked and a dashed grey box is an item the skip logic routed that lane around.</li>"' _n
+            file write `H' `"<li>The lanes rejoin the spine at a small dot, and the single path continues. Lane counts add back to the sample: nobody is lost and nobody is counted twice.</li>"' _n
+        }
+        else {
+            file write `H' `"<li>This survey has no branching drawn, so there is a single path. A dashed grey box, if one appears, is an item the skip logic routed respondents around.</li>"' _n
+        }
+        file write `H' `"<li><span class="sm-legk">!!</span> flags an item that many people declined to answer; <span class="sm-legk">!?</span> flags an item where the declared skip logic and the data disagree. Hover any box for its full record, and the table at the bottom of the page repeats every number as text.</li>"' _n
+        file write `H' `"</ol></details>"' _n
     }
 
     file write `H' `"<div class="sm-wrap">"' _n
@@ -904,6 +1070,9 @@ program define _srh_css
     file write `H' `"`P' .sm-foot { font-family: `SANS'; font-size: 10px; color: #999; margin: 10px 0 0 0; line-height: 1.5; }"' _n
     file write `H' `"`P' .sm-alt { font-family: `SANS'; font-size: 12px; color: #333; margin: 12px 0 0 0; }"' _n
     file write `H' `"`P' .sm-alts { cursor: pointer; color: #555; padding: 2px 0; }"' _n
+    file write `H' `"`P' .sm-read { font-family: `SANS'; font-size: 12.5px; color: #333; margin: 6px 0 2px 0; }"' _n
+    file write `H' `"`P' .sm-rdl { margin: 6px 0 4px 18px; padding: 0; max-width: 760px; }"' _n
+    file write `H' `"`P' .sm-rdl li { margin: 0 0 6px 0; line-height: 1.45; }"' _n
     file write `H' `"`P' .sm-tbl { border-collapse: collapse; margin: 8px 0 0 0; font-size: 12px; }"' _n
     file write `H' `"`P' .sm-tcap { text-align: left; color: #666; padding: 0 0 6px 0; font-size: 11px; }"' _n
     file write `H' `"`P' .sm-tbl th, `P' .sm-tbl td { border: 1px solid #ddd; padding: 3px 8px; text-align: right; font-variant-numeric: tabular-nums; }"' _n
@@ -917,6 +1086,8 @@ program define _srh_css
     file write `H' `"`P' .sm-bl { font-size: 11px; fill: #333; }"' _n
     file write `H' `"`P' .sm-bn { font-size: 11px; fill: #666; }"' _n
     file write `H' `"`P' .sm-bf { font-size: 11px; font-weight: 700; fill: `accent'; }"' _n
+    file write `H' `"`P' .sm-rt { font-size: 10.5px; fill: #222; }"' _n
+    file write `H' `"`P' .sm-rt2 { font-size: 10.5px; fill: #777; }"' _n
     file write `H' `"`P' .sm-gt { font-size: 11px; fill: #8a8a8a; }"' _n
     file write `H' `"`P' .sm-ll { font-size: 11px; fill: #333; }"' _n
     file write `H' `"`P' .sm-lh { font-size: 11px; font-weight: 700; fill: #222222; }"' _n
@@ -950,6 +1121,16 @@ program define _srh_rect
         local strk "#999"
         local sw   "1"
         local dash `" stroke-dasharray="5 3""'
+    }
+    if "`cls'" == "rb" {
+        local fill "#dbe3ec"
+        local strk "none"
+        local sw   "0"
+    }
+    if "`cls'" == "ro" {
+        local fill "#ececec"
+        local strk "none"
+        local sw   "0"
     }
     file write `B' `"<rect x="`x'" y="`y'" width="`w'" height="`h'" class="sm-`cls'" fill="`fill'" stroke="`strk'" stroke-width="`sw'"`dash' />"' _n
 end
@@ -988,6 +1169,14 @@ program define _srh_wtext
         local fill "$SRH_ACC"
     }
     if "`cls'" == "gt" local fill "#8a8a8a"
+    if "`cls'" == "rt" {
+        local size 10.5
+        local fill "#222"
+    }
+    if "`cls'" == "rt2" {
+        local size 10.5
+        local fill "#777"
+    }
     file write `h' `"<text x="`x'" y="`y'" class="sm-t sm-`cls'" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="`size'" font-weight="`wt'" fill="`fill'">`t'</text>"' _n
 end
 
@@ -1023,13 +1212,17 @@ end
 * middle-ellipsis to maxlen -> s(o); only when the label genuinely overflows
 program define _srh_mell, sclass
     args maxlen t
-    if strlen(`"`t'"') <= `maxlen' {
+    * character counts, not bytes: a byte-based cut can split a curly quote
+    * or an accented letter in half and leave an invalid byte on the page
+    if ustrlen(`"`t'"') <= `maxlen' {
         sreturn local o `"`t'"'
         exit
     }
     local h1 = floor((`maxlen'-1)/2)
     local h2 = `maxlen' - 1 - `h1'
-    sreturn local o = substr(`"`t'"', 1, `h1') + char(1) + substr(`"`t'"', -`h2', .)
+    local L = ustrlen(`"`t'"')
+    sreturn local o = usubstr(`"`t'"', 1, `h1') + char(1) + ///
+        usubstr(`"`t'"', `L' - `h2' + 1, .)
 end
 
 * word-wrap to at most maxlines lines -> s(n), s(l1..); overflow past the
@@ -1039,18 +1232,18 @@ program define _srh_wrapn, sclass
     local rest = trim(`"`t'"')
     local n 0
     while `"`rest'"' != "" & `n' < `maxlines' {
-        if strlen(`"`rest'"') <= `maxlen' {
+        if ustrlen(`"`rest'"') <= `maxlen' {
             local ++n
             local l`n' `"`rest'"'
             local rest ""
         }
         else {
-            local head = substr(`"`rest'"', 1, `maxlen')
-            local p = strrpos(`"`head'"', " ")
+            local head = usubstr(`"`rest'"', 1, `maxlen')
+            local p = ustrrpos(`"`head'"', " ")
             if `p' < 8 local p = `maxlen'
             local ++n
-            local l`n' = trim(substr(`"`rest'"', 1, `p'))
-            local rest = trim(substr(`"`rest'"', `p'+1, .))
+            local l`n' = trim(usubstr(`"`rest'"', 1, `p'))
+            local rest = trim(usubstr(`"`rest'"', `p'+1, .))
         }
     }
     if `"`rest'"' != "" & `n' > 0 {

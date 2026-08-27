@@ -1,4 +1,4 @@
-*! version 0.4.6  24aug2026  Eric Booth
+*! version 0.5.0  27aug2026  Eric Booth
 *! surveymap: map how respondents moved through a survey
 *!
 *! The data in memory are a survey: one row per respondent, one column per
@@ -104,7 +104,18 @@ program define surveymap, rclass
         PROFile(string asis) REFusedcode(string) DKcode(string)             ///
         EXclude(varlist) NOSTRings VERify(string)                          ///
         PRUNE(real 5) MINN(integer 30) MAXCats(integer 6)                  ///
+        RESPonses(integer 0)                                               ///
         DETect(numlist min=2 max=2) NOAUTOdetect NORECeipt NOPRUNE replace]
+
+    * responses(k) turns the linear map into a path with visible splits: each
+    * item box also shows its k most common answers, with their shares among
+    * the people the item was put to.  A survey without skip logic otherwise
+    * draws as a featureless chain of boxes.
+    if `responses' < 0 | `responses' > 8 {
+        di as err "responses(): give a whole number from 1 to 8"
+        di as err "    responses(3) shows each item's three most common answers"
+        exit 198
+    }
 
     * the weight, when one is given, counts respondents the way a weighted
     * estimate would.  Both counts are journaled: the unweighted one describes
@@ -219,6 +230,11 @@ program define surveymap, rclass
         }
         exit 198
     }
+
+    * pathway 2 of the syntax: an if/in restriction traces one subgroup
+    * through the whole questionnaire.  The expression is journaled so every
+    * rendering can say whose path it shows.
+    local scopetxt = strtrim(`"`if' `in'"')
 
     marksample touse, novarlist
     quietly count if `touse'
@@ -802,6 +818,12 @@ program define surveymap, rclass
     if `"`autonote'"' != "" local sflags `"`sflags'; `autonote'"'
     if `"`bandnote'"' != "" local sflags `"`sflags'; `bandnote'"'
     if `"`profnote'"' != "" local sflags `"`sflags'; `profnote'"'
+    if `"`scopetxt'"' != "" local sflags `"`sflags'; scope: `scopetxt'"'
+    if `responses' > 0 {
+        * no apostrophe in a flags string: the journal text passes through
+        * macro quoting in every reader, and a lone quote breaks it there
+        local sflags `"`sflags'; responses=`responses' (top answers per item, shares of those shown)"'
+    }
     if `"`skipgates'"' != "" local sflags `"`sflags'; skipped `skipgates'"'
     if `nbal' == 0 {
         local sflags `"`sflags'; balance ok: answered + declined + not shown = `N' at every item"'
@@ -844,6 +866,63 @@ program define surveymap, rclass
             `N' `a_`v'' `r_`v'' `s_`v'' `"`pct'"' "." `"`st'"' `isg'      ///
             `"`gbv'"' "." `"`t_`v''"' `"`sev'"' `"`fl'"'                    ///
             `"`WTOT'"' `"`wa_`v''"' `"`pctw'"'
+    }
+
+    * response rows: each item's answer distribution, for the path view.
+    * The denominator is the people the item was put to (answered plus
+    * declined), so an item's response shares, its pooled remainder and its
+    * declined share add to 100 within the box.  ALL values are journaled with
+    * a pooled marker, the same convention as gate categories, up to a hard
+    * cap of 30 distinct values: an item with more than 30 (age in years) is
+    * skipped with a note, because it needs banding, not a longer list.
+    if `responses' > 0 {
+        foreach v of local vlist {
+            if `str_`v'' continue
+            local shown = `a_`v'' + `r_`v''
+            if `shown' == 0 continue
+            tempname RF RR
+            capture frame _smwork: tab `v' if !missing(`v'), matcell(`RF') matrow(`RR')
+            if _rc | r(r) > 30 {
+                local ++seq
+                _sm_wrow `JH' `seq' note `"`v'"' `p_`v'' "." "." `"`v'"' "."  ///
+                    "." "." "." "." "." "." "." "." "." "." note              ///
+                    `"responses: `v' has more than 30 distinct answers; band it with branch(`v' = cut(...)) or leave it to the count line"'
+                continue
+            }
+            local nr = r(r)
+            * rank the values by count so the top responses(k) stay unpooled
+            forvalues i = 1/`nr' {
+                local rv`i' = `RR'[`i', 1]
+                local rn`i' = `RF'[`i', 1]
+            }
+            forvalues i = 1/`nr' {
+                local rk`i' = 1
+                forvalues j = 1/`nr' {
+                    if `rn`j'' > `rn`i'' | (`rn`j'' == `rn`i'' & `j' < `i') {
+                        local rk`i' = `rk`i'' + 1
+                    }
+                }
+            }
+            frame _smwork: local rvl : value label `v'
+            forvalues i = 1/`nr' {
+                local dec ""
+                if `"`rvl'"' != "" {
+                    frame _smwork: local dec : label `rvl' `rv`i'', strict
+                }
+                if `"`dec'"' == "" local dec "`rv`i''"
+                local pooled "."
+                if `rk`i'' > `responses' local pooled "1"
+                local pct = string(100 * `rn`i'' / `shown', "%9.1f")
+                frame _smwork {
+                    _sm_wsum "`wvar'" `"`v' == `rv`i''"'
+                    local wrn "`s(o)'"
+                }
+                local ++seq
+                _sm_wrow `JH' `seq' resp `"`v'"' `p_`v'' `"`dec'"'          ///
+                    `"`rv`i''"' `"`v'"' `rn`i'' "." "." "." `"`pct'"' "."   ///
+                    "." "." "." `"`pooled'"' "." note "." `"`wrn'"' "." "."
+            }
+        }
     }
 
     * category and cell rows, gate by gate
@@ -1096,7 +1175,7 @@ program define _sm_verify, rclass
     local lastseq = 0
     frame _smvj {
         quietly import delimited using `"`using'"', delimiter(tab)        ///
-            varnames(1) stringcols(_all) clear
+            varnames(1) stringcols(_all) encoding("utf-8") clear
         * the journal is append-only, so a verdict row continues the numbering
         quietly gen double _sq = real(seq)
         quietly summarize _sq, meanonly
@@ -1107,7 +1186,7 @@ program define _sm_verify, rclass
     frame create _smvd
     local bad = 0
     frame _smvd {
-        quietly import delimited using `"`declared'"', varnames(1)        ///
+        quietly import delimited using `"`declared'"', varnames(1) encoding("utf-8")        ///
             stringcols(_all) clear
         foreach need in varname expected_n {
             capture confirm variable `need'
@@ -1231,7 +1310,7 @@ program define _sm_receipt
     local notv2 = 0
     frame _smrc {
         quietly import delimited using `"`using'"', delimiter(tab)        ///
-            varnames(1) stringcols(_all) bindquote(nobind) clear
+            varnames(1) stringcols(_all) bindquote(nobind) encoding("utf-8") clear
         capture confirm variable gated_by
         if _rc local notv2 = 1
     }

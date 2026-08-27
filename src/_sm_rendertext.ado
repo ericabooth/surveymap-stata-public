@@ -1,4 +1,4 @@
-*! version 0.4.5  24aug2026  Eric Booth
+*! version 0.5.0  27aug2026  Eric Booth
 *! _sm_rendertext -- emit a mermaid flowchart LR from a surveymap journal
 *! (TSV, 20 columns).
 *!
@@ -48,7 +48,7 @@ program define _sm_rendertext
     frame create `J'
     frame `J' {
         quietly import delimited using "`using'", delimiter(tab) ///
-            varnames(1) stringcols(_all) clear
+            varnames(1) stringcols(_all) encoding("utf-8") clear
         capture confirm variable class
         local badc = _rc
         capture confirm variable gatevar
@@ -136,6 +136,65 @@ program define _sm_rendertext
         }
         local vd_`vv' `"`vf'"'
     }
+    * response rows (scan run with responses(k)) and the scope text
+    local HASRESP = 0
+    frame `J' {
+        quietly count if class == "resp"
+        if r(N) > 0 local HASRESP = 1
+    }
+    if `HASRESP' {
+        forvalues p = 1/`K' {
+            local rsN_`p' = 0
+            local rso_`p' = 0
+        }
+        frame `J' {
+            quietly count
+            local NRW = r(N)
+            forvalues i = 1/`NRW' {
+                if class[`i'] != "resp" continue
+                local p = real(position[`i'])
+                if `p' >= . continue
+                local rn = real(n_asked[`i'])
+                if pooled[`i'] == "1" {
+                    local rso_`p' = `rso_`p'' + `rn'
+                    continue
+                }
+                local k = `rsN_`p'' + 1
+                local rsN_`p' = `k'
+                local rsn_`p'_`k' = `rn'
+                local rsl_`p'_`k' = vallabel[`i']
+                local rsp_`p'_`k' = strtrim(pct_answered[`i'])
+                local j = `k'
+                while `j' > 1 {
+                    local jm = `j' - 1
+                    if `rsn_`p'_`jm'' >= `rsn_`p'_`j'' continue, break
+                    foreach t in n l p {
+                        local sw `"`rs`t'_`p'_`jm''"'
+                        local rs`t'_`p'_`jm' `"`rs`t'_`p'_`j''"'
+                        local rs`t'_`p'_`j' `"`sw'"'
+                    }
+                    local --j
+                }
+            }
+        }
+    }
+    local scopetxt ""
+    frame `J' {
+        quietly levelsof flags if class == "survey", local(svf) clean
+    }
+    local spos = strpos(`"`svf'"', "scope: ")
+    if `spos' {
+        local scopetxt = substr(`"`svf'"', `spos' + 7, .)
+        local send = strpos(`"`scopetxt'"', ";")
+        if `send' local scopetxt = substr(`"`scopetxt'"', 1, `send' - 1)
+        local scopetxt = strtrim(`"`scopetxt'"')
+        * the journal records the expression verbatim, "if" included; the
+        * sentence built from it reads better without the keyword
+        if strlower(substr(`"`scopetxt'"', 1, 3)) == "if " {
+            local scopetxt = strtrim(substr(`"`scopetxt'"', 4, .))
+        }
+    }
+
     if `K' == 0 {
         frame drop `J'
         display as error "`using' has no item rows; nothing to draw"
@@ -357,6 +416,24 @@ program define _sm_rendertext
         local nnf `"`s(o)'"'
         if "`nnf'" == "" local nnf "."
         local lab `"`v_`p''<br/>`nnf' (`pa_`p''%)"'
+        if `HASRESP' {
+            local shp = real(`"`nn_`p''"') + real(`"`nr_`p''"')
+            if `shp' < . & `shp' > 0 {
+                forvalues j = 1/`rsN_`p'' {
+                    _srt_esc `"`rsl_`p'_`j''"'
+                    local lab `"`lab'<br/>`rsp_`p'_`j''% `s(o)'"'
+                }
+                if `rso_`p'' > 0 {
+                    local po = strtrim(string(100 * `rso_`p'' / `shp', "%9.1f"))
+                    local lab `"`lab'<br/>`po'% other answers"'
+                }
+                local dcl = real(`"`nr_`p''"')
+                if `dcl' < . & `dcl' > 0 {
+                    local pd = strtrim(string(100 * `dcl' / `shp', "%9.1f"))
+                    local lab `"`lab'<br/>`pd'% no answer"'
+                }
+            }
+        }
         local isw = 0
         local rr = real(`"`nr_`p''"')
         local aa = real(`"`na_`p''"')
@@ -460,6 +537,13 @@ program define _sm_rendertext
         file write `fh' ("flowchart `dir'") _n
         file write `fh' ("  accTitle: `acct'") _n
         file write `fh' ("  accDescr {") _n
+    if `"`scopetxt'"' != "" {
+        _srt_esc `"`scopetxt'"'
+        file write `fh' ("    Scope: only respondents where `s(o)'.") _n
+    }
+    if `HASRESP' {
+        file write `fh' ("    Lines inside an item node are its most common answers, as shares of those shown the item.") _n
+    }
         file write `fh' ("    `accd'") _n
         file write `fh' ("  }") _n
         * Three states, three weights of the same grey: an item everyone was

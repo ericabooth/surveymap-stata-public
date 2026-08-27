@@ -86,21 +86,28 @@
     real sources: the 59-study meta-analysis is theirs, but the 11% is
     Groves (2006), across 235 estimates in 30 studies.  Both halves were
     plausible and the sentence was wrong.
-
-## The bitmap writer refuses graphs the vector writers accept
-
-`graph export` to PNG can return 198 ("failed to export to the specified
-format") and leave a zero-byte file, for a graph that exports to SVG and PDF
-without complaint. Observed on macOS console-mode (batch) Stata with
-text-heavy immediate-plot graphs (many `text()` elements over `scatteri`,
-`pci`, `pcarrowi`), at any item count. The same `twoway` command rebuilt at
-the top level of a fresh session usually exports fine, and a `graph save`d
-copy of the refused graph stays refused after `graph use` in a new session,
-so the refusal travels with the serialized graph rather than with the session.
-The renderer works around it (0.4.5): vector first, trap the PNG, rebuild it
-from PDF via `sips` on a Mac.
-
-While fixing it: GUI Stata reports `c(os)` = "MacOSX", but the console build
-reports "Unix". A Mac test that must hold in batch mode has to read
-`c(machine_type)` (which says "Mac (Apple Silicon)" or similar) rather than
-`c(os)`.
+28. -graph export- to PNG can return 198 ("failed to export to the specified
+    format") and leave a zero-byte file, for a graph that exports to SVG and
+    PDF without complaint.  Observed on macOS console-mode (batch) Stata with
+    text-heavy immediate-plot graphs (many text() elements over scatteri,
+    pci, pcarrowi), at any item count.  The same twoway command rebuilt at
+    the top level of a fresh session usually exports fine, and a graph save'd
+    copy of the refused graph stays refused after graph use in a new session,
+    so the refusal travels with the serialized graph rather than with the
+    session.  The renderer works around it (0.4.5): vector first, trap the
+    PNG, rebuild it from PDF via sips on a Mac.  While fixing it: GUI Stata
+    reports c(os) = "MacOSX" but the console build reports "Unix"; a Mac test
+    that must hold in batch mode has to read c(machine_type) instead.
+29. -import delimited- GUESSES the encoding when none is named, and a
+    mostly-ASCII journal with a few UTF-8 labels can read back as latin1,
+    exploding every curly quote into mojibake.  Every journal read carries
+    encoding("utf-8") explicitly; caught by the TVP vendor labels.
+30. substr()/strlen() count BYTES.  Truncating label text with them can split
+    a multibyte character and leave an invalid byte in the page.  Label cuts
+    go through usubstr()/ustrlen()/ustrrpos(); cuts at ASCII delimiters found
+    by strpos() are safe because the delimiter is single-byte.
+31. No apostrophe in a journal flags string.  The text passes through macro
+    quoting in every reader, and a lone quote aborts the run there -- the
+    battery itself crash-truncated at the first flags string carrying
+    "item's", silently reporting only the checks before the crash.  Check the
+    completion banner, not just the FAIL count.

@@ -129,6 +129,26 @@ capture noisily surveymap draw g_fig.tsv, export(png) saving(g_fig) replace
 gok `=(_rc == 0)' "png and svg"
 
 display as text _n "{hline 70}"
+display as text "7a2. the linear path with its splits, and one subgroup's path"
+display as text "{hline 70}"
+* a survey without skip logic draws as a plain chain; responses() adds each
+* item's most common answers to its box, and an if restriction traces one
+* subgroup with the scope stated on the page
+use fake_survey.dta, clear
+capture noisily surveymap q1_consent q3_party q5_voted q8_approve q13_income ///
+    , responses(3) noautodetect out(g_responses.tsv) replace noreceipt
+gok `=(_rc == 0)' "the responses scan"
+capture noisily surveymap draw g_responses.tsv, export(html) ///
+    saving(g_responses.html) replace noopen
+gok `=(_rc == 0)' "the line with its splits"
+capture noisily surveymap q1_consent q3_party q5_voted q8_approve q13_income ///
+    if q2_age > 40, responses(3) noautodetect out(g_scoped.tsv) replace noreceipt
+gok `=(_rc == 0)' "the scoped scan"
+capture noisily surveymap draw g_scoped.tsv, export(html) ///
+    saving(g_scoped.html) replace noopen
+gok `=(_rc == 0)' "one subgroup's path, scope stated on the page"
+
+display as text _n "{hline 70}"
 display as text "7b. splitting the map by what the respondent did"
 display as text "{hline 70}"
 * not "what did Republicans answer" but "what does the route look like for

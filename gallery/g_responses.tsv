@@ -1,0 +1,28 @@
+seq	class	var	position	vallabel	value	gatevar	n_asked	n_answered	n_nonresp	n_sysmiss	pct_answered	rate	status	gate	gated_by	pooled	type	severity	flags	w_asked	w_answered	pct_answered_w
+1	survey	.	5	.	.	.	1200	.	.	.	.	.	.	.	.	.	.	note	prune=5 minn=30 maxcats=6 dlow=2 dhigh=50 nonresp=none; responses=3 (top answers per item, shares of those shown); balance ok: answered + declined + not shown = 1200 at every item	.	.	.
+2	item	q1_consent	1	Consented to be interviewed	.	.	1200	1200	0	0	100.0	.	open	0	.	.	byte	note	.	.	.	.
+3	item	q3_party	2	Party identification	.	.	1200	1074	87	39	89.5	.	open	0	.	.	byte	note	.	.	.	.
+4	item	q5_voted	3	Voted in the 2024 general election	.	.	1200	1133	28	39	94.4	.	open	0	.	.	byte	note	.	.	.	.
+5	item	q8_approve	4	Approval of the governor	.	.	1200	1053	108	39	87.8	.	open	0	.	.	byte	note	.	.	.	.
+6	item	q13_income	5	Total household income last year	.	.	1200	941	220	39	78.4	.	open	0	.	.	byte	note	.	.	.	.
+7	resp	q1_consent	1	No	0	q1_consent	39	.	.	.	3.2	.	.	.	.	.	.	note	.	.	.	.
+8	resp	q1_consent	1	Yes	1	q1_consent	1161	.	.	.	96.8	.	.	.	.	.	.	note	.	.	.	.
+9	resp	q3_party	2	Democrat	1	q3_party	384	.	.	.	33.1	.	.	.	.	.	.	note	.	.	.	.
+10	resp	q3_party	2	Republican	2	q3_party	352	.	.	.	30.3	.	.	.	.	.	.	note	.	.	.	.
+11	resp	q3_party	2	Independent	3	q3_party	229	.	.	.	19.7	.	.	.	.	.	.	note	.	.	.	.
+12	resp	q3_party	2	Something else	4	q3_party	109	.	.	.	9.4	.	.	.	.	1	.	note	.	.	.	.
+13	resp	q5_voted	3	No	0	q5_voted	533	.	.	.	45.9	.	.	.	.	.	.	note	.	.	.	.
+14	resp	q5_voted	3	Yes	1	q5_voted	600	.	.	.	51.7	.	.	.	.	.	.	note	.	.	.	.
+15	resp	q8_approve	4	Strongly approve	1	q8_approve	239	.	.	.	20.6	.	.	.	.	1	.	note	.	.	.	.
+16	resp	q8_approve	4	Somewhat approve	2	q8_approve	263	.	.	.	22.7	.	.	.	.	.	.	note	.	.	.	.
+17	resp	q8_approve	4	Somewhat disapprove	3	q8_approve	275	.	.	.	23.7	.	.	.	.	.	.	note	.	.	.	.
+18	resp	q8_approve	4	Strongly disapprove	4	q8_approve	276	.	.	.	23.8	.	.	.	.	.	.	note	.	.	.	.
+19	resp	q13_income	5	Under $15,000	1	q13_income	104	.	.	.	9.0	.	.	.	.	1	.	note	.	.	.	.
+20	resp	q13_income	5	$15,000 to $24,999	2	q13_income	104	.	.	.	9.0	.	.	.	.	1	.	note	.	.	.	.
+21	resp	q13_income	5	$25,000 to $34,999	3	q13_income	105	.	.	.	9.0	.	.	.	.	1	.	note	.	.	.	.
+22	resp	q13_income	5	$35,000 to $49,999	4	q13_income	108	.	.	.	9.3	.	.	.	.	.	.	note	.	.	.	.
+23	resp	q13_income	5	$50,000 to $74,999	5	q13_income	111	.	.	.	9.6	.	.	.	.	.	.	note	.	.	.	.
+24	resp	q13_income	5	$75,000 to $99,999	6	q13_income	102	.	.	.	8.8	.	.	.	.	1	.	note	.	.	.	.
+25	resp	q13_income	5	$100,000 to $149,999	7	q13_income	106	.	.	.	9.1	.	.	.	.	.	.	note	.	.	.	.
+26	resp	q13_income	5	$150,000 to $199,999	8	q13_income	98	.	.	.	8.4	.	.	.	.	1	.	note	.	.	.	.
+27	resp	q13_income	5	$200,000 or more	9	q13_income	103	.	.	.	8.9	.	.	.	.	1	.	note	.	.	.	.

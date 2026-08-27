@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 0.4.5  24aug2026  Eric Booth}{...}
+{* *! version 0.5.0  27aug2026  Eric Booth}{...}
 {vieweralsosee "datadictionary" "help datadictionary"}{...}
 {vieweralsosee "mergemap" "help mergemap"}{...}
 {vieweralsosee "tabulate" "help tabulate"}{...}
@@ -73,8 +73,8 @@ opens in any browser with no internet connection.{p_end}
 {opt br:anch(spec)} {opt prof:ile(spec)} {opt ref:usedcode(value)}
 {opt dk:code(value)} {opt out(filename)} {opt non:response(numlist)}
 {opt ex:clude(varlist)} {opt nostrings} {opt ver:ify(filename)}
-{opt prune(#)} {opt minn(#)} {opt maxc:ats(#)} {opt det:ect(# #)}
-{opt noautodetect} {opt noreceipt} {opt noprune} {opt replace}]
+{opt prune(#)} {opt minn(#)} {opt maxc:ats(#)} {opt resp:onses(#)}
+{opt det:ect(# #)} {opt noautodetect} {opt noreceipt} {opt noprune} {opt replace}]
 
 {pstd}
 {cmd:pweight}s are allowed; see {help surveymap##weights:Weights}.{p_end}
@@ -153,6 +153,49 @@ The scan writes one intermediate file, a tab-separated journal with a line per
 event. Everything else you get, the receipt, the map, the mermaid text and the
 Excel tracker, comes from that journal, so you can re-cut a drawing without
 touching the data again.{p_end}
+
+
+{marker start}{...}
+{title:Three ways to start a map}
+
+{pstd}
+A survey with little skip logic draws as a single line of boxes, which answers
+who was asked what and nothing else. Three starting points turn that line into
+a path a reader can follow, and they combine freely.{p_end}
+
+{pstd}
+{bf:1. The line with its splits.} {opt responses(#)} adds each item's {it:#}
+most common answers to its box, drawn as share bars, with the rest pooled into
+{bf:other answers} and the declined share on its own row. The denominator is
+the people the item was put to (answered plus declined), so the rows inside a
+box account for everyone who saw the question. Items with more than 30
+distinct values (age in years) are skipped with a note: band them with
+{cmd:branch(age = cut(...))} instead. String items are skipped.{p_end}
+
+{phang2}{cmd:. surveymap, responses(3)}{p_end}
+
+{pstd}
+{bf:2. One subgroup's path.} An {cmd:if} or {cmd:in} restriction traces the
+respondents it selects through the whole questionnaire, and the page says so:
+the journal records the expression, and the map opens with
+{bf:scope: only respondents where ...} so nobody mistakes whose path it
+shows.{p_end}
+
+{phang2}{cmd:. surveymap if inlist(party, 2, 3) & age > 40, responses(3)}{p_end}
+
+{pstd}
+{bf:3. The outlier paths.} {opt profile()} splits the map by what respondents
+did rather than what they answered: the share of asked items they declined,
+refused, or answered don't know, and where they stopped. See
+{help surveymap##profile:Splitting by what the respondent did}.{p_end}
+
+{phang2}{cmd:. surveymap, profile(declined)}{p_end}
+
+{pstd}
+Response rows are drawn on the spine and in the mermaid nodes; inside a gate's
+lanes the cells stay compact and keep their answer rates only. Every HTML page
+also carries {bf:How to read this map, step by step}, written with the
+survey's own item and gate names.{p_end}
 
 
 {marker receipt}{...}
@@ -832,6 +875,7 @@ name, so a lookup across sheets takes one formula.{p_end}
 {synopt :{opt ex:clude(varlist)}}columns to leave out: ids, sample frame, admin{p_end}
 {synopt :{opt nostrings}}leave the string columns out, which are usually verbatims{p_end}
 {synopt :{opt ver:ify(filename)}}check the routing found against a declared skip-logic table{p_end}
+{synopt :{opt resp:onses(#)}}show each item's {it:#} most common answers inside its box; see {help surveymap##start:Three ways to start a map}{p_end}
 {synopt :{opt det:ect(# #)}}the two routing thresholds; default {cmd:2 50}{p_end}
 {synopt :{opt noautodetect}}do not look for gates; draw only the ones named in {opt branch()}{p_end}
 {synopt :{opt noreceipt}}skip the receipt table{p_end}
