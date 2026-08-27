@@ -1,4 +1,4 @@
-*! version 0.6.0  27aug2026  Eric Booth
+*! version 0.7.0  27aug2026  Eric Booth
 *! _sm_paths -- the response-flow view behind -surveymap paths-.
 *!
 *! The flow map (surveymap scan + draw) follows the ROUTING: who was shown
@@ -35,7 +35,7 @@ program define _sm_paths, rclass
 
     syntax varlist(min=1) [if] [in] [pweight] [,   ///
         TOP(integer 3) OUT(string) SAVing(string)  ///
-        TITLe(string) NOOPen NODRaw replace]
+        TITLe(string) HIGHlight(string) NOOPen NODRaw replace]
 
     * ---- the list must be short enough to read ---------------------------
     local K : word count `varlist'
@@ -349,7 +349,9 @@ program define _sm_paths, rclass
     if "`nodraw'" != "" exit
     local hf `"`saving'"'
     if `"`hf'"' == "" local hf "surveymap_paths.html"
-    _sm_renderflow using `"`out'"', saving(`"`hf'"') title(`"`title'"') `replace'
+    local hlo ""
+    if `"`highlight'"' != "" local hlo `"highlight(`highlight')"'
+    _sm_renderflow using `"`out'"', saving(`"`hf'"') title(`"`title'"') `hlo' `replace'
     return local output `"`s(out)'"'
     local abs `"`s(out)'"'
     _sm_isabs `"`abs'"'

@@ -75,9 +75,27 @@ A survey with little skip logic draws as a single line of boxes, which answers w
 
 **The response braid.** `surveymap paths` follows the answers instead of the routing: every item becomes a column, each of its `top(k)` most common answers a block, and a ribbon between two blocks carries the respondents who gave both answers on consecutive items. The remainder pools into *other answers*, and *no answer recorded* holds everyone with nothing on the item. Every respondent in scope sits in exactly one block of every column, so each column adds back to the sample; the battery asserts it. Under the figure, the ten most common complete paths, end to end.
 
+<img width="900" alt="surveymap paths response braid" src="images/surveymap_paths.png" />
+
+*The gallery's fake 1,200-person poll as a braid: consent, party, turnout, approval. The grey blocks are pooled and missing answers; the table under the figure names the most common complete paths.*
+
+The example below runs as typed on data Stata ships:
+
 ```stata
-surveymap paths d3a q1 q2 q3, top(3) out(flows.tsv) saving(flows.html)
+sysuse nlsw88, clear
+surveymap paths married collgrad union, top(2) out(flows.tsv) saving(flows.html)
 ```
+
+**Pick out the key paths.** `highlight()` keeps the flows you want a reader to see first and fades every other ribbon. `highlight(paths 3)` keeps the three most common complete paths, prints them bold in the table, and states their combined share in the caption; `highlight(union = 1)` keeps the ribbons into and out of one answer block (`other` and `noanswer` name the grey blocks). It also works on `surveymap draw` over a paths journal, so the same journal redraws with different highlights, no rescan.
+
+```stata
+surveymap paths married collgrad union, top(2) highlight(paths 2) saving(flows.html) replace
+surveymap draw flows.tsv, highlight(union = 1) saving(flows2.html) replace
+```
+
+<img width="900" alt="surveymap paths braid with the two most common paths highlighted" src="images/surveymap_paths_hl.png" />
+
+*The same braid with `highlight(paths 2)`: the two most common complete routes keep full colour and print bold in the table; everything else fades.*
 
 **The spine with its splits.** `responses(3)` adds each item's three most common answers to its box on the routing map, drawn as share bars, with the rest pooled into *other answers* and the declined share on its own row. The denominator is the people the item was put to (answered plus declined), so the rows inside a box account for everyone who saw the question. Items with more than 30 distinct values are skipped with a note advising `branch(age = cut(...))` instead.
 
@@ -407,7 +425,7 @@ cd tests
 do surveymap_pkgtest.do
 ```
 
-354 checks across 26 blocks, run on Stata 16.1 and on the current release, covering the fixture's routing truths, the branch parser, banding a continuous gate, the derived conditions and the ones the package refuses to build, the conservation arithmetic, the drawn verify disagreement, the band chart at 230 items, the response rows and their exact partition of the answered count, the response braid's conservation (columns, ribbons and complete paths all partition the scope), the scope round-trip to the page, lane partitioning, pruning at scan and at draw time, weights, `exclude()`/`nostrings`, `verify()`, both layouts of all four renderers, the Excel tracker, the fragment's scoping guarantee, and both directions of the `datadictionary` bridge.
+373 checks across 26 blocks, run on Stata 16.1 and on the current release, covering the fixture's routing truths, the branch parser, banding a continuous gate, the derived conditions and the ones the package refuses to build, the conservation arithmetic, the drawn verify disagreement, the band chart at 230 items, the response rows and their exact partition of the answered count, the response braid's conservation (columns, ribbons and complete paths all partition the scope), the scope round-trip to the page, lane partitioning, pruning at scan and at draw time, weights, `exclude()`/`nostrings`, `verify()`, both layouts of all four renderers, the Excel tracker, the fragment's scoping guarantee, and both directions of the `datadictionary` bridge.
 
 The gallery is a second, coarser test: it rebuilds every example artifact from one fake survey and counts its own failures, because a Stata do-file can abort and still leave the runner reporting success.
 

@@ -158,6 +158,11 @@ use fake_survey.dta, clear
 capture noisily surveymap paths q1_consent q3_party q5_voted q8_approve ///
     , top(3) out(g_paths.tsv) saving(g_paths.html) noopen replace
 gok `=(_rc == 0)' "the response braid, with its full-path table"
+* the same journal redrawn with the two most common complete paths kept in
+* full colour, everything else faded: no rescan, highlight is a draw choice
+capture noisily surveymap draw g_paths.tsv, saving(g_paths_hl.html) ///
+    highlight(paths 2) noopen replace
+gok `=(_rc == 0)' "the braid with its key paths highlighted"
 
 display as text _n "{hline 70}"
 display as text "7b. splitting the map by what the respondent did"
@@ -242,7 +247,7 @@ file write `gh' `"<p><a href="g_map.html">g_map.html</a> &#183; <a href="g_map_w
 
 file write `gh' "<h2>The response braid</h2>" _n
 file write `gh' "<p>The flow map above follows the routing; this follows the answers. A column per item, a block per common answer, ribbons carrying respondents from answer to answer, and the most common complete paths tabled underneath. Each page opens with a step-by-step reading guide written in its own item names.</p>" _n
-file write `gh' `"<p><a href="g_paths.html">g_paths.html</a> &#183; <a href="g_paths.tsv">g_paths.tsv</a> (its journal)</p>"' _n
+file write `gh' `"<p><a href="g_paths.html">g_paths.html</a> &#183; <a href="g_paths_hl.html">g_paths_hl.html</a> (the two most common paths highlighted) &#183; <a href="g_paths.tsv">g_paths.tsv</a> (its journal)</p>"' _n
 
 file write `gh' "<h2>The other two starting points</h2>" _n
 file write `gh' "<p>The spine map with each item&#8217;s common answers drawn inside its box, and the same map cut to one subgroup with the scope stated on the page.</p>" _n

@@ -7,177 +7,178 @@
 body { font-family: -apple-system, Segoe UI, Helvetica, Arial, sans-serif; color: #222; background: #fff; margin: 24px; }
 h1 { font-size: 19px; margin: 0 0 2px 0; font-weight: 600; }
 <style type="text/css">
-.sm-g-paths { margin: 1rem 0; }
-.sm-g-paths .sm-wrap { overflow-x: auto; border: 1px solid #e4e4e4; border-radius: 4px; padding: 6px; background: #fff; }
-.sm-g-paths .sm-svg { width: 836px; max-width: none; height: auto; display: block; }
-.sm-g-paths .sm-cap { font-size: 12px; color: #666; margin: 0 0 3px 0; }
-.sm-g-paths .sm-leg { font-size: 11px; color: #888; margin: 0 0 8px 0; }
-.sm-g-paths .sm-foot { font-size: 10px; color: #999; margin: 10px 0 0 0; line-height: 1.5; }
-.sm-g-paths .sm-read { font-size: 12.5px; color: #333; margin: 6px 0 2px 0; }
-.sm-g-paths .sm-rdl { margin: 6px 0 4px 18px; padding: 0; max-width: 760px; }
-.sm-g-paths .sm-rdl li { margin: 0 0 6px 0; line-height: 1.45; }
-.sm-g-paths .sm-ptbl { border-collapse: collapse; margin: 8px 0 0 0; font-size: 12px; }
-.sm-g-paths .sm-ptbl th { text-align: left; font-weight: 600; color: #555; padding: 3px 12px 3px 0; border-bottom: 1px solid #ddd; }
-.sm-g-paths .sm-ptbl td { padding: 3px 12px 3px 0; border-bottom: 1px solid #f0f0f0; }
-.sm-g-paths .sm-ptbl td.n { text-align: right; font-variant-numeric: tabular-nums; }
-.sm-g-paths .sm-ptbl tr.hl td { font-weight: 600; }
+.sm-g-paths-hl { margin: 1rem 0; }
+.sm-g-paths-hl .sm-wrap { overflow-x: auto; border: 1px solid #e4e4e4; border-radius: 4px; padding: 6px; background: #fff; }
+.sm-g-paths-hl .sm-svg { width: 836px; max-width: none; height: auto; display: block; }
+.sm-g-paths-hl .sm-cap { font-size: 12px; color: #666; margin: 0 0 3px 0; }
+.sm-g-paths-hl .sm-leg { font-size: 11px; color: #888; margin: 0 0 8px 0; }
+.sm-g-paths-hl .sm-foot { font-size: 10px; color: #999; margin: 10px 0 0 0; line-height: 1.5; }
+.sm-g-paths-hl .sm-read { font-size: 12.5px; color: #333; margin: 6px 0 2px 0; }
+.sm-g-paths-hl .sm-rdl { margin: 6px 0 4px 18px; padding: 0; max-width: 760px; }
+.sm-g-paths-hl .sm-rdl li { margin: 0 0 6px 0; line-height: 1.45; }
+.sm-g-paths-hl .sm-ptbl { border-collapse: collapse; margin: 8px 0 0 0; font-size: 12px; }
+.sm-g-paths-hl .sm-ptbl th { text-align: left; font-weight: 600; color: #555; padding: 3px 12px 3px 0; border-bottom: 1px solid #ddd; }
+.sm-g-paths-hl .sm-ptbl td { padding: 3px 12px 3px 0; border-bottom: 1px solid #f0f0f0; }
+.sm-g-paths-hl .sm-ptbl td.n { text-align: right; font-variant-numeric: tabular-nums; }
+.sm-g-paths-hl .sm-ptbl tr.hl td { font-weight: 600; }
 </style>
 </head>
 <body>
 <h1>How the answers flow, item by item</h1>
-<div class="sm-g-paths">
+<div class="sm-g-paths-hl">
 <p class="sm-cap"><b>1,200 respondents</b>, each counted once in every column &#183; journal: g_paths.tsv</p>
 <p class="sm-leg">a column is one item; a block is one answer, sized by how many gave it; a ribbon joins two answers on consecutive items, sized by how many gave both; hover anything for exact counts</p>
+<p class="sm-cap"><b>highlighted:</b> the 2 most common complete paths, together 15.1% of respondents; every other ribbon is faded, and the picked paths print bold in the table below</p>
 <div class="sm-wrap">
 <svg class="sm-svg" viewBox="0 0 836 647" width="836" height="647" xmlns="http://www.w3.org/2000/svg" role="img">
 <desc>Response-flow map of 4 survey items for 1,200 respondents. Each item is a column of blocks, one per common answer plus other answers and no answer; ribbons between columns carry the respondents who gave both answers.</desc>
-<path class="sm-fp" d="M 30 96 C 123 96 123 96 216 96 L 216 256 C 123 256 123 256.1 30 256.1 Z" fill="#39566e" fill-opacity=".40" stroke="none">
+<path class="sm-fp" d="M 30 96 C 123 96 123 96 216 96 L 216 256 C 123 256 123 256.1 30 256.1 Z" fill="#39566e" fill-opacity=".78" stroke="#39566e" stroke-width=".8">
 <title>q1_consent Yes -> q3_party Democrat
 384 of 1,200 (32.0% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 30 256.1 C 123 256.1 123 261 216 261 L 216 408 C 123 408 123 402.8 30 402.8 Z" fill="#39566e" fill-opacity=".40" stroke="none">
+<path class="sm-fp" d="M 30 256.1 C 123 256.1 123 261 216 261 L 216 408 C 123 408 123 402.8 30 402.8 Z" fill="#39566e" fill-opacity=".78" stroke="#39566e" stroke-width=".8">
 <title>q1_consent Yes -> q3_party Republican
 352 of 1,200 (29.3% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 30 402.8 C 123 402.8 123 413 216 413 L 216 508 C 123 508 123 498.3 30 498.3 Z" fill="#39566e" fill-opacity=".40" stroke="none">
+<path class="sm-fp" d="M 30 402.8 C 123 402.8 123 413 216 413 L 216 508 C 123 508 123 498.3 30 498.3 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q1_consent Yes -> q3_party Independent
 229 of 1,200 (19.1% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 30 498.3 C 123 498.3 123 513 216 513 L 216 558 C 123 558 123 543.7 30 543.7 Z" fill="#39566e" fill-opacity=".40" stroke="none">
+<path class="sm-fp" d="M 30 498.3 C 123 498.3 123 513 216 513 L 216 558 C 123 558 123 543.7 30 543.7 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q1_consent Yes -> q3_party other answers
 109 of 1,200 (9.1% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 30 543.7 C 123 543.7 123 563 216 563 L 216 599.6 C 123 599.6 123 580 30 580 Z" fill="#39566e" fill-opacity=".22" stroke="none">
+<path class="sm-fp" d="M 30 543.7 C 123 543.7 123 563 216 563 L 216 599.6 C 123 599.6 123 580 30 580 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q1_consent Yes -> q3_party no answer recorded
 87 of 1,200 (7.2% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 30 585 C 123 585 123 599.6 216 599.6 L 216 616 C 123 616 123 601 30 601 Z" fill="#6e8ca8" fill-opacity=".22" stroke="none">
+<path class="sm-fp" d="M 30 585 C 123 585 123 599.6 216 599.6 L 216 616 C 123 616 123 601 30 601 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q1_consent No -> q3_party no answer recorded
 39 of 1,200 (3.2% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 232 96 C 325 96 325 96 418 96 L 418 176.4 C 325 176.4 325 176.4 232 176.4 Z" fill="#39566e" fill-opacity=".40" stroke="none">
+<path class="sm-fp" d="M 232 96 C 325 96 325 96 418 96 L 418 176.4 C 325 176.4 325 176.4 232 176.4 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q3_party Democrat -> q5_voted Yes
 193 of 1,200 (16.1% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 232 176.4 C 325 176.4 325 351 418 351 L 418 427.2 C 325 427.2 325 252.7 232 252.7 Z" fill="#39566e" fill-opacity=".40" stroke="none">
+<path class="sm-fp" d="M 232 176.4 C 325 176.4 325 351 418 351 L 418 427.2 C 325 427.2 325 252.7 232 252.7 Z" fill="#39566e" fill-opacity=".78" stroke="#39566e" stroke-width=".8">
 <title>q3_party Democrat -> q5_voted No
 183 of 1,200 (15.2% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 232 252.7 C 325 252.7 325 578 418 578 L 418 581.3000000000001 C 325 581.3000000000001 325 256 232 256 Z" fill="#39566e" fill-opacity=".22" stroke="none">
+<path class="sm-fp" d="M 232 252.7 C 325 252.7 325 578 418 578 L 418 581.3000000000001 C 325 581.3000000000001 325 256 232 256 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q3_party Democrat -> q5_voted no answer recorded
 8 of 1,200 (0.7% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 232 261 C 325 261 325 176.4 418 176.4 L 418 250.2 C 325 250.2 325 334.9 232 334.9 Z" fill="#6e8ca8" fill-opacity=".40" stroke="none">
+<path class="sm-fp" d="M 232 261 C 325 261 325 176.4 418 176.4 L 418 250.2 C 325 250.2 325 334.9 232 334.9 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q3_party Republican -> q5_voted Yes
 177 of 1,200 (14.8% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 232 334.9 C 325 334.9 325 427.2 418 427.2 L 418 495.5 C 325 495.5 325 403.4 232 403.4 Z" fill="#6e8ca8" fill-opacity=".40" stroke="none">
+<path class="sm-fp" d="M 232 334.9 C 325 334.9 325 427.2 418 427.2 L 418 495.5 C 325 495.5 325 403.4 232 403.4 Z" fill="#6e8ca8" fill-opacity=".78" stroke="#6e8ca8" stroke-width=".8">
 <title>q3_party Republican -> q5_voted No
 164 of 1,200 (13.7% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 232 403.4 C 325 403.4 325 581.3000000000001 418 581.3000000000001 L 418 585.9 C 325 585.9 325 408 232 408 Z" fill="#6e8ca8" fill-opacity=".22" stroke="none">
+<path class="sm-fp" d="M 232 403.4 C 325 403.4 325 581.3000000000001 418 581.3000000000001 L 418 585.9 C 325 585.9 325 408 232 408 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q3_party Republican -> q5_voted no answer recorded
 11 of 1,200 (0.9% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 232 413 C 325 413 325 250.2 418 250.2 L 418 302.7 C 325 302.7 325 465.3 232 465.3 Z" fill="#a3b8cc" fill-opacity=".40" stroke="none">
+<path class="sm-fp" d="M 232 413 C 325 413 325 250.2 418 250.2 L 418 302.7 C 325 302.7 325 465.3 232 465.3 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q3_party Independent -> q5_voted Yes
 126 of 1,200 (10.5% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 232 465.3 C 325 465.3 325 495.5 418 495.5 L 418 536.8000000000001 C 325 536.8000000000001 325 506.3 232 506.3 Z" fill="#a3b8cc" fill-opacity=".40" stroke="none">
+<path class="sm-fp" d="M 232 465.3 C 325 465.3 325 495.5 418 495.5 L 418 536.8000000000001 C 325 536.8000000000001 325 506.3 232 506.3 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q3_party Independent -> q5_voted No
 99 of 1,200 (8.2% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 232 506.3 C 325 506.3 325 585.9 418 585.9 L 418 587.6 C 325 587.6 325 508 232 508 Z" fill="#a3b8cc" fill-opacity=".22" stroke="none">
+<path class="sm-fp" d="M 232 506.3 C 325 506.3 325 585.9 418 585.9 L 418 587.6 C 325 587.6 325 508 232 508 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q3_party Independent -> q5_voted no answer recorded
 4 of 1,200 (0.3% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 232 513 C 325 513 325 302.7 418 302.7 L 418 330.6 C 325 330.6 325 540.7 232 540.7 Z" fill="#bfbfbf" fill-opacity=".40" stroke="none">
+<path class="sm-fp" d="M 232 513 C 325 513 325 302.7 418 302.7 L 418 330.6 C 325 330.6 325 540.7 232 540.7 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q3_party other answers -> q5_voted Yes
 67 of 1,200 (5.6% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 232 540.7 C 325 540.7 325 536.8000000000001 418 536.8000000000001 L 418 553.8000000000001 C 325 553.8000000000001 325 557.6 232 557.6 Z" fill="#bfbfbf" fill-opacity=".40" stroke="none">
+<path class="sm-fp" d="M 232 540.7 C 325 540.7 325 536.8000000000001 418 536.8000000000001 L 418 553.8000000000001 C 325 553.8000000000001 325 557.6 232 557.6 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q3_party other answers -> q5_voted No
 41 of 1,200 (3.4% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 232 557.6 C 325 557.6 325 587.6 418 587.6 L 418 588 C 325 588 325 558 232 558 Z" fill="#bfbfbf" fill-opacity=".22" stroke="none">
+<path class="sm-fp" d="M 232 557.6 C 325 557.6 325 587.6 418 587.6 L 418 588 C 325 588 325 558 232 558 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q3_party other answers -> q5_voted no answer recorded
 1 of 1,200 (0.1% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 232 563 C 325 563 325 330.6 418 330.6 L 418 346 C 325 346 325 578.6 232 578.6 Z" fill="#e8e8e8" fill-opacity=".22" stroke="none">
+<path class="sm-fp" d="M 232 563 C 325 563 325 330.6 418 330.6 L 418 346 C 325 346 325 578.6 232 578.6 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q3_party no answer recorded -> q5_voted Yes
 37 of 1,200 (3.1% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 232 578.6 C 325 578.6 325 553.8000000000001 418 553.8000000000001 L 418 573 C 325 573 325 597.9 232 597.9 Z" fill="#e8e8e8" fill-opacity=".22" stroke="none">
+<path class="sm-fp" d="M 232 578.6 C 325 578.6 325 553.8000000000001 418 553.8000000000001 L 418 573 C 325 573 325 597.9 232 597.9 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q3_party no answer recorded -> q5_voted No
 46 of 1,200 (3.8% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 232 597.9 C 325 597.9 325 588 418 588 L 418 606 C 325 606 325 616 232 616 Z" fill="#e8e8e8" fill-opacity=".22" stroke="none">
+<path class="sm-fp" d="M 232 597.9 C 325 597.9 325 588 418 588 L 418 606 C 325 606 325 616 232 616 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q3_party no answer recorded -> q5_voted no answer recorded
 43 of 1,200 (3.6% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 434 96 C 527 96 527 96 620 96 L 620 157.7 C 527 157.7 527 157.7 434 157.7 Z" fill="#39566e" fill-opacity=".40" stroke="none">
+<path class="sm-fp" d="M 434 96 C 527 96 527 96 620 96 L 620 157.7 C 527 157.7 527 157.7 434 157.7 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q5_voted Yes -> q8_approve Strongly disapprove
 148 of 1,200 (12.3% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 434 157.7 C 527 157.7 527 216 620 216 L 620 273.3 C 527 273.3 527 214.8 434 214.8 Z" fill="#39566e" fill-opacity=".40" stroke="none">
+<path class="sm-fp" d="M 434 157.7 C 527 157.7 527 216 620 216 L 620 273.3 C 527 273.3 527 214.8 434 214.8 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q5_voted Yes -> q8_approve Somewhat disapprove
 137 of 1,200 (11.4% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 434 214.8 C 527 214.8 527 336 620 336 L 620 391.2 C 527 391.2 527 269.8 434 269.8 Z" fill="#39566e" fill-opacity=".40" stroke="none">
+<path class="sm-fp" d="M 434 214.8 C 527 214.8 527 336 620 336 L 620 391.2 C 527 391.2 527 269.8 434 269.8 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q5_voted Yes -> q8_approve Somewhat approve
 132 of 1,200 (11.0% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 434 269.8 C 527 269.8 527 451 620 451 L 620 503.3 C 527 503.3 527 321.8 434 321.8 Z" fill="#39566e" fill-opacity=".40" stroke="none">
+<path class="sm-fp" d="M 434 269.8 C 527 269.8 527 451 620 451 L 620 503.3 C 527 503.3 527 321.8 434 321.8 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q5_voted Yes -> q8_approve other answers
 125 of 1,200 (10.4% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 434 321.8 C 527 321.8 527 556 620 556 L 620 580.1 C 527 580.1 527 346 434 346 Z" fill="#39566e" fill-opacity=".22" stroke="none">
+<path class="sm-fp" d="M 434 321.8 C 527 321.8 527 556 620 556 L 620 580.1 C 527 580.1 527 346 434 346 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q5_voted Yes -> q8_approve no answer recorded
 58 of 1,200 (4.8% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 434 351 C 527 351 527 157.7 620 157.7 L 620 208.5 C 527 208.5 527 401.8 434 401.8 Z" fill="#6e8ca8" fill-opacity=".40" stroke="none">
+<path class="sm-fp" d="M 434 351 C 527 351 527 157.7 620 157.7 L 620 208.5 C 527 208.5 527 401.8 434 401.8 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q5_voted No -> q8_approve Strongly disapprove
 122 of 1,200 (10.2% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 434 401.8 C 527 401.8 527 273.3 620 273.3 L 620 329.3 C 527 329.3 527 457.6 434 457.6 Z" fill="#6e8ca8" fill-opacity=".40" stroke="none">
+<path class="sm-fp" d="M 434 401.8 C 527 401.8 527 273.3 620 273.3 L 620 329.3 C 527 329.3 527 457.6 434 457.6 Z" fill="#6e8ca8" fill-opacity=".78" stroke="#6e8ca8" stroke-width=".8">
 <title>q5_voted No -> q8_approve Somewhat disapprove
 134 of 1,200 (11.2% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 434 457.6 C 527 457.6 527 391.2 620 391.2 L 620 442.7 C 527 442.7 527 508.9 434 508.9 Z" fill="#6e8ca8" fill-opacity=".40" stroke="none">
+<path class="sm-fp" d="M 434 457.6 C 527 457.6 527 391.2 620 391.2 L 620 442.7 C 527 442.7 527 508.9 434 508.9 Z" fill="#6e8ca8" fill-opacity=".78" stroke="#6e8ca8" stroke-width=".8">
 <title>q5_voted No -> q8_approve Somewhat approve
 123 of 1,200 (10.2% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 434 508.9 C 527 508.9 527 503.3 620 503.3 L 620 547.2 C 527 547.2 527 552.6 434 552.6 Z" fill="#6e8ca8" fill-opacity=".40" stroke="none">
+<path class="sm-fp" d="M 434 508.9 C 527 508.9 527 503.3 620 503.3 L 620 547.2 C 527 547.2 527 552.6 434 552.6 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q5_voted No -> q8_approve other answers
 105 of 1,200 (8.8% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 434 552.6 C 527 552.6 527 580.1 620 580.1 L 620 600.4 C 527 600.4 527 573 434 573 Z" fill="#6e8ca8" fill-opacity=".22" stroke="none">
+<path class="sm-fp" d="M 434 552.6 C 527 552.6 527 580.1 620 580.1 L 620 600.4 C 527 600.4 527 573 434 573 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q5_voted No -> q8_approve no answer recorded
 49 of 1,200 (4.1% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 434 578 C 527 578 527 208.5 620 208.5 L 620 211 C 527 211 527 580.5 434 580.5 Z" fill="#e8e8e8" fill-opacity=".22" stroke="none">
+<path class="sm-fp" d="M 434 578 C 527 578 527 208.5 620 208.5 L 620 211 C 527 211 527 580.5 434 580.5 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q5_voted no answer recorded -> q8_approve Strongly disapprove
 6 of 1,200 (0.5% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 434 580.5 C 527 580.5 527 329.3 620 329.3 L 620 331 C 527 331 527 582.2 434 582.2 Z" fill="#e8e8e8" fill-opacity=".22" stroke="none">
+<path class="sm-fp" d="M 434 580.5 C 527 580.5 527 329.3 620 329.3 L 620 331 C 527 331 527 582.2 434 582.2 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q5_voted no answer recorded -> q8_approve Somewhat disapprove
 4 of 1,200 (0.3% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 434 582.2 C 527 582.2 527 442.7 620 442.7 L 620 446 C 527 446 527 585.5 434 585.5 Z" fill="#e8e8e8" fill-opacity=".22" stroke="none">
+<path class="sm-fp" d="M 434 582.2 C 527 582.2 527 442.7 620 442.7 L 620 446 C 527 446 527 585.5 434 585.5 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q5_voted no answer recorded -> q8_approve Somewhat approve
 8 of 1,200 (0.7% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 434 585.5 C 527 585.5 527 547.2 620 547.2 L 620 551 C 527 551 527 589.3000000000001 434 589.3000000000001 Z" fill="#e8e8e8" fill-opacity=".22" stroke="none">
+<path class="sm-fp" d="M 434 585.5 C 527 585.5 527 547.2 620 547.2 L 620 551 C 527 551 527 589.3000000000001 434 589.3000000000001 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q5_voted no answer recorded -> q8_approve other answers
 9 of 1,200 (0.8% of respondents in scope)
 </title></path>
-<path class="sm-fp" d="M 434 589.3000000000001 C 527 589.3000000000001 527 600.4 620 600.4 L 620 617 C 527 617 527 606 434 606 Z" fill="#e8e8e8" fill-opacity=".22" stroke="none">
+<path class="sm-fp" d="M 434 589.3000000000001 C 527 589.3000000000001 527 600.4 620 600.4 L 620 617 C 527 617 527 606 434 606 Z" fill="#d4d4d4" fill-opacity=".20" stroke="none">
 <title>q5_voted no answer recorded -> q8_approve no answer recorded
 40 of 1,200 (3.3% of respondents in scope)
 </title></path>
 <text x="14" y="20" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12.5" font-weight="bold" fill="#111">q1_consent</text>
 <text x="14" y="33" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="10" fill="#777">Consented to be interviewed</text>
-<rect x="14" y="96" width="16" height="484" fill="#39566e" rx="2">
+<rect x="14" y="96" width="16" height="484" fill="#39566e" rx="2" stroke="#1f2d3a" stroke-width="1.6">
 <title>q1_consent Yes
 1,161 of 1,200 (96.8% of respondents in scope)
 </title></rect>
@@ -189,12 +190,12 @@ h1 { font-size: 19px; margin: 0 0 2px 0; font-weight: 600; }
 <text x="35" y="596.5" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" fill="#222" style="paint-order: stroke; stroke: #ffffff; stroke-width: 3px;"><tspan font-weight="600">3.2%</tspan> No</text>
 <text x="216" y="20" font-family="SF Mono, Menlo, Consolas, DejaVu Sans Mono, monospace" font-size="12.5" font-weight="bold" fill="#111">q3_party</text>
 <text x="216" y="33" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="10" fill="#777">Party identification</text>
-<rect x="216" y="96" width="16" height="160" fill="#39566e" rx="2">
+<rect x="216" y="96" width="16" height="160" fill="#39566e" rx="2" stroke="#1f2d3a" stroke-width="1.6">
 <title>q3_party Democrat
 384 of 1,200 (32.0% of respondents in scope)
 </title></rect>
 <text x="237" y="179.5" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" fill="#222" style="paint-order: stroke; stroke: #ffffff; stroke-width: 3px;"><tspan font-weight="600">32.0%</tspan> Democrat</text>
-<rect x="216" y="261" width="16" height="147" fill="#6e8ca8" rx="2">
+<rect x="216" y="261" width="16" height="147" fill="#6e8ca8" rx="2" stroke="#1f2d3a" stroke-width="1.6">
 <title>q3_party Republican
 352 of 1,200 (29.3% of respondents in scope)
 </title></rect>
@@ -222,7 +223,7 @@ h1 { font-size: 19px; margin: 0 0 2px 0; font-weight: 600; }
 600 of 1,200 (50.0% of respondents in scope)
 </title></rect>
 <text x="439" y="224.5" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" fill="#222" style="paint-order: stroke; stroke: #ffffff; stroke-width: 3px;"><tspan font-weight="600">50.0%</tspan> Yes</text>
-<rect x="418" y="351" width="16" height="222" fill="#6e8ca8" rx="2">
+<rect x="418" y="351" width="16" height="222" fill="#6e8ca8" rx="2" stroke="#1f2d3a" stroke-width="1.6">
 <title>q5_voted No
 533 of 1,200 (44.4% of respondents in scope)
 </title></rect>
@@ -239,12 +240,12 @@ h1 { font-size: 19px; margin: 0 0 2px 0; font-weight: 600; }
 276 of 1,200 (23.0% of respondents in scope)
 </title></rect>
 <text x="641" y="157" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" fill="#222" style="paint-order: stroke; stroke: #ffffff; stroke-width: 3px;"><tspan font-weight="600">23.0%</tspan> Strongly disapprove</text>
-<rect x="620" y="216" width="16" height="115" fill="#6e8ca8" rx="2">
+<rect x="620" y="216" width="16" height="115" fill="#6e8ca8" rx="2" stroke="#1f2d3a" stroke-width="1.6">
 <title>q8_approve Somewhat disapprove
 275 of 1,200 (22.9% of respondents in scope)
 </title></rect>
 <text x="641" y="277" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" fill="#222" style="paint-order: stroke; stroke: #ffffff; stroke-width: 3px;"><tspan font-weight="600">22.9%</tspan> Somewhat disapprove</text>
-<rect x="620" y="336" width="16" height="110" fill="#a3b8cc" rx="2">
+<rect x="620" y="336" width="16" height="110" fill="#a3b8cc" rx="2" stroke="#1f2d3a" stroke-width="1.6">
 <title>q8_approve Somewhat approve
 263 of 1,200 (21.9% of respondents in scope)
 </title></rect>
@@ -263,8 +264,8 @@ h1 { font-size: 19px; margin: 0 0 2px 0; font-weight: 600; }
 </div>
 <p class="sm-read"><b>The most common full paths</b>, reading q1_consent &#8594; q3_party &#8594; q5_voted &#8594; q8_approve:</p>
 <table class="sm-ptbl"><tr><th>share</th><th>people</th><th>path</th></tr>
-<tr><td class="n">7.7%</td><td class="n">92</td><td>Yes &#8594; Republican &#8594; No &#8594; Somewhat approve</td></tr>
-<tr><td class="n">7.4%</td><td class="n">89</td><td>Yes &#8594; Democrat &#8594; No &#8594; Somewhat disapprove</td></tr>
+<tr class="hl"><td class="n">7.7%</td><td class="n">92</td><td>Yes &#8594; Republican &#8594; No &#8594; Somewhat approve</td></tr>
+<tr class="hl"><td class="n">7.4%</td><td class="n">89</td><td>Yes &#8594; Democrat &#8594; No &#8594; Somewhat disapprove</td></tr>
 <tr><td class="n">7.3%</td><td class="n">88</td><td>Yes &#8594; Democrat &#8594; Yes &#8594; Somewhat disapprove</td></tr>
 <tr><td class="n">7.0%</td><td class="n">84</td><td>Yes &#8594; Democrat &#8594; Yes &#8594; Strongly disapprove</td></tr>
 <tr><td class="n">6.8%</td><td class="n">82</td><td>Yes &#8594; Republican &#8594; Yes &#8594; Somewhat approve</td></tr>

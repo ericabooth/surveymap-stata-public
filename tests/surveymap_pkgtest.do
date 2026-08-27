@@ -1768,6 +1768,34 @@ sm_assert `=(_rc == 0)' "a complete-data run works"
 capture sm_fcount h26c.html "past the 3 most common"
 sm_assert `=(r(n) >= 1)' "and the guide still says the 3 most common"
 
+* highlight: pick out paths or one block; everything else fades
+capture use fake_a.dta, clear
+capture noisily surveymap paths q1_consent q3_party q5_voted, top(3) ///
+    highlight(paths 2) out(j26h.tsv) saving(h26h.html) noopen replace
+sm_assert `=(_rc == 0)' "highlight(paths 2) runs"
+capture sm_fcount h26h.html "highlighted:"
+sm_assert `=(r(n) >= 1)' "and the caption says what is highlighted"
+capture sm_fcount h26h.html "tr class="
+sm_assert `=(r(n) == 2)' "exactly the two picked paths print bold"
+capture sm_fcount h26h.html "#d4d4d4"
+sm_assert `=(r(n) >= 2)' "the other ribbons fade to grey"
+capture noisily surveymap paths q1_consent q3_party, top(2) ///
+    highlight(q3_party = 1) out(j26h2.tsv) saving(h26h2.html) noopen replace
+sm_assert `=(_rc == 0)' "highlight(var = value) runs"
+capture sm_fcount h26h2.html "#1f2d3a"
+sm_assert `=(r(n) == 1)' "and exactly one block gets the highlight stroke"
+capture noisily surveymap draw j26h.tsv, saving(h26h3.html) ///
+    highlight(paths 1) noopen replace
+sm_assert `=(_rc == 0)' "draw redraws a paths journal with a highlight"
+capture surveymap paths q1_consent q3_party, highlight(zz = 1) out(jx.tsv) replace
+sm_assert `=(_rc == 198)' "an unknown highlight item is refused"
+capture surveymap paths q1_consent q3_party, highlight(q3_party = 99) out(jx.tsv) replace
+sm_assert `=(_rc == 198)' "a value with no drawn block is refused"
+capture surveymap paths q1_consent q3_party, highlight(nonsense) out(jx.tsv) replace
+sm_assert `=(_rc == 198)' "an unreadable highlight() is refused"
+capture surveymap draw j2.tsv, highlight(paths 1) saving(hx.html) noopen replace
+sm_assert `=(_rc == 198)' "highlight() on a scan journal is refused"
+
 * refusals: each has to name the problem
 capture surveymap paths q1_consent, out(jx.tsv) replace
 sm_assert `=(_rc == 198)' "one item is refused"

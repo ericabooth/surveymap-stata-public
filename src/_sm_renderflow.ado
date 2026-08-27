@@ -1,4 +1,4 @@
-*! version 0.6.0  27aug2026  Eric Booth
+*! version 0.7.0  27aug2026  Eric Booth
 *! _sm_renderflow -- draw a paths journal (pnode/pflow/ppath rows) as a
 *! self-contained HTML page: one column per item, one block per common
 *! answer, ribbons between consecutive columns sized by the people who gave
@@ -15,7 +15,8 @@
 
 program define _sm_renderflow, sclass
     version 16
-    syntax using/, SAVing(string) [TITLe(string) NAME(string) EMBed replace]
+    syntax using/, SAVing(string) [TITLe(string) NAME(string) ///
+        HIGHlight(string) EMBed replace]
 
     sreturn clear
     local hf `"`saving'"'
@@ -149,6 +150,111 @@ program define _sm_renderflow, sclass
         exit 459
     }
 
+    * ---- what to highlight ----------------------------------------------
+    * Two forms.  highlight(paths #) picks out the # most common complete
+    * paths: their ribbons keep full colour while every other ribbon fades,
+    * and their table rows print bold.  highlight(var = value) picks out one
+    * answer block: the ribbons into and out of it stay, the rest fade.
+    local hlmode ""
+    if `"`highlight'"' != "" {
+        local hspec = strtrim(`"`highlight'"')
+        gettoken hw hrest : hspec, parse(" =")
+        local hwl = strlower(strtrim(`"`hw'"'))
+        if inlist("`hwl'", "path", "paths") {
+            local hrest = strtrim(`"`hrest'"')
+            if `"`hrest'"' == "" local hrest "1"
+            capture confirm integer number `hrest'
+            if _rc | `hrest' < 1 | `hrest' > 10 {
+                di as err "highlight(paths #): give a whole number from 1 to 10"
+                di as err "    highlight(paths 3) keeps the three most common complete paths"
+                exit 198
+            }
+            if "`NPATH'" == "" {
+                di as err "highlight(paths): this journal has no path table to pick from"
+                exit 459
+            }
+            local hlmode "paths"
+            local hln = min(`hrest', `NPATH')
+            local hlpct = 0
+            forvalues r = 1/`hln' {
+                if `"`sq_`r''"' == "" continue
+                local hlpct = `hlpct' + real(strtrim(`"`sp_`r''"'))
+                local rest `"`sq_`r''"'
+                local t = 0
+                local prev .
+                while `"`rest'"' != "" & `t' < `K' {
+                    local ++t
+                    local p = strpos(`"`rest'"', char(18))
+                    if `p' {
+                        local tok = substr(`"`rest'"', 1, `p' - 1)
+                        local rest = substr(`"`rest'"', `p' + 1, .)
+                    }
+                    else {
+                        local tok `"`rest'"'
+                        local rest ""
+                    }
+                    local s = real(`"`tok'"')
+                    if `s' >= . continue
+                    local HB_`t'_`s' = 1
+                    if `prev' < . local HF_`=`t'-1'_`prev'_`s' = 1
+                    local prev = `s'
+                }
+            }
+            local hlpct = string(`hlpct', "%9.1f")
+        }
+        else {
+            local eq = strpos(`"`hspec'"', "=")
+            if !`eq' {
+                di as err `"highlight(): could not read "`hspec'""'
+                di as err "    highlight(paths 3)  keeps the three most common complete paths"
+                di as err "    highlight(q2 = 1)   keeps the ribbons through one answer block"
+                exit 198
+            }
+            local hv   = strtrim(substr(`"`hspec'"', 1, `eq' - 1))
+            local hval = strtrim(substr(`"`hspec'"', `eq' + 1, .))
+            local t0 = 0
+            forvalues t = 1/`K' {
+                if `"`v_`t''"' == `"`hv'"' local t0 = `t'
+            }
+            if !`t0' {
+                di as err "highlight(): `hv' is not an item on this map"
+                local its ""
+                forvalues t = 1/`K' {
+                    local its "`its' `v_`t''"
+                }
+                di as err "    the items are:`its'"
+                exit 198
+            }
+            local s0 = 0
+            forvalues s = 1/`KM' {
+                if `"`vk_`t0'_`s''"' == "" continue
+                if real(`"`vk_`t0'_`s''"') == real(`"`hval'"') & real(`"`hval'"') < . {
+                    local s0 = `s'
+                }
+                if `"`vk_`t0'_`s''"' == "~o" & inlist(strlower(`"`hval'"'), "other", "~o") local s0 = `s'
+                if `"`vk_`t0'_`s''"' == "~m" & inlist(strlower(`"`hval'"'), "noanswer", "missing", "~m") local s0 = `s'
+            }
+            if !`s0' {
+                di as err "highlight(): `hv' has no drawn block for `hval'"
+                di as err "    it is pooled or absent; raise top(), or name a drawn"
+                di as err "    answer value, or use other / noanswer for the grey blocks"
+                exit 198
+            }
+            local hlmode "block"
+            local HB_`t0'_`s0' = 1
+            if `t0' < `K' {
+                forvalues b = 1/`KM' {
+                    local HF_`t0'_`s0'_`b' = 1
+                }
+            }
+            if `t0' > 1 {
+                forvalues a = 1/`KM' {
+                    local HF_`=`t0'-1'_`a'_`s0' = 1
+                }
+            }
+        }
+    }
+
     * ---- geometry --------------------------------------------------------
     * One vertical scale for every column: pixels per person.  Block heights
     * get a floor so a sliver stays visible; the floor inflates a column by
@@ -231,6 +337,7 @@ program define _sm_renderflow, sclass
     file write `h' `".`PFX' .sm-ptbl th { text-align: left; font-weight: 600; color: #555; padding: 3px 12px 3px 0; border-bottom: 1px solid #ddd; }"' _n
     file write `h' `".`PFX' .sm-ptbl td { padding: 3px 12px 3px 0; border-bottom: 1px solid #f0f0f0; }"' _n
     file write `h' `".`PFX' .sm-ptbl td.n { text-align: right; font-variant-numeric: tabular-nums; }"' _n
+    file write `h' `".`PFX' .sm-ptbl tr.hl td { font-weight: 600; }"' _n
     file write `h' `"</style>"' _n
     if "`embed'" == "" {
         file write `h' `"</head>"' _n
@@ -249,6 +356,15 @@ program define _sm_renderflow, sclass
         file write `h' `"<p class="sm-cap"><b>scope:</b> only respondents where `s(o)' &#183; every count and share on this page describes that group</p>"' _n
     }
     file write `h' `"<p class="sm-leg">a column is one item; a block is one answer, sized by how many gave it; a ribbon joins two answers on consecutive items, sized by how many gave both; hover anything for exact counts</p>"' _n
+    if "`hlmode'" == "paths" {
+        local hlw "the `hln' most common complete paths, together"
+        if `hln' == 1 local hlw "the most common complete path,"
+        file write `h' `"<p class="sm-cap"><b>highlighted:</b> `hlw' `=strtrim("`hlpct'")'% of respondents; every other ribbon is faded, and the picked paths print bold in the table below</p>"' _n
+    }
+    if "`hlmode'" == "block" {
+        _srf_map `"`dk_`t0'_`s0''"'
+        file write `h' `"<p class="sm-cap"><b>highlighted:</b> the ribbons into and out of `hv' = `s(o)'; every other ribbon is faded</p>"' _n
+    }
 
     file write `h' `"<div class="sm-wrap">"' _n
     file write `h' `"<svg class="sm-svg" viewBox="0 0 `W' `H'" width="`W'" height="`H'" xmlns="http://www.w3.org/2000/svg" role="img">"' _n
@@ -287,7 +403,21 @@ program define _sm_renderflow, sclass
                 local col "`s(o)'"
                 local op ".40"
                 if `a' == `KM' | `b' == `KM' local op ".22"
-                file write `h' `"<path class="sm-fp" d="M `xa' `ya' C `xm' `ya' `xm' `yb' `xb' `yb' L `xb' `yb2' C `xm' `yb2' `xm' `ya2' `xa' `ya2' Z" fill="`col'" fill-opacity="`op'" stroke="none">"' _n
+                local strk "none"
+                local sw ""
+                if "`hlmode'" != "" {
+                    * a highlight fades everything it does not pick out
+                    if "`HF_`t'_`a'_`b''" == "1" {
+                        local op ".78"
+                        local strk "`col'"
+                        local sw `" stroke-width=".8""'
+                    }
+                    else {
+                        local col "#d4d4d4"
+                        local op ".20"
+                    }
+                }
+                file write `h' `"<path class="sm-fp" d="M `xa' `ya' C `xm' `ya' `xm' `yb' `xb' `yb' L `xb' `yb2' C `xm' `yb2' `xm' `ya2' `xa' `ya2' Z" fill="`col'" fill-opacity="`op'" stroke="`strk'"`sw'>"' _n
                 file write `h' `"<title>"'
                 _srf_n "`n'"
                 local nf "`s(o)'"
@@ -318,7 +448,11 @@ program define _sm_renderflow, sclass
             local hh = `gh_`t'_`s''
             _srf_color `s' `topk'
             local col "`s(o)'"
-            file write `h' `"<rect x="`x'" y="`y'" width="`NW'" height="`hh'" fill="`col'" rx="2">"' _n
+            local bstrk ""
+            if "`HB_`t'_`s''" == "1" {
+                local bstrk `" stroke="#1f2d3a" stroke-width="1.6""'
+            }
+            file write `h' `"<rect x="`x'" y="`y'" width="`NW'" height="`hh'" fill="`col'" rx="2"`bstrk'>"' _n
             file write `h' `"<title>"'
             _srf_n "`nk_`t'_`s''"
             local nf "`s(o)'"
@@ -377,7 +511,11 @@ program define _sm_renderflow, sclass
             _srf_n `"`sn_`r''"'
             local nf "`s(o)'"
             local pc = strtrim(`"`sp_`r''"')
-            file write `h' `"<tr><td class="n">`pc'%</td><td class="n">`nf'</td><td>`cells'</td></tr>"' _n
+            local trc ""
+            if "`hlmode'" == "paths" {
+                if `r' <= `hln' local trc `" class="hl""'
+            }
+            file write `h' `"<tr`trc'><td class="n">`pc'%</td><td class="n">`nf'</td><td>`cells'</td></tr>"' _n
         }
         file write `h' `"</table>"' _n
     }
