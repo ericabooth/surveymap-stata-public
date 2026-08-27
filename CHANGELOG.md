@@ -2,6 +2,53 @@
 
 All notable changes to surveymap. Dates are the day the work landed locally.
 
+## 0.6.0 - 2026-08-27
+
+### Added
+
+- **`surveymap paths`, the response-flow view.** The flow map follows the
+  routing, so an instrument with little skip logic draws as a straight
+  line however the boxes are annotated. This view follows the answers:
+  every item becomes a column, each of its `top(k)` most common answers a
+  block, and a ribbon between two blocks carries the respondents who gave
+  both answers on consecutive items, so the survey reads as a braid that
+  splits and merges at every item. Under the figure, a table of the ten
+  most common complete paths, end to end. `surveymap paths d3a q1 q2 q3,
+  top(3) out(flows.tsv) saving(flows.html)`; `if`/`in` and a `pweight`
+  work as in the scan, and the scope is stated on the page.
+- Three new journal classes, `pnode`, `pflow` and `ppath` (see
+  JOURNAL_SCHEMA.md). The arithmetic is conserved and checked: every
+  column partitions the scope, the ribbons out of a block partition the
+  block, and the battery asserts both from the journal.
+- `surveymap draw` on a paths journal routes to the flow renderer, and
+  refuses non-html exports with a message instead of drawing the wrong
+  map.
+- The missing state is labelled `no answer recorded`, not `no answer`:
+  for an item the routing skipped, most of that block was never asked,
+  and item data cannot tell a decline from a skip. The footer says so.
+
+### Fixed
+
+- The install layout. Stata resolves an ado under PLUS by its first
+  character, so the `_sm_` helpers install under `plus/_/` while
+  `surveymap.ado` installs under `plus/s/`; a sync that copied everything
+  to `plus/s/` was a silent no-op for every helper and left a stale
+  renderer loading. TRAPS 32 and 33 record this and the related discovery
+  that one ado file's subprograms are not callable from another ado file.
+- Answer values are compared against the tabulation matrix element, never
+  a macro copy of it: a macro keeps 16 significant digits and a float
+  code like `.1` needs 17 to round-trip, so the macro copy matched nobody
+  and such codes silently pooled into `other answers`. Fixed in `paths`
+  and in the `responses()` rows, and pinned in the battery with a
+  float-coded item (TRAPS 34).
+
+### Testing
+
+- 354 checks, passing on Stata 16.1 and 19.5. Block 26 covers the
+  conservation invariants, the full-path table, scope round-trip,
+  weighted totals, draw routing, and four refusals (one item, `top(9)`,
+  a 30-plus-value item, a string item).
+
 ## 0.5.0 - 2026-08-27
 
 ### Added

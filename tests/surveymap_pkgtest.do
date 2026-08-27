@@ -199,6 +199,24 @@ program define sm_fcount, rclass
     return scalar n = `n'
 end
 
+* count lines containing the character with this ASCII code.  For needles a
+* macro cannot carry (a backtick starts an expansion the moment it crosses
+* a macro boundary), the code number travels instead and the character is
+* built inside the program.
+program define sm_fcode, rclass
+    args f code
+    tempname fh
+    local n = 0
+    file open `fh' using `"`f'"', read text
+    file read `fh' line
+    while r(eof) == 0 {
+        if strpos(`"`macval(line)'"', char(`code')) local ++n
+        file read `fh' line
+    }
+    file close `fh'
+    return scalar n = `n'
+end
+
 * is there a line containing BOTH needles? (e.g. <title> plus the map's name)
 program define sm_flinehas, rclass
     args f n1 n2
@@ -1616,6 +1634,149 @@ capture noisily surveymap draw j25b.tsv, export(html) saving(h25b.html) replace
 sm_assert `=(_rc == 0)' "and the branched map draws"
 capture noisily surveymap export j25b.tsv, saving(x25.xlsx) replace
 sm_assert `=(_rc == 0)' "the tracker tolerates the new rows"
+
+* ---- block 26: surveymap paths, the response-flow view ----------------------
+* The braid is only honest if its arithmetic conserves people: every column
+* partitions the scope, every ribbon bundle partitions its block, and the
+* full-sequence table partitions the scope again.  Each is checked from the
+* journal, not from the drawing.
+capture use fake_a.dta, clear
+capture noisily surveymap paths q1_consent q3_party q5_voted, top(3) ///
+    out(j26.tsv) saving(h26.html) noopen replace
+sm_assert `=(_rc == 0)' "paths runs on three items"
+sm_assert `=(r(N) > 0 & r(K_items) == 3)' "and returns N and K_items"
+local N26 = r(N)
+
+preserve
+capture import delimited using j26.tsv, delimiter(tab) varnames(1) ///
+    stringcols(_all) encoding("utf-8") clear
+sm_assert `=(_rc == 0)' "the paths journal reads back"
+capture destring n_asked, gen(nn) force
+local ok = 1
+forvalues t = 1/3 {
+    quietly su nn if class == "pnode" & position == "`t'"
+    if r(sum) != `N26' local ok = 0
+}
+sm_assert `ok' "every pnode column sums to the scope count"
+local ok = 1
+forvalues t = 1/2 {
+    quietly su nn if class == "pflow" & position == "`t'"
+    if r(sum) != `N26' local ok = 0
+}
+sm_assert `ok' "every pflow layer sums to the scope count"
+local ok = 1
+forvalues t = 1/2 {
+    forvalues a = 1/5 {
+        quietly su nn if class == "pnode" & position == "`t'" & gate == "`a'"
+        local node = r(sum)
+        quietly su nn if class == "pflow" & position == "`t'" & gate == "`a'"
+        if r(sum) != `node' local ok = 0
+    }
+}
+sm_assert `ok' "the ribbons out of each block partition the block"
+quietly count if class == "ppath"
+local np = r(N)
+sm_assert `=(`np' >= 1 & `np' <= 10)' "one to ten full sequences are journaled"
+quietly su nn if class == "ppath"
+sm_assert `=(r(sum) <= `N26')' "sequence counts never exceed the scope"
+restore
+
+capture sm_fcount h26.html "most common full paths"
+sm_assert `=(r(n) >= 1)' "the page lists the most common full paths"
+capture sm_fcount h26.html "How to read this map"
+sm_assert `=(r(n) >= 1)' "the page explains how to read itself"
+capture sm_fcount h26.html "sm-fp"
+sm_assert `=(r(n) >= 2)' "ribbons are drawn"
+capture sm_fcount h26.html "no answer recorded"
+sm_assert `=(r(n) >= 1)' "the missing state says recorded, not just no answer"
+* a backtick needle cannot pass through macro expansion intact, so the
+* delimiter-leak check counts character code 96 instead (sm_fcode)
+capture sm_fcode h26.html 96
+sm_assert `=(_rc == 0 & r(n) == 0)' "no compound-quote delimiters leak into the tooltips"
+
+* draw on a paths journal routes to the flow renderer, html only
+capture noisily surveymap draw j26.tsv, export(html) saving(h26b.html) noopen replace
+sm_assert `=(_rc == 0)' "surveymap draw redraws a paths journal"
+capture sm_fcount h26b.html "sm-fp"
+sm_assert `=(r(n) >= 2)' "and the redraw is the flow map, not the routing map"
+capture surveymap draw j26.tsv, export(mermaid) saving(m26) replace
+sm_assert `=(_rc == 198)' "a paths journal refuses a mermaid export"
+
+* scope travels to the page
+capture noisily surveymap paths q1_consent q3_party if q2_age > 40, top(2) ///
+    out(j26s.tsv) saving(h26s.html) noopen replace
+sm_assert `=(_rc == 0)' "a scoped paths run works"
+capture sm_flinehas h26s.html "only respondents where" "q2_age &gt; 40"
+sm_assert `=(r(hit) == 1)' "and the page states the scope"
+
+* weighted runs conserve the weighted total too
+quietly gen double w26 = cond(q3_party == 1, 1.4, 0.8)
+capture noisily surveymap paths q1_consent q3_party [pw=w26], top(2) ///
+    out(j26w.tsv) saving(h26w.html) noopen replace
+sm_assert `=(_rc == 0)' "a weighted paths run works"
+preserve
+quietly import delimited using j26w.tsv, delimiter(tab) varnames(1) ///
+    stringcols(_all) encoding("utf-8") clear
+quietly destring w_asked, gen(ww) force
+quietly su ww if class == "survey"
+local wtot = r(sum)
+quietly su ww if class == "pnode" & position == "1"
+sm_assert `=(abs(r(sum) - `wtot') < .01)' "weighted pnode counts sum to the weighted scope"
+restore
+
+* float answer codes: a macro copy of a tabulated value keeps 16 digits and
+* .1 needs 17, so a macro-based compare pools every such respondent into
+* "other" silently (TRAPS 34).  The named blocks must hold real counts.
+capture use fake_a.dta, clear
+quietly gen float f26 = cond(q3_party == 1, .1, cond(q3_party == 2, .2, .3))
+quietly gen double w26 = cond(q3_party == 1, 1.4, 0.8)
+capture noisily surveymap paths f26 q1_consent, top(3) ///
+    out(j26f.tsv) saving(h26f.html) noopen replace
+sm_assert `=(_rc == 0)' "float-coded answers run"
+preserve
+quietly import delimited using j26f.tsv, delimiter(tab) varnames(1) ///
+    stringcols(_all) encoding("utf-8") clear
+quietly destring n_asked, gen(nn) force
+quietly su nn if class == "pnode" & position == "1" & value != "~o" & value != "~m"
+local named = r(sum)
+quietly su nn if class == "pnode" & position == "1" & value == "~o"
+local other = r(sum)
+restore
+sm_assert `=(`named' > 0)' "float codes land in their named blocks"
+sm_assert `=(`other' == 0)' "and none of them pool into other answers"
+* the responses() rows share the fix: the weighted count uses the same compare
+capture noisily surveymap f26 q1_consent [pw=w26], responses(3) noautodetect ///
+    out(j26f2.tsv) noreceipt replace
+sm_assert `=(_rc == 0)' "responses() accepts the float-coded item"
+preserve
+quietly import delimited using j26f2.tsv, delimiter(tab) varnames(1) ///
+    stringcols(_all) encoding("utf-8") clear
+quietly destring w_asked, gen(ww) force
+quietly su ww if class == "resp" & var == "f26"
+local wf = r(sum)
+restore
+sm_assert `=(`wf' > 0)' "and its weighted response counts are nonzero"
+
+* complete data: the no-answer slot is never journaled, and the renderer
+* must read top from the survey row rather than inferring it from the
+* occupied slots, or every colour and the guide text shift by one
+capture use fake_a.dta, clear
+quietly keep if !missing(q3_party) & !missing(q5_voted)
+capture noisily surveymap paths q3_party q5_voted, top(3) ///
+    out(j26c.tsv) saving(h26c.html) noopen replace
+sm_assert `=(_rc == 0)' "a complete-data run works"
+capture sm_fcount h26c.html "past the 3 most common"
+sm_assert `=(r(n) >= 1)' "and the guide still says the 3 most common"
+
+* refusals: each has to name the problem
+capture surveymap paths q1_consent, out(jx.tsv) replace
+sm_assert `=(_rc == 198)' "one item is refused"
+capture surveymap paths q1_consent q3_party, top(9) out(jx.tsv) replace
+sm_assert `=(_rc == 198)' "top(9) is refused"
+capture surveymap paths q1_consent resp_id, out(jx.tsv) replace
+sm_assert `=(_rc == 198)' "an item past 30 distinct answers is refused"
+capture surveymap paths q1_consent st, out(jx.tsv) replace
+sm_assert `=(_rc == 198)' "a string item is refused"
 
 * ---------------------------------------------------------------- summary ----
 display as text _n "{hline 78}"
