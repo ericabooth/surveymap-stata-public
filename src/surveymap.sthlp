@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 0.5.0  27aug2026  Eric Booth}{...}
+{* *! version 0.6.0  27aug2026  Eric Booth}{...}
 {vieweralsosee "datadictionary" "help datadictionary"}{...}
 {vieweralsosee "mergemap" "help mergemap"}{...}
 {vieweralsosee "tabulate" "help tabulate"}{...}
@@ -80,6 +80,11 @@ opens in any browser with no internet connection.{p_end}
 {cmd:pweight}s are allowed; see {help surveymap##weights:Weights}.{p_end}
 
 {p 8 17 2}
+{cmd:surveymap paths} {varlist} {ifin} {weight} [{cmd:,} {opt top(#)}
+{opt out(filename)} {opt sav:ing(filename)} {opt titl:e(text)}
+{opt nodr:aw} {opt noop:en} {opt replace}]
+
+{p 8 17 2}
 {cmd:surveymap draw} [{it:journalfile}] [{cmd:,} {opt exp:ort(html|mermaid|png|svg)}
 {opt lay:out(horizontal|vertical)} {opt sav:ing(filename)} {opt prune(#)}
 {opt minn(#)} {opt maxc:ats(#)} {opt noprune} {opt name(text)} {opt embed}
@@ -156,37 +161,53 @@ touching the data again.{p_end}
 
 
 {marker start}{...}
-{title:Three ways to start a map}
+{title:Where to start a map}
 
 {pstd}
 A survey with little skip logic draws as a single line of boxes, which answers
-who was asked what and nothing else. Three starting points turn that line into
-a path a reader can follow, and they combine freely.{p_end}
+who was asked what and nothing else. The starting points below turn that line
+into paths a reader can follow, and they combine freely.{p_end}
 
 {pstd}
-{bf:1. The line with its splits.} {opt responses(#)} adds each item's {it:#}
-most common answers to its box, drawn as share bars, with the rest pooled into
-{bf:other answers} and the declined share on its own row. The denominator is
-the people the item was put to (answered plus declined), so the rows inside a
-box account for everyone who saw the question. Items with more than 30
-distinct values (age in years) are skipped with a note: band them with
-{cmd:branch(age = cut(...))} instead. String items are skipped.{p_end}
+{bf:The response braid.} {cmd:surveymap paths} follows the answers instead of
+the routing: every item in the list becomes a column, each of its {opt top(#)}
+most common answers a block, and a ribbon between two blocks carries the
+respondents who gave both answers on consecutive items, so the survey reads
+left to right as a braid that splits and merges at every item. The remaining
+answers pool into {bf:other answers}, and {bf:no answer recorded} holds
+everyone with nothing on the item, including anyone the routing never showed
+it. Every respondent in scope sits in exactly one block of every column, so
+each column adds back to the sample. Under the figure, a table of the ten
+most common complete paths, end to end. See
+{help surveymap##paths:The paths subcommand}.{p_end}
+
+{phang2}{cmd:. surveymap paths d3a q1 q2 q3, top(3) out(flows.tsv) saving(flows.html)}{p_end}
+
+{pstd}
+{bf:The spine with its splits.} {opt responses(#)} adds each item's {it:#}
+most common answers to its box on the routing map, drawn as share bars, with
+the rest pooled into {bf:other answers} and the declined share on its own
+row. The denominator is the people the item was put to (answered plus
+declined), so the rows inside a box account for everyone who saw the
+question. Items with more than 30 distinct values (age in years) are skipped
+with a note: band them with {cmd:branch(age = cut(...))} instead. String
+items are skipped.{p_end}
 
 {phang2}{cmd:. surveymap, responses(3)}{p_end}
 
 {pstd}
-{bf:2. One subgroup's path.} An {cmd:if} or {cmd:in} restriction traces the
-respondents it selects through the whole questionnaire, and the page says so:
-the journal records the expression, and the map opens with
-{bf:scope: only respondents where ...} so nobody mistakes whose path it
-shows.{p_end}
+{bf:One subgroup's path.} An {cmd:if} or {cmd:in} restriction traces the
+respondents it selects through the questionnaire, on the paths view or the
+scan, and the page says so: the journal records the expression, and the map
+opens with {bf:scope: only respondents where ...} so nobody mistakes whose
+path it shows.{p_end}
 
-{phang2}{cmd:. surveymap if inlist(party, 2, 3) & age > 40, responses(3)}{p_end}
+{phang2}{cmd:. surveymap paths q1 q2 q3 if inlist(party, 2, 3) & age > 40}{p_end}
 
 {pstd}
-{bf:3. The outlier paths.} {opt profile()} splits the map by what respondents
-did rather than what they answered: the share of asked items they declined,
-refused, or answered don't know, and where they stopped. See
+{bf:The outlier paths.} {opt profile()} splits the routing map by what
+respondents did rather than what they answered: the share of asked items they
+declined, refused, or answered don't know, and where they stopped. See
 {help surveymap##profile:Splitting by what the respondent did}.{p_end}
 
 {phang2}{cmd:. surveymap, profile(declined)}{p_end}
@@ -196,6 +217,38 @@ Response rows are drawn on the spine and in the mermaid nodes; inside a gate's
 lanes the cells stay compact and keep their answer rates only. Every HTML page
 also carries {bf:How to read this map, step by step}, written with the
 survey's own item and gate names.{p_end}
+
+
+{marker paths}{...}
+{title:The paths subcommand}
+
+{pstd}
+{cmd:surveymap paths} {varlist} {ifin} [{cmd:[pweight=}{it:w}{cmd:]}]
+[{cmd:,} {opt top(#)} {opt out(filename)} {opt sav:ing(filename)}
+{opt titl:e(text)} {opt nodr:aw} {opt noop:en} {opt replace}]{p_end}
+
+{pstd}
+Give two to twelve numeric items in the order the questionnaire asks them.
+Each item is cut into {opt top(#)} named answers (ranked by count, default 3,
+at most 6), a pooled {bf:other answers} block, and {bf:no answer recorded}.
+The command writes a journal ({opt out()}, default
+{cmd:surveymap_paths.tsv}) and draws the HTML page ({opt saving()}, default
+{cmd:surveymap_paths.html}) in one step; {opt nodraw} writes the journal
+only, and {cmd:surveymap draw} redraws a paths journal later without
+rescanning. A paths journal draws as HTML only.{p_end}
+
+{pstd}
+An item with more than 30 distinct answers is refused with a message: band
+it first ({cmd:egen} {it:newvar} {cmd:= cut(}{it:var}{cmd:), at(...)}) and
+map the banded variable. String items are refused: {cmd:encode} them first.
+With a {cmd:pweight}, weighted counts are journaled alongside; the drawing
+reports unweighted counts, because a route through a questionnaire is a
+property of the fieldwork rather than of the population.{p_end}
+
+{pstd}
+Stored results: {cmd:r(N)} respondents in scope, {cmd:r(K_items)} items,
+{cmd:r(n_sequences)} distinct complete answer sequences, {cmd:r(journal)}
+and {cmd:r(output)} the files written.{p_end}
 
 
 {marker receipt}{...}
@@ -875,7 +928,7 @@ name, so a lookup across sheets takes one formula.{p_end}
 {synopt :{opt ex:clude(varlist)}}columns to leave out: ids, sample frame, admin{p_end}
 {synopt :{opt nostrings}}leave the string columns out, which are usually verbatims{p_end}
 {synopt :{opt ver:ify(filename)}}check the routing found against a declared skip-logic table{p_end}
-{synopt :{opt resp:onses(#)}}show each item's {it:#} most common answers inside its box; see {help surveymap##start:Three ways to start a map}{p_end}
+{synopt :{opt resp:onses(#)}}show each item's {it:#} most common answers inside its box; see {help surveymap##start:Where to start a map}{p_end}
 {synopt :{opt det:ect(# #)}}the two routing thresholds; default {cmd:2 50}{p_end}
 {synopt :{opt noautodetect}}do not look for gates; draw only the ones named in {opt branch()}{p_end}
 {synopt :{opt noreceipt}}skip the receipt table{p_end}

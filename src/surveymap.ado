@@ -1,4 +1,4 @@
-*! version 0.5.0  27aug2026  Eric Booth
+*! version 0.6.0  27aug2026  Eric Booth
 *! surveymap: map how respondents moved through a survey
 *!
 *! The data in memory are a survey: one row per respondent, one column per
@@ -14,7 +14,7 @@
 *! The receipt says so once, because an item that a category happened not to
 *! answer looks the same in the data.
 *!
-*! Subcommands: (bare) = scan, draw, export, receipt, demo, clear.
+*! Subcommands: (bare) = scan, paths, draw, band, export, receipt, demo, clear.
 *! See proto/JOURNAL_SCHEMA.md for the 20-column journal contract.
 
 program define surveymap, rclass
@@ -24,7 +24,7 @@ program define surveymap, rclass
     gettoken sub rest : 0, parse(" ,")
     local sub = strtrim(`"`sub'"')
     if `"`sub'"' == "scan" local 0 `"`rest'"'
-    else if inlist(`"`sub'"', "draw", "band", "export", "receipt", "demo", "clear") {
+    else if inlist(`"`sub'"', "draw", "band", "paths", "export", "receipt", "demo", "clear") {
         * pass the rest of the line through untouched: never rebuild an
         * option list with a leading comma and then append it after another
         if `"`sub'"' == "draw" {
@@ -60,6 +60,17 @@ program define surveymap, rclass
             }
             confirm file `"`bfile'"'
             _sm_renderband using `"`bfile'"' `brest'
+            return add
+            exit
+        }
+        if `"`sub'"' == "paths" {
+            capture which _sm_paths
+            if _rc {
+                di as err "surveymap paths needs _sm_paths.ado, which is not installed."
+                di as err "    Reinstall the package to get the response-flow view."
+                exit 601
+            }
+            _sm_paths `rest'
             return add
             exit
         }
@@ -892,7 +903,6 @@ program define surveymap, rclass
             local nr = r(r)
             * rank the values by count so the top responses(k) stay unpooled
             forvalues i = 1/`nr' {
-                local rv`i' = `RR'[`i', 1]
                 local rn`i' = `RF'[`i', 1]
             }
             forvalues i = 1/`nr' {
@@ -905,21 +915,27 @@ program define surveymap, rclass
             }
             frame _smwork: local rvl : value label `v'
             forvalues i = 1/`nr' {
+                * value comparisons and text go through the matrix element,
+                * never a macro copy: a macro keeps 16 digits and a float
+                * code like .1 needs 17 to round-trip (TRAPS 34)
+                local vtxt = strofreal(`RR'[`i', 1], "%12.0g")
                 local dec ""
-                if `"`rvl'"' != "" {
-                    frame _smwork: local dec : label `rvl' `rv`i'', strict
+                if `"`rvl'"' != "" & `RR'[`i', 1] == int(`RR'[`i', 1]) ///
+                    & abs(`RR'[`i', 1]) < 2147483620 {
+                    local iv = int(`RR'[`i', 1])
+                    frame _smwork: capture local dec : label `rvl' `iv', strict
                 }
-                if `"`dec'"' == "" local dec "`rv`i''"
+                if `"`dec'"' == "" local dec "`vtxt'"
                 local pooled "."
                 if `rk`i'' > `responses' local pooled "1"
                 local pct = string(100 * `rn`i'' / `shown', "%9.1f")
                 frame _smwork {
-                    _sm_wsum "`wvar'" `"`v' == `rv`i''"'
+                    _sm_wsum "`wvar'" `"`v' == `RR'[`i', 1]"'
                     local wrn "`s(o)'"
                 }
                 local ++seq
                 _sm_wrow `JH' `seq' resp `"`v'"' `p_`v'' `"`dec'"'          ///
-                    `"`rv`i''"' `"`v'"' `rn`i'' "." "." "." `"`pct'"' "."   ///
+                    `"`vtxt'"' `"`v'"' `rn`i'' "." "." "." `"`pct'"' "."   ///
                     "." "." "." `"`pooled'"' "." note "." `"`wrn'"' "." "."
             }
         }

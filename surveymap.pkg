@@ -32,6 +32,8 @@ f src/_sm_export.ado
 f src/_sm_isabs.ado
 f src/_sm_jprune.ado
 f src/_sm_open.ado
+f src/_sm_paths.ado
+f src/_sm_renderflow.ado
 f src/_sm_renderhtml.ado
 f src/_sm_rendertext.ado
 f src/_sm_rendertw.ado

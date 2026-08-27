@@ -63,6 +63,22 @@ as zero.
   response shares, its pooled remainder and its declined share add to 100.
   ALL values are journaled and `pooled` marks the ones ranked below the
   scan's `responses(k)`, mirroring the `cat` convention: the reader folds.
+- `pnode` (v0.6.0, written by `surveymap paths` only): one block of the
+  response braid. `var`/`position` name the item, `gate` is the slot
+  (1..k = the top(k) answers in rank order, k+1 = other answers pooled,
+  k+2 = no answer recorded), `value` is the answer's code (`~o` and `~m`
+  for the two derived slots), `vallabel` its label, `n_asked` the count and
+  `pct_answered` its share of the scope. The slots partition the scope, so
+  a column's pnode counts sum to the survey row's `n_asked` exactly.
+- `pflow` (v0.6.0, paths only): one ribbon. `var`/`value`/`vallabel` are
+  the from-answer, `gatevar`/`gated_by` the to-item and to-answer, `gate`
+  the from slot, `rate` the to slot, `position` the from item's position,
+  `n_asked` the joint count. The flows out of a block partition it, and a
+  layer's flows sum to the scope.
+- `ppath` (v0.6.0, paths only): one complete answer sequence, the ten most
+  common. `value` is the slot codes joined by `>` (decode against the
+  pnode rows), `gate` the rank, `n_asked` the count, `pct_answered` the
+  share of the scope.
 - `note`: anything worth keeping that is not a row above (auto-detection
   summary, pooling notice past the hard cap, string gates declined).
 

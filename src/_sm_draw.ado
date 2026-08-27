@@ -1,4 +1,4 @@
-*! version 0.5.0  27aug2026  Eric Booth
+*! version 0.6.0  27aug2026  Eric Booth
 *! _sm_draw -- dispatcher behind -surveymap draw-.  Resolves which journal to
 *! draw, picks the renderer from export(), applies the read-time prune rules,
 *! and handles the open-in-browser courtesy for HTML output.
@@ -65,6 +65,48 @@ program define _sm_draw, rclass
     if !inlist("`layout'", "horizontal", "vertical") {
         di as err "surveymap draw: layout() must be horizontal or vertical"
         exit 198
+    }
+
+    * ---- a paths journal draws with the flow renderer -------------------
+    * pnode rows mark a journal -surveymap paths- wrote; its map is the
+    * response braid, which only the html renderer draws
+    local ispaths = 0
+    tempname PJ
+    frame create `PJ'
+    frame `PJ' {
+        capture quietly import delimited using `"`jfile'"', delimiter(tab) ///
+            varnames(1) stringcols(_all) encoding("utf-8") clear
+        capture confirm variable class
+        if !_rc {
+            quietly count if class == "pnode"
+            if r(N) > 0 local ispaths = 1
+        }
+    }
+    frame drop `PJ'
+    if `ispaths' {
+        if "`export'" != "html" {
+            di as err "surveymap draw: a paths journal draws as html only"
+            di as err "    surveymap draw `jfile', export(html) saving(...)"
+            exit 198
+        }
+        local hf `"`saving'"'
+        if `"`hf'"' == "" local hf "surveymap_paths.html"
+        if strlower(substr(`"`hf'"', -5, .)) != ".html" local hf `"`hf'.html"'
+        local no ""
+        if `"`name'"' != "" local no `"name(`name')"'
+        _sm_renderflow using `"`jfile'"', saving(`"`hf'"') `no' `embed' `replace'
+        return local journal `"`jfile'"'
+        return local output `"`s(out)'"'
+        local abs `"`hf'"'
+        _sm_isabs `"`abs'"'
+        if !r(abs) local abs `"`c(pwd)'/`hf'"'
+        global SM_LASTOUT `"`abs'"'
+        di as txt `"    {stata _sm_open:Open the map in your browser}"'
+        di as txt `"    `abs'"'
+        if "`noopen'" == "" & "`c(mode)'" != "batch" & "`c(console)'" == "" {
+            capture _sm_open
+        }
+        exit
     }
 
     * ---- prune the journal before any renderer sees it ------------------

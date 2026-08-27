@@ -111,3 +111,22 @@
     battery itself crash-truncated at the first flags string carrying
     "item's", silently reporting only the checks before the crash.  Check the
     completion banner, not just the FAIL count.
+32. Stata resolves an ado under PLUS by its FIRST character: surveymap.ado
+    in plus/s/, but _sm_paths.ado in plus/_/.  Copying helpers into plus/s/
+    is a silent no-op -- which surveymap finds the new main file while every
+    _sm_ helper keeps loading stale from plus/_/.  Bit for real: a "synced"
+    install kept rendering with a pre-0.4.6 _sm_renderhtml.  Sync underscore
+    files to plus/_/, and verify with  which _sm_paths  not with  ls.
+33. Subprograms defined inside surveymap.ado are NOT callable from another
+    ado file, even while surveymap is loaded (empirical: program list says
+    not found).  A helper .ado that needs _sm_wrow or _sm_wsum carries its
+    own copy (_smp_wrow in _sm_paths.ado, _srf_ helpers in
+    _sm_renderflow.ado).
+34. Never compare data against a MACRO copy of a tabulated value.  -local
+    rv = R[1,1]- keeps 16 significant digits; a float code like .1 needs
+    17 to round-trip, so -if v == `rv'- matches NOBODY and every .1/.2/.3
+    respondent silently pools into "other" with rc 0.  Compare against the
+    matrix element directly (v == R[1,1] evaluates exactly, and matrices
+    are visible inside frame prefixes); derive display text with
+    strofreal(R[1,1], "%12.0g").  Found by the adversarial review, not by
+    the conservation invariant, which the misclassification satisfies.

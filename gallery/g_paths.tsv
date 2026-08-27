@@ -1,0 +1,67 @@
+seq	class	var	position	vallabel	value	gatevar	n_asked	n_answered	n_nonresp	n_sysmiss	pct_answered	rate	status	gate	gated_by	pooled	type	severity	flags	w_asked	w_answered	pct_answered_w
+1	survey	.	4	.	.	.	1200	.	.	.	.	.	.	.	.	.	.	note	paths: top=3; each column partitions the scope into named answers, other answers, no answer; denominator = respondents in scope; 52 distinct full sequences	.	.	.
+2	item	q1_consent	1	Consented to be interviewed	.	.	1200	1200	0	0	100.0	.	open	0	.	.	.	note	.	.	.	.
+3	item	q3_party	2	Party identification	.	.	1200	1074	126	0	89.5	.	open	0	.	.	.	note	.	.	.	.
+4	item	q5_voted	3	Voted in the 2024 general election	.	.	1200	1133	67	0	94.4	.	open	0	.	.	.	note	.	.	.	.
+5	item	q8_approve	4	Approval of the governor	.	.	1200	1053	147	0	87.8	.	open	0	.	.	.	note	.	.	.	.
+6	pnode	q1_consent	1	Yes	1	q1_consent	1161	.	.	.	96.8	.	.	1	.	.	.	note	.	.	.	.
+7	pnode	q1_consent	1	No	0	q1_consent	39	.	.	.	3.2	.	.	2	.	.	.	note	.	.	.	.
+8	pnode	q3_party	2	Democrat	1	q3_party	384	.	.	.	32.0	.	.	1	.	.	.	note	.	.	.	.
+9	pnode	q3_party	2	Republican	2	q3_party	352	.	.	.	29.3	.	.	2	.	.	.	note	.	.	.	.
+10	pnode	q3_party	2	Independent	3	q3_party	229	.	.	.	19.1	.	.	3	.	.	.	note	.	.	.	.
+11	pnode	q3_party	2	other answers	~o	q3_party	109	.	.	.	9.1	.	.	4	.	1	.	note	.	.	.	.
+12	pnode	q3_party	2	no answer recorded	~m	q3_party	126	.	.	.	10.5	.	.	5	.	.	.	note	.	.	.	.
+13	pnode	q5_voted	3	Yes	1	q5_voted	600	.	.	.	50.0	.	.	1	.	.	.	note	.	.	.	.
+14	pnode	q5_voted	3	No	0	q5_voted	533	.	.	.	44.4	.	.	2	.	.	.	note	.	.	.	.
+15	pnode	q5_voted	3	no answer recorded	~m	q5_voted	67	.	.	.	5.6	.	.	5	.	.	.	note	.	.	.	.
+16	pnode	q8_approve	4	Strongly disapprove	4	q8_approve	276	.	.	.	23.0	.	.	1	.	.	.	note	.	.	.	.
+17	pnode	q8_approve	4	Somewhat disapprove	3	q8_approve	275	.	.	.	22.9	.	.	2	.	.	.	note	.	.	.	.
+18	pnode	q8_approve	4	Somewhat approve	2	q8_approve	263	.	.	.	21.9	.	.	3	.	.	.	note	.	.	.	.
+19	pnode	q8_approve	4	other answers	~o	q8_approve	239	.	.	.	19.9	.	.	4	.	1	.	note	.	.	.	.
+20	pnode	q8_approve	4	no answer recorded	~m	q8_approve	147	.	.	.	12.2	.	.	5	.	.	.	note	.	.	.	.
+21	pflow	q1_consent	1	Yes	1	q3_party	384	.	.	.	32.0	1	.	1	Democrat	.	.	note	.	.	.	.
+22	pflow	q1_consent	1	Yes	1	q3_party	352	.	.	.	29.3	2	.	1	Republican	.	.	note	.	.	.	.
+23	pflow	q1_consent	1	Yes	1	q3_party	229	.	.	.	19.1	3	.	1	Independent	.	.	note	.	.	.	.
+24	pflow	q1_consent	1	Yes	1	q3_party	109	.	.	.	9.1	4	.	1	other answers	.	.	note	.	.	.	.
+25	pflow	q1_consent	1	Yes	1	q3_party	87	.	.	.	7.2	5	.	1	no answer recorded	.	.	note	.	.	.	.
+26	pflow	q1_consent	1	No	0	q3_party	39	.	.	.	3.2	5	.	2	no answer recorded	.	.	note	.	.	.	.
+27	pflow	q3_party	2	Democrat	1	q5_voted	193	.	.	.	16.1	1	.	1	Yes	.	.	note	.	.	.	.
+28	pflow	q3_party	2	Democrat	1	q5_voted	183	.	.	.	15.2	2	.	1	No	.	.	note	.	.	.	.
+29	pflow	q3_party	2	Democrat	1	q5_voted	8	.	.	.	0.7	5	.	1	no answer recorded	.	.	note	.	.	.	.
+30	pflow	q3_party	2	Republican	2	q5_voted	177	.	.	.	14.8	1	.	2	Yes	.	.	note	.	.	.	.
+31	pflow	q3_party	2	Republican	2	q5_voted	164	.	.	.	13.7	2	.	2	No	.	.	note	.	.	.	.
+32	pflow	q3_party	2	Republican	2	q5_voted	11	.	.	.	0.9	5	.	2	no answer recorded	.	.	note	.	.	.	.
+33	pflow	q3_party	2	Independent	3	q5_voted	126	.	.	.	10.5	1	.	3	Yes	.	.	note	.	.	.	.
+34	pflow	q3_party	2	Independent	3	q5_voted	99	.	.	.	8.2	2	.	3	No	.	.	note	.	.	.	.
+35	pflow	q3_party	2	Independent	3	q5_voted	4	.	.	.	0.3	5	.	3	no answer recorded	.	.	note	.	.	.	.
+36	pflow	q3_party	2	other answers	~o	q5_voted	67	.	.	.	5.6	1	.	4	Yes	.	.	note	.	.	.	.
+37	pflow	q3_party	2	other answers	~o	q5_voted	41	.	.	.	3.4	2	.	4	No	.	.	note	.	.	.	.
+38	pflow	q3_party	2	other answers	~o	q5_voted	1	.	.	.	0.1	5	.	4	no answer recorded	.	.	note	.	.	.	.
+39	pflow	q3_party	2	no answer recorded	~m	q5_voted	37	.	.	.	3.1	1	.	5	Yes	.	.	note	.	.	.	.
+40	pflow	q3_party	2	no answer recorded	~m	q5_voted	46	.	.	.	3.8	2	.	5	No	.	.	note	.	.	.	.
+41	pflow	q3_party	2	no answer recorded	~m	q5_voted	43	.	.	.	3.6	5	.	5	no answer recorded	.	.	note	.	.	.	.
+42	pflow	q5_voted	3	Yes	1	q8_approve	148	.	.	.	12.3	1	.	1	Strongly disapprove	.	.	note	.	.	.	.
+43	pflow	q5_voted	3	Yes	1	q8_approve	137	.	.	.	11.4	2	.	1	Somewhat disapprove	.	.	note	.	.	.	.
+44	pflow	q5_voted	3	Yes	1	q8_approve	132	.	.	.	11.0	3	.	1	Somewhat approve	.	.	note	.	.	.	.
+45	pflow	q5_voted	3	Yes	1	q8_approve	125	.	.	.	10.4	4	.	1	other answers	.	.	note	.	.	.	.
+46	pflow	q5_voted	3	Yes	1	q8_approve	58	.	.	.	4.8	5	.	1	no answer recorded	.	.	note	.	.	.	.
+47	pflow	q5_voted	3	No	0	q8_approve	122	.	.	.	10.2	1	.	2	Strongly disapprove	.	.	note	.	.	.	.
+48	pflow	q5_voted	3	No	0	q8_approve	134	.	.	.	11.2	2	.	2	Somewhat disapprove	.	.	note	.	.	.	.
+49	pflow	q5_voted	3	No	0	q8_approve	123	.	.	.	10.2	3	.	2	Somewhat approve	.	.	note	.	.	.	.
+50	pflow	q5_voted	3	No	0	q8_approve	105	.	.	.	8.8	4	.	2	other answers	.	.	note	.	.	.	.
+51	pflow	q5_voted	3	No	0	q8_approve	49	.	.	.	4.1	5	.	2	no answer recorded	.	.	note	.	.	.	.
+52	pflow	q5_voted	3	no answer recorded	~m	q8_approve	6	.	.	.	0.5	1	.	5	Strongly disapprove	.	.	note	.	.	.	.
+53	pflow	q5_voted	3	no answer recorded	~m	q8_approve	4	.	.	.	0.3	2	.	5	Somewhat disapprove	.	.	note	.	.	.	.
+54	pflow	q5_voted	3	no answer recorded	~m	q8_approve	8	.	.	.	0.7	3	.	5	Somewhat approve	.	.	note	.	.	.	.
+55	pflow	q5_voted	3	no answer recorded	~m	q8_approve	9	.	.	.	0.8	4	.	5	other answers	.	.	note	.	.	.	.
+56	pflow	q5_voted	3	no answer recorded	~m	q8_approve	40	.	.	.	3.3	5	.	5	no answer recorded	.	.	note	.	.	.	.
+57	ppath	.	.	.	1>2>2>3	.	92	.	.	.	7.7	.	.	1	.	.	.	note	.	.	.	.
+58	ppath	.	.	.	1>1>2>2	.	89	.	.	.	7.4	.	.	2	.	.	.	note	.	.	.	.
+59	ppath	.	.	.	1>1>1>2	.	88	.	.	.	7.3	.	.	3	.	.	.	note	.	.	.	.
+60	ppath	.	.	.	1>1>1>1	.	84	.	.	.	7.0	.	.	4	.	.	.	note	.	.	.	.
+61	ppath	.	.	.	1>2>1>3	.	82	.	.	.	6.8	.	.	5	.	.	.	note	.	.	.	.
+62	ppath	.	.	.	1>1>2>1	.	76	.	.	.	6.3	.	.	6	.	.	.	note	.	.	.	.
+63	ppath	.	.	.	1>2>1>4	.	74	.	.	.	6.2	.	.	7	.	.	.	note	.	.	.	.
+64	ppath	.	.	.	1>2>2>4	.	56	.	.	.	4.7	.	.	8	.	.	.	note	.	.	.	.
+65	ppath	.	.	.	2>5>5>5	.	39	.	.	.	3.2	.	.	9	.	.	.	note	.	.	.	.
+66	ppath	.	.	.	1>3>1>1	.	35	.	.	.	2.9	.	.	10	.	.	.	note	.	.	.	.
