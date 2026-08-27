@@ -1796,6 +1796,51 @@ sm_assert `=(_rc == 198)' "an unreadable highlight() is refused"
 capture surveymap draw j2.tsv, highlight(paths 1) saving(hx.html) noopen replace
 sm_assert `=(_rc == 198)' "highlight() on a scan journal is refused"
 
+* the largest flows are visible text, never hover-only
+capture sm_fcount h26.html "The largest flows"
+sm_assert `=(r(n) >= 1)' "the page lists its largest flows in plain text"
+
+* the fragmentation sentence appears exactly when routes are mostly unique
+capture use fake_a.dta, clear
+capture noisily surveymap paths q1_consent q3_party q5_voted q6_whovote q8_approve ///
+    , top(3) out(j26q.tsv) saving(h26q.html) noopen replace
+sm_assert `=(_rc == 0)' "a five-item paths run works"
+local frag_expected = r(n_unique) >= 0.5 * r(N)
+capture sm_fcount h26q.html "follow a unique route"
+sm_assert `=(r(n) >= 1) == `frag_expected'' "the fragmentation sentence appears exactly when routes are mostly unique"
+capture noisily surveymap paths q1_consent q3_party, top(3) out(j26r.tsv) saving(h26r.html) noopen replace
+local frag_expected2 = r(n_unique) >= 0.5 * r(N)
+capture sm_fcount h26r.html "follow a unique route"
+sm_assert `=(r(n) >= 1) == `frag_expected2'' "and stays off when a short list concentrates the routes"
+
+* every route shared by a twin: many distinct routes, zero unshared ones,
+* and the fragmentation sentence must stay off (the route count would lie)
+preserve
+capture use fake_a.dta, clear
+quietly keep in 1/40
+quietly expand 2
+capture noisily surveymap paths q1_consent q3_party q5_voted q6_whovote q8_approve ///
+    , top(3) out(j26t.tsv) saving(h26t.html) noopen replace
+sm_assert `=(_rc == 0)' "a twinned-routes run works"
+sm_assert `=(r(n_unique) == 0)' "twinned data have no unshared routes"
+capture sm_fcount h26t.html "follow a unique route"
+sm_assert `=(r(n) == 0)' "and the fragmentation sentence stays off for them"
+restore
+
+* a paths highlight covering a sliver says so on the page
+capture noisily surveymap paths q1_consent q3_party q5_voted q6_whovote q8_approve ///
+    , top(3) highlight(paths 1) out(j26s2.tsv) saving(h26s2.html) noopen replace
+sm_assert `=(_rc == 0)' "a fragmented-run highlight works"
+preserve
+quietly import delimited using j26s2.tsv, delimiter(tab) varnames(1) ///
+    stringcols(_all) encoding("utf-8") clear
+quietly destring pct_answered, gen(pp) force
+quietly su pp if class == "ppath" & gate == "1"
+local tiny = r(mean) < 5
+restore
+capture sm_fcount h26s2.html "small slice of the sample"
+sm_assert `=(r(n) >= 1) == `tiny'' "the small-slice caveat appears exactly when the picked paths are a sliver"
+
 * refusals: each has to name the problem
 capture surveymap paths q1_consent, out(jx.tsv) replace
 sm_assert `=(_rc == 198)' "one item is refused"

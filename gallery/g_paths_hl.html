@@ -28,7 +28,7 @@ h1 { font-size: 19px; margin: 0 0 2px 0; font-weight: 600; }
 <div class="sm-g-paths-hl">
 <p class="sm-cap"><b>1,200 respondents</b>, each counted once in every column &#183; journal: g_paths.tsv</p>
 <p class="sm-leg">a column is one item; a block is one answer, sized by how many gave it; a ribbon joins two answers on consecutive items, sized by how many gave both; hover anything for exact counts</p>
-<p class="sm-cap"><b>highlighted:</b> the 2 most common complete paths, together 15.1% of respondents; every other ribbon is faded, and the picked paths print bold in the table below</p>
+<p class="sm-cap"><b>highlighted:</b> the 2 most common complete paths, together 15.1% of respondents; every other ribbon is faded, and the picked paths print bold in the table below.</p>
 <div class="sm-wrap">
 <svg class="sm-svg" viewBox="0 0 836 647" width="836" height="647" xmlns="http://www.w3.org/2000/svg" role="img">
 <desc>Response-flow map of 4 survey items for 1,200 respondents. Each item is a column of blocks, one per common answer plus other answers and no answer; ribbons between columns carry the respondents who gave both answers.</desc>
@@ -262,7 +262,18 @@ h1 { font-size: 19px; margin: 0 0 2px 0; font-weight: 600; }
 <text x="641" y="590" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" fill="#222" style="paint-order: stroke; stroke: #ffffff; stroke-width: 3px;"><tspan font-weight="600">12.2%</tspan> no answer recorded</text>
 </svg>
 </div>
-<p class="sm-read"><b>The most common full paths</b>, reading q1_consent &#8594; q3_party &#8594; q5_voted &#8594; q8_approve:</p>
+<p class="sm-read"><b>The largest flows</b>, each counting the people who gave one pair of answers on two neighboring items:</p>
+<table class="sm-ptbl"><tr><th>share</th><th>people</th><th>flow</th></tr>
+<tr><td class="n">32.0%</td><td class="n">384</td><td>q1_consent Yes &#8594; q3_party Democrat</td></tr>
+<tr><td class="n">29.3%</td><td class="n">352</td><td>q1_consent Yes &#8594; q3_party Republican</td></tr>
+<tr><td class="n">19.1%</td><td class="n">229</td><td>q1_consent Yes &#8594; q3_party Independent</td></tr>
+<tr><td class="n">16.1%</td><td class="n">193</td><td>q3_party Democrat &#8594; q5_voted Yes</td></tr>
+<tr><td class="n">15.2%</td><td class="n">183</td><td>q3_party Democrat &#8594; q5_voted No</td></tr>
+<tr><td class="n">14.8%</td><td class="n">177</td><td>q3_party Republican &#8594; q5_voted Yes</td></tr>
+<tr><td class="n">13.7%</td><td class="n">164</td><td>q3_party Republican &#8594; q5_voted No</td></tr>
+<tr><td class="n">12.3%</td><td class="n">148</td><td>q5_voted Yes &#8594; q8_approve Strongly disapprove</td></tr>
+</table>
+<p class="sm-read"><b>The most common full paths</b>, reading q1_consent &#8594; q3_party &#8594; q5_voted &#8594; q8_approve.</p>
 <table class="sm-ptbl"><tr><th>share</th><th>people</th><th>path</th></tr>
 <tr class="hl"><td class="n">7.7%</td><td class="n">92</td><td>Yes &#8594; Republican &#8594; No &#8594; Somewhat approve</td></tr>
 <tr class="hl"><td class="n">7.4%</td><td class="n">89</td><td>Yes &#8594; Democrat &#8594; No &#8594; Somewhat disapprove</td></tr>

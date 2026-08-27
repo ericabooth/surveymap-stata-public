@@ -2,6 +2,31 @@
 
 All notable changes to surveymap. Dates are the day the work landed locally.
 
+## 0.8.0 - 2026-08-28
+
+### Added
+
+- **The paths page depends on no hover.** A visible table under the braid
+  names the eight largest item-to-item flows with counts and shares, so
+  the numbers a reader needs are in plain text; the svg tooltips stay for
+  the rest.
+- **The page states its own caveats.** When half or more of the interviews
+  follow a unique route, the complete-paths table says so
+  and points the reader at the ribbons, where each flow counts well.
+  When highlight(paths #) picks paths that together cover under five
+  percent of the scope, the caption says that, and the run prints a note
+  suggesting the block form of highlight() instead. Both came out of
+  real use: a twelve-item braid highlighted its three most common
+  complete paths, faded everything else, and spotlighted sixteen
+  people out of 1,369.
+
+### Testing
+
+- The battery grows to cover the flow table, both directions of the
+  fragmentation sentence (present when routes are mostly unique, absent
+  when they concentrate), and both directions of the small-slice caveat,
+  each asserted from the same journal the page was drawn from.
+
 ## 0.7.0 - 2026-08-27
 
 ### Added

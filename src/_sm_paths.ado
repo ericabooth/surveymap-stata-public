@@ -1,4 +1,4 @@
-*! version 0.7.0  27aug2026  Eric Booth
+*! version 0.8.0  28aug2026  Eric Booth
 *! _sm_paths -- the response-flow view behind -surveymap paths-.
 *!
 *! The flow map (surveymap scan + draw) follows the ROUTING: who was shown
@@ -255,6 +255,10 @@ program define _sm_paths, rclass
             else        quietly replace `seqs' = `seqs' + ">" + string(_smS`t')
         }
         quietly contract `seqs', freq(_smf)
+        * a sequence seen once belongs to exactly one interview, so this
+        * count is the number of interviews on unique routes
+        quietly count if _smf == 1
+        local nuni = r(N)
         quietly gsort -_smf `seqs'
         local npaths = min(_N, 10)
         forvalues i = 1/`npaths' {
@@ -285,7 +289,7 @@ program define _sm_paths, rclass
     local seq = 1
     * no apostrophe in a flags string: the journal text passes through
     * macro quoting in every reader, and a lone quote breaks it there
-    local sflags "paths: top=`top'; each column partitions the scope into named answers, other answers, no answer; denominator = respondents in scope; `ndistinct' distinct full sequences"
+    local sflags "paths: top=`top'; each column partitions the scope into named answers, other answers, no answer; denominator = respondents in scope; `ndistinct' distinct full sequences; `nuni' interviews on unique routes"
     if `"`scopetxt'"' != "" local sflags `"`sflags'; scope: `scopetxt'"'
     _smp_wrow `JH' `seq' survey "." `K' "." "." "." `N' "." "." "." "." "." ///
         "." "." "." "." "." note `"`sflags'"' `"`WTOT'"' "." "."
@@ -338,6 +342,7 @@ program define _sm_paths, rclass
     return scalar N = `N'
     return scalar K_items = `K'
     return scalar n_sequences = `ndistinct'
+    return scalar n_unique = `nuni'
     return local journal `"`out'"'
 
     di as txt "surveymap paths: " as res `K' as txt " items, "              ///

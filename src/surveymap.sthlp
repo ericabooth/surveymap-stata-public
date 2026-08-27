@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 0.7.0  27aug2026  Eric Booth}{...}
+{* *! version 0.8.0  28aug2026  Eric Booth}{...}
 {vieweralsosee "datadictionary" "help datadictionary"}{...}
 {vieweralsosee "mergemap" "help mergemap"}{...}
 {vieweralsosee "tabulate" "help tabulate"}{...}
@@ -245,6 +245,16 @@ map the banded variable. String items are refused: {cmd:encode} them first.
 With a {cmd:pweight}, weighted counts are journaled alongside; the drawing
 reports unweighted counts, because a route through a questionnaire is a
 property of the fieldwork rather than of the population.{p_end}
+
+{pstd}
+The page states its own arithmetic in visible text, so nothing depends on a
+hover. Under the figure, a table of the largest flows names the eight
+biggest item-to-item movements with their counts and shares. When half or more of the interviews follow a unique complete route,
+the complete-paths table says so and points the reader at the ribbons.
+And when {opt highlight(paths #)} picks paths that together cover less
+than five percent of the scope, the caption says that too, and the run
+prints a note suggesting {cmd:highlight(}{it:var}{cmd: = }{it:value}{cmd:)}
+instead.{p_end}
 
 {pstd}
 {opt highlight(spec)} picks out the flows you want a reader to see first

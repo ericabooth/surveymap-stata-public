@@ -1,5 +1,5 @@
 seq	class	var	position	vallabel	value	gatevar	n_asked	n_answered	n_nonresp	n_sysmiss	pct_answered	rate	status	gate	gated_by	pooled	type	severity	flags	w_asked	w_answered	pct_answered_w
-1	survey	.	4	.	.	.	1200	.	.	.	.	.	.	.	.	.	.	note	paths: top=3; each column partitions the scope into named answers, other answers, no answer; denominator = respondents in scope; 52 distinct full sequences	.	.	.
+1	survey	.	4	.	.	.	1200	.	.	.	.	.	.	.	.	.	.	note	paths: top=3; each column partitions the scope into named answers, other answers, no answer; denominator = respondents in scope; 52 distinct full sequences; 3 interviews on unique routes	.	.	.
 2	item	q1_consent	1	Consented to be interviewed	.	.	1200	1200	0	0	100.0	.	open	0	.	.	.	note	.	.	.	.
 3	item	q3_party	2	Party identification	.	.	1200	1074	126	0	89.5	.	open	0	.	.	.	note	.	.	.	.
 4	item	q5_voted	3	Voted in the 2024 general election	.	.	1200	1133	67	0	94.4	.	open	0	.	.	.	note	.	.	.	.
