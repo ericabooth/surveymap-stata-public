@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 0.8.0  28aug2026  Eric Booth}{...}
+{* *! version 0.8.1  28aug2026  Eric Booth}{...}
 {vieweralsosee "datadictionary" "help datadictionary"}{...}
 {vieweralsosee "mergemap" "help mergemap"}{...}
 {vieweralsosee "tabulate" "help tabulate"}{...}
@@ -8,11 +8,18 @@
 {viewerjumpto "Installation" "surveymap##install"}{...}
 {viewerjumpto "Syntax" "surveymap##syntax"}{...}
 {viewerjumpto "Description" "surveymap##description"}{...}
+{viewerjumpto "Where to start a map" "surveymap##start"}{...}
+{viewerjumpto "The paths subcommand" "surveymap##paths"}{...}
 {viewerjumpto "Reading the receipt" "surveymap##receipt"}{...}
+{viewerjumpto "Pointing it at a real survey file" "surveymap##realfile"}{...}
+{viewerjumpto "Weights" "surveymap##weights"}{...}
+{viewerjumpto "Checking the map against a questionnaire" "surveymap##verify"}{...}
 {viewerjumpto "Branching" "surveymap##branch"}{...}
+{viewerjumpto "Splitting by what the respondent did" "surveymap##profile"}{...}
 {viewerjumpto "How routing is found" "surveymap##detect"}{...}
 {viewerjumpto "Pruning noisy branches" "surveymap##prune"}{...}
 {viewerjumpto "Drawing the map" "surveymap##draw"}{...}
+{viewerjumpto "The band chart" "surveymap##band"}{...}
 {viewerjumpto "The Excel tracker" "surveymap##export"}{...}
 {viewerjumpto "Working with datadictionary" "surveymap##dd"}{...}
 {viewerjumpto "Options" "surveymap##options"}{...}
@@ -44,7 +51,7 @@ questions were asked:{p_end}
 {phang2}{cmd:. surveymap draw}{p_end}
 
 {pstd}
-Split the flow by the question that decides the rest of the interview:{p_end}
+Split the flow by the question that routes the rest of the interview:{p_end}
 
 {phang2}{cmd:. surveymap, branch(party)}{p_end}
 {phang2}{cmd:. surveymap draw}{p_end}
@@ -88,13 +95,13 @@ opens in any browser with no internet connection.{p_end}
 {cmd:surveymap draw} [{it:journalfile}] [{cmd:,} {opt exp:ort(html|mermaid|png|svg)}
 {opt lay:out(horizontal|vertical)} {opt sav:ing(filename)} {opt prune(#)}
 {opt minn(#)} {opt maxc:ats(#)} {opt noprune} {opt name(text)} {opt embed}
-{opt maxn:odes(#)} {opt noopen} {opt replace}]
+{opt maxn:odes(#)} {opt high:light(spec)} {opt noop:en} {opt replace}]
 
 {p 8 17 2}
 {cmd:surveymap band} [{it:journalfile}] [{cmd:,} {opt sav:ing(filename)}
-{opt ti:tle(text)} {opt sub:title(text)} {opt not:e(text)} {opt names(spec)}
-{opt area} {opt bar} {opt xsi:ze(#)} {opt ysi:ze(#)} {opt sc:ale(#)}
-{opt nolegend} {opt replace}]
+{opt ti:tle(text)} {opt sub:title(text)} {opt not:e(text)} {opt names(spec)} {opt nn:ames(#)}
+{opt area} {opt bar} {opt areamin(#)} {opt xsi:ze(#)} {opt ysi:ze(#)} {opt sc:ale(#)}
+{opt name(text)} {opt nolegend} {opt replace}]
 
 {p 8 17 2}
 {cmd:surveymap export} [{it:journalfile}] [{cmd:,} {opt sav:ing(filename)}
@@ -119,7 +126,7 @@ opens in any browser with no internet connection.{p_end}
 {synopt :{opt band}}the band chart: one column per item, for a long instrument{p_end}
 {synopt :{opt export}}the tracker: {cmd:.xlsx}, {cmd:.dta}, or {cmd:.csv}{p_end}
 {synopt :{opt receipt}}reprint the receipt from a saved journal{p_end}
-{synopt :{opt clear}}empty {cmd:$SM_LASTJ} so the next {cmd:draw} needs a filename; no file on disk is touched{p_end}
+{synopt :{opt clear}}empty {cmd:$SM_LASTJ}, the remembered journal path; the next {cmd:draw} then needs a filename unless {cmd:survey_journal.tsv} sits in the working directory; no file on disk is touched{p_end}
 {synoptline}
 {p2colreset}{...}
 
@@ -142,7 +149,7 @@ between them:{p_end}
 {synoptset 26 tabbed}{...}
 {synopt :{bf:answered}}a real answer{p_end}
 {synopt :{bf:declined}}an extended missing ({cmd:.a} to {cmd:.z}: don't know, refused) or any code you list in {opt nonresponse()}{p_end}
-{synopt :{bf:not shown}}system missing ({cmd:.}), which is where skip logic lands{p_end}
+{synopt :{bf:not shown}}system missing ({cmd:.}), which is what skip logic produces{p_end}
 {synoptline}
 {p2colreset}{...}
 
@@ -155,9 +162,9 @@ low response rate on that item.{p_end}
 
 {pstd}
 The scan writes one intermediate file, a tab-separated journal with a line per
-event. Everything else you get, the receipt, the map, the mermaid text and the
-Excel tracker, comes from that journal, so you can re-cut a drawing without
-touching the data again.{p_end}
+event. Everything else you get comes from that journal: the receipt, the map,
+the mermaid text and the Excel tracker. That is why you can re-cut a drawing
+without touching the data again.{p_end}
 
 
 {marker start}{...}
@@ -170,13 +177,13 @@ into paths a reader can follow, and they combine freely.{p_end}
 
 {pstd}
 {bf:The response braid.} {cmd:surveymap paths} follows the answers instead of
-the routing: every item in the list becomes a column, each of its {opt top(#)}
-most common answers a block, and a ribbon between two blocks carries the
-respondents who gave both answers on consecutive items, so the survey reads
-left to right as a braid that splits and merges at every item. The remaining
-answers pool into {bf:other answers}, and {bf:no answer recorded} holds
-everyone with nothing on the item, including anyone the routing never showed
-it. Every respondent in scope sits in exactly one block of every column, so
+the routing. Every item in the list becomes a column, and each of its
+{opt top(#)} most common answers becomes a block. A ribbon between two blocks
+carries the respondents who gave both answers on consecutive items, so the
+survey reads left to right as a braid that splits and merges at every item.
+The remaining answers pool into {bf:other answers}, and {bf:no answer recorded}
+contains everyone with nothing on the item, including anyone the routing
+steered past it. Every respondent in scope sits in exactly one block of every column, so
 each column adds back to the sample. Under the figure, a table of the ten
 most common complete paths, end to end. See
 {help surveymap##paths:The paths subcommand}.{p_end}
@@ -189,7 +196,7 @@ most common answers to its box on the routing map, drawn as share bars, with
 the rest pooled into {bf:other answers} and the declined share on its own
 row. The denominator is the people the item was put to (answered plus
 declined), so the rows inside a box account for everyone who saw the
-question. Items with more than 30 distinct values (age in years) are skipped
+question. Items with more than 30 distinct values (for example, age in years) are skipped
 with a note: band them with {cmd:branch(age = cut(...))} instead. String
 items are skipped.{p_end}
 
@@ -213,9 +220,10 @@ declined, refused, or answered don't know, and where they stopped. See
 {phang2}{cmd:. surveymap, profile(declined)}{p_end}
 
 {pstd}
-Response rows are drawn on the spine and in the mermaid nodes; inside a gate's
-lanes the cells stay compact and keep their answer rates only. Every HTML page
-also carries {bf:How to read this map, step by step}, written with the
+Response rows are drawn on the spine (the map's main left-to-right line of
+boxes) and in the mermaid nodes; inside a gate's lanes the boxes stay compact
+and keep their answer rates only. Every HTML page
+also includes {bf:How to read this map, step by step}, written with the
 survey's own item and gate names.{p_end}
 
 
@@ -270,8 +278,9 @@ journal with different highlights without rescanning.{p_end}
 
 {pstd}
 Stored results: {cmd:r(N)} respondents in scope, {cmd:r(K_items)} items,
-{cmd:r(n_sequences)} distinct complete answer sequences, {cmd:r(journal)}
-and {cmd:r(output)} the files written.{p_end}
+{cmd:r(n_sequences)} distinct complete answer sequences, {cmd:r(n_unique)}
+interviews on unique complete routes, {cmd:r(journal)} and {cmd:r(output)}
+the files written.{p_end}
 
 
 {marker receipt}{...}
@@ -299,7 +308,7 @@ answer that routed people away.{p_end}
 {pstd}
 {bf:Every percentage here is out of the whole sample.}
 The receipt and the journal's {cmd:pct_answered} both divide by the respondents
-in scope, so {cmd:q6_whovote} shows 48.2 percent of all 1,200. Of the 600 people
+in scope, 1,200 in this example, so {cmd:q6_whovote} shows 48.2 percent of all 1,200. Of the 600 people
 it was put in front of, 578 answered, which is 96.3 percent. Both numbers are true and they answer
 different questions, so say which one you mean. When you want the second,
 compute it from the journal, which has no column for it:{p_end}
@@ -374,7 +383,7 @@ frame as a filter.{p_end}
 {phang2}
 {bf:A split ballot.} Some items are asked of a random half of the sample by
 design. That is missing completely at random by construction, and the two
-versions are two different questions, not one question with gaps.{p_end}
+versions are two different questions rather than one question with gaps.{p_end}
 
 {pstd}
 The detector works from the responses, so a frame column or a split ballot can
@@ -462,12 +471,14 @@ until you have found out which of the two is wrong.{p_end}
 {pstd}
 {bf:You will see the disagreement in the drawing, not only in the receipt.} A
 number in a receipt is something the reader has to go looking for, so
-{opt verify()} adds its verdict to the journal as {cmd:note} rows and every
-renderer puts a {cmd:!?} on the item, on the spine and in each lane that draws
-it, with the declared and observed counts on hover. Hand the map to somebody who
-will not read a receipt and they still see the problem. Because the marks live
-in the journal rather than in the renderer, a map you draw months later from a
-stored journal still carries the audit that ran at scan time. Take the item
+{opt verify()} adds its verdict to the journal as {cmd:note} rows, and the
+HTML map and the mermaid text put a {cmd:!?} on the item, on the spine and in
+each lane that draws it; the HTML page adds the declared and observed counts
+on hover. The {cmd:png}/{cmd:svg} figure does not show the mark. Hand the map
+to somebody who will not read a receipt and they still see the problem.
+Because the marks are written into the journal rather than added by the
+renderer, a map you draw months later from a stored journal still shows the
+audit that ran at scan time. Take the item
 names from {cmd:r(mismatched)} and {cmd:r(notmapped)} when you want to act on
 them in code.{p_end}
 
@@ -615,7 +626,7 @@ define the item base this way.{p_end}
 {bf:Where the default splits, and when to override it.} With no banding, a share
 cuts at zero and nowhere else, giving you {bf:none} and {bf:at least one}. Zero
 is the only boundary on this measure that is not a judgement call: a threshold
-like "declined more than 20 percent" decides what counts as a lot, and AAPOR is
+like "declined more than 20 percent" defines what counts as a lot. AAPOR is
 explicit that such a boundary belongs to the researcher and has to be declared
 in advance, so {cmd:surveymap} will not supply one. On a long instrument, where
 almost everybody declines something, that default puts nearly the whole sample
@@ -639,7 +650,10 @@ meta-analysis of 59 nonresponse bias studies found the nonresponse rate is by
 itself a poor predictor of nonresponse bias, and Groves (2006) put the variance
 in bias it explains at about 11 percent. So "this item lost 220 of the people it
 was asked, and they sit in the high-decline lane" is a finding you can publish;
-"this item is biased" is not. One more caution when you read the picture: the
+"this item is biased" is not.{p_end}
+
+{pstd}
+One more caution when you read the picture: the
 {it:amount} of declining inside a lane you defined by declining is true by
 construction, so read the location rather than the size.{p_end}
 
@@ -649,8 +663,8 @@ sample represent a population, and "respondents who declined a lot of items" is
 not a group that exists in the population, so a weighted percentage inside one
 of these lanes describes the weighted sample and nothing beyond it. You will
 find that warning written into the journal on any weighted scan that uses
-{opt profile()}, so it travels with the file. If a weighted figure has to appear
-in a table, carry the sentence with it.{p_end}
+{opt profile()}, so anyone who opens the journal later sees it. If a weighted
+figure has to appear in a table, put the sentence beside it.{p_end}
 
 {pstd}
 {bf:Why you cannot give anyone an "exaggerator" flag.}
@@ -711,7 +725,7 @@ answered patchily, which happens on a long or sensitive item where the answer
 rate never reaches 50 percent even among those who saw it.{p_end}
 
 {pstd}
-What you get here is evidence, not a questionnaire spec. Where everyone in a
+What you get here is evidence rather than a questionnaire specification. Where everyone in a
 category happened not to answer an item, you cannot tell that apart from an item
 they were never shown, and no amount of data will separate the two. The receipt
 prints one line saying so. Read a detected gate as a claim to check rather than
@@ -724,8 +738,8 @@ as a fact, and where you know the instrument, name the gates yourself with
 
 {pstd}
 A gate with a long tail of small categories produces a map nobody can read, so
-{cmd:surveymap} folds the small categories into one {bf:other} lane. Three rules
-decide which ones, and a category folds when it fails any of them:{p_end}
+{cmd:surveymap} folds the small categories into one {bf:other} lane. A
+category folds when it fails any of three rules:{p_end}
 
 {synoptset 26 tabbed}{...}
 {synopt :{opt prune(#)}}fold a category under {it:#} percent of the sample {it:(default 5)}{p_end}
@@ -759,8 +773,10 @@ back.{p_end}
 {cmd:surveymap draw} turns a journal into a picture. Name a journal file, or
 give none and you get whatever the last scan wrote. {cmd:surveymap} keeps that
 path in the global {cmd:$SM_LASTJ}, so it lasts as long as the Stata session
-does and no longer: name the file yourself in a do-file somebody else will run,
-or after you {helpb clear all}.{p_end}
+does and no longer, though it does survive {helpb clear:clear all}. With
+nothing remembered, {cmd:draw} falls back to {cmd:survey_journal.tsv} in the
+working directory. Name the file yourself in a do-file somebody else will
+run.{p_end}
 
 {synoptset 22 tabbed}{...}
 {synopt :{opt export(html)}}a self-contained page: no internet, no JavaScript {it:(the default)}{p_end}
@@ -775,8 +791,9 @@ or after you {helpb clear all}.{p_end}
 you get both; keep whichever the document needs. A figure stays readable only up
 to a point, so past {opt maxnodes(#)} drawn columns (default 14) {cmd:surveymap}
 stops and points you at the HTML page, which scrolls and keeps the full record
-on hover. A fan counts as one column however many items it contains, so the
-limit is on what your eye has to follow rather than on the item count. When you
+on hover. A fan, the spread of lanes where a gate splits the spine, counts as
+one column however many items it contains, so the limit is on what your eye
+has to follow rather than on the item count. When you
 hit it, narrow the map with a {varlist} or {opt exclude()}, or draw the whole
 instrument with {help surveymap##band:{cmd:surveymap band}} instead.{p_end}
 
@@ -792,7 +809,7 @@ spine continues. Hover any box to get the full record behind it.{p_end}
 
 {pstd}
 Expect the lanes to open where the gate's items are rather than immediately
-after the gate. A party question asked early can decide primary-turnout
+after the gate. A party question asked early can gate primary-turnout
 questions much later, and the fan belongs where those questions fall in the
 questionnaire, not where the gate does.{p_end}
 
@@ -862,18 +879,18 @@ look identical.{p_end}
 
 {pstd}
 Give no journal and, as with {cmd:draw}, you get the one the last scan wrote.
-The shape is the state-distribution plot of Gabadinho et al.'s TraMineR (2011),
-drawn with {helpb twoway}: you
-get one bar per item on a short survey, and a filled area once there are more
-items than separate bars can show, switching over automatically at 60 items.
-Above about 60 items you also get a few landmark positions named on the top
-axis, picked where the not-shown share jumps, which is where the gates
-are.{p_end}
+The chart is drawn with {helpb twoway}: one bar per item on a short survey,
+and a filled area once there are more items than separate bars can show,
+switching over automatically at 60 items. The shape follows the
+state-distribution plot of TraMineR (Gabadinho et al. 2011).
+Past 16 items the main axis stops naming every item, and you get a few
+landmark positions named on the top axis instead, picked where the not-shown
+share jumps, which is where the gates are.{p_end}
 
 {pstd}
-{bf:Every column comes from the three counts, never from a hard-coded 100.} So a
-journal whose counts do not add to the sample gives you a short column rather
-than a full one that quietly lies about it. Read the largest shortfall, in
+{bf:Every column comes from the three counts, never from a hard-coded 100.} So
+a journal whose counts do not add to the sample gives you a visibly short
+column rather than a full one. Read the largest shortfall, in
 respondents, from {cmd:r(devmax)}, and assert it the way you assert
 {cmd:r(N_unbalanced)} after a scan. Expect zero on any journal
 {cmd:surveymap} wrote, since the scan checks the same arithmetic; the check is
@@ -951,7 +968,7 @@ name, so a lookup across sheets takes one formula.{p_end}
 {synopt :{opt ex:clude(varlist)}}columns to leave out: ids, sample frame, admin{p_end}
 {synopt :{opt nostrings}}leave the string columns out, which are usually verbatims{p_end}
 {synopt :{opt ver:ify(filename)}}check the routing found against a declared skip-logic table{p_end}
-{synopt :{opt resp:onses(#)}}show each item's {it:#} most common answers inside its box; see {help surveymap##start:Where to start a map}{p_end}
+{synopt :{opt resp:onses(#)}}show each item's {it:#} most common answers inside its box, {it:#} from 1 to 8; see {help surveymap##start:Where to start a map}{p_end}
 {synopt :{opt det:ect(# #)}}the two routing thresholds; default {cmd:2 50}{p_end}
 {synopt :{opt noautodetect}}do not look for gates; draw only the ones named in {opt branch()}{p_end}
 {synopt :{opt noreceipt}}skip the receipt table{p_end}
@@ -994,10 +1011,11 @@ want the small categories back.{p_end}
 {synopt :{opt exp:ort(html|mermaid|png|svg)}}the medium; default {cmd:html}{p_end}
 {synopt :{opt lay:out(horizontal|vertical)}}which way the questionnaire runs; default {cmd:horizontal}{p_end}
 {synopt :{opt sav:ing(filename)}}where to write it{p_end}
+{synopt :{opt high:light(spec)}}on a paths journal, redraw with this highlight; see {help surveymap##paths:The paths subcommand}{p_end}
 {synopt :{opt name(text)}}what to call the survey on the page{p_end}
 {synopt :{opt embed}}a fragment for someone else's page, not a whole document{p_end}
-{synopt :{opt maxn:odes(#)}}how many columns a {cmd:png}/{cmd:svg} figure will attempt; default {cmd:14}. Past it {cmd:surveymap} writes the HTML page instead and prints its path{p_end}
-{synopt :{opt noopen}}write the page but do not open a browser{p_end}
+{synopt :{opt maxn:odes(#)}}how many columns a {cmd:png}/{cmd:svg} figure will attempt; default {cmd:14}. Past it {cmd:surveymap} stops with a message pointing you at {cmd:export(html)}{p_end}
+{synopt :{opt noop:en}}write the page but do not open a browser{p_end}
 {synopt :{opt replace}}overwrite existing output{p_end}
 {synoptline}
 {p2colreset}{...}
@@ -1038,6 +1056,9 @@ accept the seams; force {opt area} below it when the figure is going next to
 another area chart. For a figure the width of a report page rather than a
 landscape slide, {cmd:xsize(6.5) ysize(2.5) scale(1.3)} works; below
 {cmd:ysize(2)} the axis labels start colliding.{p_end}
+
+
+{marker examples}{...}
 {title:Examples}
 
 {pstd}{bf:See it work, with no setup}{p_end}
@@ -1067,7 +1088,7 @@ women. Reading the first column: {bf:Married} at 64.2%, {bf:Single} at
 368 women have no union answer recorded, and the ribbons show which earlier
 answers they came from. Under the figure, a table of the most common
 complete paths; the top line reads
-{bf:Married} &#8594; {bf:Not college grad} &#8594; {bf:Nonunion}, 740 women
+{bf:Married} -> {bf:Not college grad} -> {bf:Nonunion}, 740 women
 and 32.9% of the sample.{p_end}
 
 {pstd}{bf:Pick out the key paths}{p_end}
@@ -1231,6 +1252,8 @@ output. Every figure it gives you is a count or a share of a count.{p_end}
 {synopt:{cmd:r(N_gates)}}gates drawn{p_end}
 {synopt:{cmd:r(N_unbalanced)}}items whose three counts do not add to the sample; assert this is 0{p_end}
 {synopt:{cmd:r(N_mismatch)}}after {opt verify()}: declared gates the answer counts contradict{p_end}
+{synopt:{cmd:r(n_sequences)}}after {cmd:paths}: distinct complete answer sequences{p_end}
+{synopt:{cmd:r(n_unique)}}after {cmd:paths}: interviews on unique complete routes{p_end}
 {synopt:{cmd:r(nitems)}}after {cmd:band}: columns drawn{p_end}
 {synopt:{cmd:r(devmax)}}after {cmd:band}: largest shortfall in respondents on any column; assert this is 0{p_end}
 {p2col 5 22 26 2: Macros}{p_end}
@@ -1254,7 +1277,7 @@ columns contain {cmd:.} unless you supplied a weight.{p_end}
 The ones whose names do not give them away:{p_end}
 
 {synoptset 18 tabbed}{...}
-{synopt :{cmd:class}}which kind of row: {cmd:survey} once for the scan's own settings, {cmd:item} one per item, {cmd:cat} one per gate category, {cmd:cell} one per lane crossed with one item, {cmd:note} for warnings and for what {opt verify()} found{p_end}
+{synopt :{cmd:class}}which kind of row: {cmd:survey} once for the scan's own settings, {cmd:item} one per item, {cmd:resp} one per item answer when {opt responses()} was set, {cmd:cat} one per gate category, {cmd:cell} one per lane crossed with one item, {cmd:note} for warnings and for what {opt verify()} found{p_end}
 {synopt :{cmd:n_asked}}the respondents in scope, which is the same on every item row{p_end}
 {synopt :{cmd:pct_answered}}answered as a share of scope, not of the people the item reached{p_end}
 {synopt :{cmd:rate}}answered as a share of the lane, on {cmd:cell} rows only; {cmd:.} on item rows{p_end}

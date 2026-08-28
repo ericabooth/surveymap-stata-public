@@ -1,4 +1,4 @@
-*! version 0.8.0  28aug2026  Eric Booth
+*! version 0.8.1  28aug2026  Eric Booth
 *! surveymap: map how respondents moved through a survey
 *!
 *! The data in memory are a survey: one row per respondent, one column per
@@ -1097,9 +1097,13 @@ program define surveymap, rclass
     }
 
     local nbad = 0
+    local vmis ""
+    local vabs ""
     if `"`verify'"' != "" {
         _sm_verify using `"`out'"', declared(`"`verify'"')
         local nbad = `r(n_mismatch)'
+        local vmis `"`r(mismatched)'"'
+        local vabs `"`r(notmapped)'"'
     }
 
     return local journal `"`out'"'
@@ -1108,7 +1112,11 @@ program define surveymap, rclass
     return scalar K_items  = `K'
     return scalar N_unbalanced = `nbal'
     return scalar N_gates  = `NG'
-    if `"`verify'"' != "" return scalar N_mismatch = `nbad'
+    if `"`verify'"' != "" {
+        return scalar N_mismatch = `nbad'
+        return local mismatched `"`vmis'"'
+        return local notmapped  `"`vabs'"'
+    }
 end
 
 

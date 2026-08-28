@@ -2,6 +2,35 @@
 
 All notable changes to surveymap. Dates are the day the work landed locally.
 
+## 0.8.1 - 2026-08-28
+
+### Fixed
+
+- **A verify scan now returns `r(mismatched)` and `r(notmapped)`.** The
+  checker computed both lists, but the scan's own return list replaced
+  them before the command returned, so the two documented macros were
+  always empty. The scan re-returns them, and block 23 of the battery
+  now checks both.
+
+### Documentation
+
+- Help-file accuracy pass against the code: the draw syntax now lists
+  `highlight()`; the band syntax lists `nnames()`, `areamin()` and
+  `name()`; `responses()` states its 1 to 8 range; `maxnodes()` says
+  what happens past the cap (the figure stops with a message pointing
+  at `export(html)`; it never wrote the page for you); the band chart
+  names every item only up to 16 items, not 60; `$SM_LASTJ` survives
+  `clear all`, and `draw` falls back to `survey_journal.tsv` in the
+  working directory; the paths stored results add `r(n_unique)`; the
+  journal-class list adds `resp`.
+- Help-file mechanics: seven sections joined the viewer jump panel, the
+  Examples jump got the `{marker examples}` it pointed at, the worked
+  nlsw88 example's HTML-entity arrows now render as plain text, and
+  `{helpb clear all}` links to the `clear` entry it meant.
+- A prose pass over the help file and README: personified and
+  metaphor-heavy sentences rewritten plainly, the longest paragraphs
+  split, and package terms glossed where a reader first meets them.
+
 ## 0.8.0 - 2026-08-28
 
 ### Added
