@@ -141,7 +141,7 @@ between them:{p_end}
 
 {synoptset 26 tabbed}{...}
 {synopt :{bf:answered}}a real answer{p_end}
-{synopt :{bf:declined}}an extended missing ({cmd:.a} to {cmd:.z}: don't know, refused) or a code you name in {opt nonresponse()}{p_end}
+{synopt :{bf:declined}}an extended missing ({cmd:.a} to {cmd:.z}: don't know, refused) or any code you list in {opt nonresponse()}{p_end}
 {synopt :{bf:not shown}}system missing ({cmd:.}), which is where skip logic lands{p_end}
 {synoptline}
 {p2colreset}{...}
@@ -535,7 +535,7 @@ drawing. It bands a copy inside a frame, so your data are untouched and the
 variable keeps its original values afterwards.{p_end}
 
 {synoptset 30 tabbed}{...}
-{synopt :{cmd:branch(age = cut(25 35 45 65))}}bands at the breaks you name{p_end}
+{synopt :{cmd:branch(age = cut(25 35 45 65))}}age bands cut at 25, 35, 45, 65{p_end}
 {synopt :{cmd:branch(hhinc = q(4))}}quartile bands{p_end}
 {synoptline}
 {p2colreset}{...}
@@ -586,7 +586,7 @@ condition itself: {cmd:profile(declined = cut(10 25))} reads its breaks as
 percentages, and {cmd:profile(asked = q(4))} cuts a count into quartiles.{p_end}
 
 {pstd}
-{cmd:refused} and {cmd:dontknow} will not run until you name the codes this
+{cmd:refused} and {cmd:dontknow} will not run until you list the codes this
 survey uses, because no two survey houses agree on them and a guess would be a
 fabrication. Look at what the file contains, then pass it:{p_end}
 
@@ -668,7 +668,7 @@ the over-claiming technique.{p_end}
 
 {pstd}
 {cmd:profile(straightlining)} is refused for a different reason. You can measure
-non-differentiation, but only inside a battery you name, and only where
+non-differentiation, but only inside a named battery of items that share a response scale, and only where
 answering the same way down that battery would be implausible. Where it is
 plausible, Schonlau and Toepoel (2015) found 15 to 40 percent of respondents produce a
 straight line, against under 2 percent where it is implausible, and no index

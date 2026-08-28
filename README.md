@@ -59,12 +59,12 @@ Every scan prints one line per item, in questionnaire order:
 
 `q6_whovote` and `q13_income` both look badly answered, for opposite reasons. `q6_whovote` was never shown to 600 people, because it asks who you voted for and they had just said they did not vote. `q13_income` was shown to nearly everyone, and 220 of them refused. The two appear one column apart in the table and call for completely different responses.
 
-Three kinds of blank are counted separately throughout:
+Wherever the labels below appear, in the receipt, the tracker, and the maps, they mean the same thing:
 
 | | meaning |
 |---|---|
 | **answered** | a real answer |
-| **declined** | extended missing (`.a` to `.z`: don't know, refused), or a code you name in `nonresponse()` |
+| **declined** | extended missing (`.a` to `.z`: don't know, refused), or any code you list in `nonresponse()` |
 | **not shown** | system missing (`.`), which is where skip logic lands |
 
 **The arithmetic is checked, not assumed.** Every respondent in scope lands in exactly one of answered, declined or not shown at every item, so those three counts have to add to the sample on every row. The scan checks it and the receipt reports it, because a map whose arithmetic is wrong looks exactly like one whose arithmetic is right. `r(N_unbalanced)` is the number of items that failed, and the journal records the verdict so a reader coming to the file later can see the check was run.
@@ -175,7 +175,7 @@ The lanes open where the gate's questions are, not necessarily in the next colum
 **Gating on a continuous item.** Age in years has too many values to be a lane, so you say where to cut it:
 
 ```stata
-surveymap, branch(age = cut(25 35 45 65))   // bands at the breaks you name
+surveymap, branch(age = cut(25 35 45 65))   // age bands cut at 25, 35, 45, 65
 surveymap, branch(hhinc = q(4))             // quartile bands
 ```
 
@@ -207,7 +207,7 @@ surveymap, profile(asked = q(4))              // how far the routing carried the
 
 **Two conditions this refuses to build.** `profile(exaggerator)` returns a refusal with the reason. People who over-report a socially desirable answer resemble people who report it honestly on everything a survey records: Ansolabehere and Hersh's fifty-state vote validation found over-reporters look like voters on demographics and attitudes alike. A flag built from the answers alone reproduces the profile of the behaviour rather than of the misreporting, and labels older, better-educated, more engaged respondents as liars. Measuring it takes an external record to validate against, or an instrument designed for it: a list experiment, randomised response, or planted foils.
 
-`profile(straightlining)` is refused for a different reason. Non-differentiation is measurable, but only inside a battery you name, and only where answering the same way down it would be implausible. Where a straight line is a plausible set of answers, Schonlau and Toepoel found 15 to 40% of respondents produce one, against under 2% where it is implausible; the index cannot tell those two apart. Non-differentiation is also more common among respondents with less schooling (Krosnick and Alwin 1988), and attention-check failure correlates with substantive characteristics in the same way (Berinsky, Margolis and Sances 2014), so a lane built on it is partly a lane built on education. A survey file does not record which items share a response scale, so this package does not guess.
+`profile(straightlining)` is refused for a different reason. Non-differentiation can be measured, but only inside a named battery of items that share a response scale, and only where answering the same way down that battery would be implausible. Where a straight line is a plausible set of answers, Schonlau and Toepoel found 15 to 40% of respondents produce one, against under 2% where it is implausible; the index cannot tell those two apart. Non-differentiation is also more common among respondents with less schooling (Krosnick and Alwin 1988), and attention-check failure correlates with substantive characteristics in the same way (Berinsky, Margolis and Sances 2014), so a lane built on it is partly a lane built on education. A survey file does not record which items share a response scale, so this package does not guess.
 
 What it shows you instead is `profile(refused)` against `profile(dontknow)`. Shoemaker, Eichholz and Skewes found don't-know associated with the cognitive effort a question demands, and refusal associated with effort *and* with how sensitive the question is. Refusals stacking on an income block is evidence about sensitivity; don't-knows spread across an attitude battery is evidence about burden. Those point at different fixes, which is why the package keeps them apart instead of adding them together.
 
@@ -290,7 +290,7 @@ flowchart TB
 
 There is no questionnaire spec in a `.dta` file, so `surveymap` reads routing out of the answers. A category is recorded as routing people around a later item when almost nobody in that lane answered it while the other lanes did: at most 2% inside, at least 50% outside. `detect(# #)` moves both thresholds.
 
-This is evidence, not a specification. An item that everyone in a category happened not to answer looks exactly like an item they were never shown, and the receipt says so once. Read a detected gate as a claim worth checking, and name the gates yourself when you know the instrument.
+The detector reads the answers, so it can only report what the answers show. An item that everyone in a category happened not to answer looks exactly like an item they were never shown, and the receipt says so once. Read a detected gate as a claim worth checking, and name the gates yourself when you know the instrument.
 
 ## Pruning noisy branches
 
