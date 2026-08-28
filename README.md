@@ -65,7 +65,7 @@ Wherever the labels below appear, in the receipt, the tracker, and the maps, the
 |---|---|
 | **answered** | a real answer |
 | **declined** | extended missing (`.a` to `.z`: don't know, refused), or any code you list in `nonresponse()` |
-| **not shown** | system missing (`.`), which is where skip logic lands |
+| **not shown** | system missing (`.`), which is what skip logic produces |
 
 **The arithmetic is checked, not assumed.** Every respondent in scope lands in exactly one of answered, declined or not shown at every item, so those three counts have to add to the sample on every row. The scan checks it and the receipt reports it, because a map whose arithmetic is wrong looks exactly like one whose arithmetic is right. `r(N_unbalanced)` is the number of items that failed, and the journal records the verdict so a reader coming to the file later can see the check was run.
 
@@ -73,7 +73,7 @@ Wherever the labels below appear, in the receipt, the tracker, and the maps, the
 
 A survey with little skip logic draws as a single line of boxes, which answers who was asked what and nothing else. The starting points below turn that line into paths a reader can follow, and they combine freely.
 
-**The response braid.** `surveymap paths` follows the answers instead of the routing: every item becomes a column, each of its `top(k)` most common answers a block, and a ribbon between two blocks carries the respondents who gave both answers on consecutive items. The remainder pools into *other answers*, and *no answer recorded* holds everyone with nothing on the item. Every respondent in scope sits in exactly one block of every column, so each column adds back to the sample; the battery asserts it. Under the figure, a visible table of the largest item-to-item flows, then the ten most common complete paths end to end. The page states its own caveats: when half or more of the interviews follow a unique route, it says so and points the reader at the ribbons, and a `highlight(paths #)` that covers only a sliver of the sample says that too.
+**The response braid.** `surveymap paths` follows the answers instead of the routing: every item becomes a column, each of its `top(k)` most common answers a block, and a ribbon between two blocks carries the respondents who gave both answers on consecutive items. The remainder pools into *other answers*, and *no answer recorded* contains everyone with nothing on the item. Every respondent in scope sits in exactly one block of every column, so each column adds back to the sample; the battery asserts it. Under the figure, a visible table of the largest item-to-item flows, then the ten most common complete paths end to end. The page states its own caveats: when half or more of the interviews follow a unique route, it says so and points the reader at the ribbons, and a `highlight(paths #)` that covers only a sliver of the sample says that too.
 
 <img width="900" alt="surveymap paths response braid" src="images/surveymap_paths.png" />
 
@@ -425,7 +425,7 @@ cd tests
 do surveymap_pkgtest.do
 ```
 
-382 checks across 26 blocks, run on Stata 16.1 and on the current release, covering the fixture's routing truths, the branch parser, banding a continuous gate, the derived conditions and the ones the package refuses to build, the conservation arithmetic, the drawn verify disagreement, the band chart at 230 items, the response rows and their exact partition of the answered count, the response braid's conservation (columns, ribbons and complete paths all partition the scope), the scope round-trip to the page, lane partitioning, pruning at scan and at draw time, weights, `exclude()`/`nostrings`, `verify()`, both layouts of all four renderers, the Excel tracker, the fragment's scoping guarantee, and both directions of the `datadictionary` bridge.
+384 checks across 26 blocks, run on Stata 16.1 and on the current release, covering the fixture's routing truths, the branch parser, banding a continuous gate, the derived conditions and the ones the package refuses to build, the conservation arithmetic, the drawn verify disagreement, the band chart at 230 items, the response rows and their exact partition of the answered count, the response braid's conservation (columns, ribbons and complete paths all partition the scope), the scope round-trip to the page, lane partitioning, pruning at scan and at draw time, weights, `exclude()`/`nostrings`, `verify()`, both layouts of all four renderers, the Excel tracker, the fragment's scoping guarantee, and both directions of the `datadictionary` bridge.
 
 The gallery is a second, coarser test: it rebuilds every example artifact from one fake survey and counts its own failures, because a Stata do-file can abort and still leave the runner reporting success.
 

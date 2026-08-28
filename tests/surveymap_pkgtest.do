@@ -1338,6 +1338,8 @@ capture noisily surveymap q1_consent q3_party q5_voted q6_whovote q11_rep_prim, 
     noautodetect out(j23.tsv) noreceipt replace verify(decl23.csv)
 sm_assert `=(_rc == 0)' "a scan with verify() runs"
 sm_assert `=(r(N_mismatch) == 1)' "it finds the one declared count that disagrees"
+sm_assert `=("`r(mismatched)'" == "q11_rep_prim")' "r(mismatched) names the disagreeing item"    // * REGRESSION: 0.8.1, the locals were wiped before return
+sm_assert `=("`r(notmapped)'" == "q99_nothere")' "r(notmapped) names the declared item that is not in the map"
 
 * ---- the verdict is appended to the journal, not just printed ----
 capture sm_jcount j23.tsv note q11_rep_prim
