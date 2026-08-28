@@ -425,7 +425,7 @@ cd tests
 do surveymap_pkgtest.do
 ```
 
-379 checks across 26 blocks, run on Stata 16.1 and on the current release, covering the fixture's routing truths, the branch parser, banding a continuous gate, the derived conditions and the ones the package refuses to build, the conservation arithmetic, the drawn verify disagreement, the band chart at 230 items, the response rows and their exact partition of the answered count, the response braid's conservation (columns, ribbons and complete paths all partition the scope), the scope round-trip to the page, lane partitioning, pruning at scan and at draw time, weights, `exclude()`/`nostrings`, `verify()`, both layouts of all four renderers, the Excel tracker, the fragment's scoping guarantee, and both directions of the `datadictionary` bridge.
+382 checks across 26 blocks, run on Stata 16.1 and on the current release, covering the fixture's routing truths, the branch parser, banding a continuous gate, the derived conditions and the ones the package refuses to build, the conservation arithmetic, the drawn verify disagreement, the band chart at 230 items, the response rows and their exact partition of the answered count, the response braid's conservation (columns, ribbons and complete paths all partition the scope), the scope round-trip to the page, lane partitioning, pruning at scan and at draw time, weights, `exclude()`/`nostrings`, `verify()`, both layouts of all four renderers, the Excel tracker, the fragment's scoping guarantee, and both directions of the `datadictionary` bridge.
 
 The gallery is a second, coarser test: it rebuilds every example artifact from one fake survey and counts its own failures, because a Stata do-file can abort and still leave the runner reporting success.
 
