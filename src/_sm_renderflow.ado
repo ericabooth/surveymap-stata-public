@@ -363,7 +363,7 @@ program define _sm_renderflow, sclass
         _srf_map `"`scopetxt'"'
         file write `h' `"<p class="sm-cap"><b>scope:</b> only respondents where `s(o)' &#183; every count and share on this page describes that group</p>"' _n
     }
-    file write `h' `"<p class="sm-leg">a column is one item; a block is one answer, sized by how many gave it; a ribbon joins two answers on consecutive items, sized by how many gave both; hover anything for exact counts</p>"' _n
+    file write `h' `"<p class="sm-leg">A column is one item. A block is one answer, sized by how many gave it. A ribbon joins two answers on consecutive items, sized by how many gave both. Hover anything for exact counts.</p>"' _n
     if "`hlmode'" == "paths" {
         local hlw "the `hln' most common complete paths, together"
         if `hln' == 1 local hlw "the most common complete path,"
@@ -381,7 +381,7 @@ program define _sm_renderflow, sclass
 
     file write `h' `"<div class="sm-wrap">"' _n
     file write `h' `"<svg class="sm-svg" viewBox="0 0 `W' `H'" width="`W'" height="`H'" xmlns="http://www.w3.org/2000/svg" role="img">"' _n
-    file write `h' `"<desc>Response-flow map of `K' survey items for `Nfmt' respondents. Each item is a column of blocks, one per common answer plus other answers and no answer; ribbons between columns carry the respondents who gave both answers.</desc>"' _n
+    file write `h' `"<desc>Response-flow map of `K' survey items for `Nfmt' respondents. Each item is a column of blocks, one per common answer plus other answers and no answer. Ribbons between columns carry the respondents who gave both answers.</desc>"' _n
 
     * ---- ribbons first, so bars and labels overprint them ----------------
     * Each bar edge is partitioned exactly: outgoing ribbons in to-slot
@@ -553,7 +553,7 @@ program define _sm_renderflow, sclass
         if "`NUNI'" != "" {
             if `NUNI' >= 0.5 * `N' {
                 _srf_n "`NUNI'"
-                local fragtxt " `s(o)' of the `Nfmt' interviews follow a unique route, so no single complete route is common; the ribbons above show the structure."
+                local fragtxt " `s(o)' of the `Nfmt' interviews follow a unique route, so no single complete route is common. The ribbons above show the structure."
             }
         }
         file write `h' `"<p class="sm-read"><b>The most common full paths</b>, reading `order'.`fragtxt'</p>"' _n
@@ -612,10 +612,10 @@ program define _sm_renderflow, sclass
         }
     }
     file write `h' `"<li>Start at the left. The first column is <b>`v1'</b>. The column stacks all `Nfmt' respondents: each colored block is one answer, its label gives the share who gave it, and the top block here is <b>`d11'</b> at `p11'%.`greysent'</li>"' _n
-    file write `h' `"<li>Follow a ribbon to the right. A ribbon connects an answer on one item to an answer on the next, and its thickness is the number of people who gave both. Hovering a ribbon shows the exact count. Where a block fans out into several ribbons, the sample is splitting; where ribbons converge on one block, paths are merging.</li>"' _n
+    file write `h' `"<li>Follow a ribbon to the right. A ribbon connects an answer on one item to an answer on the next, and its thickness is the number of people who gave both. Hovering a ribbon shows the exact count. Where a block fans out into several ribbons, the sample is splitting. Where ribbons converge on one block, paths are merging.</li>"' _n
     file write `h' `"<li>Blocks labelled <i>other answers</i> pool everything past the `topk' most common. Nothing is dropped: every respondent sits in exactly one block of every column, so each column adds back to `Nfmt'.</li>"' _n
     if "`NPATH'" != "" {
-        file write `h' `"<li>Each line of the table under the figure is one complete path from the first item to the last, with the number and share of respondents who took exactly that path. The ribbons above join two items at a time; the table lines run the whole way across.</li>"' _n
+        file write `h' `"<li>Each line of the table under the figure is one complete path from the first item to the last, with the number and share of respondents who took exactly that path. The ribbons above join two items at a time. The table lines run the whole way across.</li>"' _n
     }
     if `"`scopetxt'"' != "" {
         _srf_map `"`scopetxt'"'
@@ -623,7 +623,7 @@ program define _sm_renderflow, sclass
     }
     file write `h' `"</ol></details>"' _n
 
-    file write `h' `"<p class="sm-foot">Reading rule: counts are unweighted respondents in scope. A ribbon is the number of people who gave that pair of answers on two consecutive items; a table line is the number who took that complete path. <i>no answer recorded</i> includes people the routing never showed the item, which item data cannot separate from a decline. Drawn by surveymap from `jname'; the journal has a weighted count column when the scan was weighted.</p>"' _n
+    file write `h' `"<p class="sm-foot">Reading rule: counts are unweighted respondents in scope. A ribbon is the number of people who gave that pair of answers on two consecutive items. A table line is the number who took that complete path. <i>no answer recorded</i> includes people the routing never showed the item, which item data cannot separate from a decline. Drawn by surveymap from `jname'. The journal has a weighted count column when the scan was weighted.</p>"' _n
     file write `h' `"</div>"' _n
     if "`embed'" == "" {
         file write `h' `"</body>"' _n

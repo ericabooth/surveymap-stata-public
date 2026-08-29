@@ -485,7 +485,7 @@ program define _sm_rendertext
     local iw = cond(`K' == 1, "item", "items")
     local rd = cond("`layout'" == "vertical", "top to bottom", "left to right")
     local accd "`nnf' respondents, `K' `iw', `G' `gw'. Items run `rd'"
-    local accd "`accd' in questionnaire order; a gate fans the sample"
+    local accd "`accd' in questionnaire order. A gate fans the sample"
     local accd "`accd' into lanes that rejoin the spine at the end of its"
     local accd "`accd' segment. A dashed node is a cell the lane was routed"
     local accd "`accd' around. Two exclamation marks flag a warning."
@@ -505,7 +505,7 @@ program define _sm_rendertext
         if "`ext'" == "md" {
             file write `fh' ("# surveymap: `jname' - mermaid flow, LR") _n _n
             file write `fh' ("Items run left to right in questionnaire ") ///
-                ("order; a gate fans the sample into lanes that rejoin ") ///
+                ("order. A gate fans the sample into lanes that rejoin ") ///
                 ("the spine at the end of its segment. A dashed node is ") ///
                 ("a cell the lane was routed around. ") ///
                 (char(96) + "!!" + char(96)) ///

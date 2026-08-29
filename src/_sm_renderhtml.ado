@@ -977,7 +977,7 @@ program define _sm_renderhtml
     }
     local dirw = cond(`vert', "down the page", "left to right")
     file write `H' `"<title id="`pfx'-ti">surveymap flow map for `jname'</title>"' _n
-    file write `H' `"<desc id="`pfx'-de">Items run `dirw' in questionnaire order; a gate fans the sample into lanes that rejoin the spine at the end of its segment. The same numbers are in the table below the figure.</desc>"' _n
+    file write `H' `"<desc id="`pfx'-de">Items run `dirw' in questionnaire order. A gate fans the sample into lanes that rejoin the spine at the end of its segment. The same numbers are in the table below the figure.</desc>"' _n
     file write `H' `"<defs>"' _n
     file write `H' `"<marker id="`pfx'-aa" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="`accent'" /></marker>"' _n
     file write `H' `"</defs>"' _n
