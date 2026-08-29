@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 0.8.1  28aug2026  Eric Booth}{...}
+{* *! version 0.8.2  29aug2026  Eric Booth}{...}
 {vieweralsosee "datadictionary" "help datadictionary"}{...}
 {vieweralsosee "mergemap" "help mergemap"}{...}
 {vieweralsosee "tabulate" "help tabulate"}{...}

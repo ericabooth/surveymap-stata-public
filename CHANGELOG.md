@@ -2,6 +2,14 @@
 
 All notable changes to surveymap. Dates are the day the work landed locally.
 
+## 0.8.2 - 2026-08-29
+
+### Documentation
+
+- The generated pages lose their semicolon chains: the braid's legend,
+  reading guide, fragmentation sentence, and footer, the SVG descriptions,
+  and the routing map's description now read as separate short sentences.
+
 ## 0.8.1 - 2026-08-28
 
 ### Fixed
