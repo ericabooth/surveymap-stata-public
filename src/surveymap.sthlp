@@ -856,7 +856,7 @@ carrying an unscoped selector, a script, or a page wrapper.{p_end}
 
 
 {marker band}{...}
-{title:The band chart, for a long instrument}
+{title:The band chart}
 
 {pstd}
 The flow map has a node budget. Past {opt maxnodes()} drawn columns it stops

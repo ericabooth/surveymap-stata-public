@@ -1,6 +1,6 @@
 # surveymap
 
-**Map how respondents moved through a survey.** A Stata command that reads a survey dataset and shows who was asked each question, who answered, who declined, and who the instrument routed around it, as a browser flow map and an Excel tracker.
+**Map how respondents moved through a survey.** A Stata command that reads a survey dataset and counts, for every question, who answered, who declined, and who the skip logic routed past it, as a browser flow map and an Excel tracker.
 
 <img width="900" alt="surveymap flow map of a political survey" src="images/surveymap_flow.png" />
 
@@ -213,7 +213,7 @@ What it shows you instead is `profile(refused)` against `profile(dontknow)`. Sho
 
 ## It renders on GitHub, too
 
-`export(mermaid)` writes text that GitHub, Quarto and VS Code draw themselves, so a flow map can live in a README or a report with no image file to keep in sync. This block is the command's own output, pasted:
+`export(mermaid)` writes text that GitHub, Quarto and VS Code render as the diagram, so a README or a report needs no image file to keep in sync. This block is the command's own output, pasted:
 
 ```mermaid
 flowchart LR
@@ -334,9 +334,9 @@ The page has no height cap and scrolls sideways, because a survey is wider than 
 
 <img width="900" alt="surveymap figure exported as PNG" src="images/surveymap_figure.png" />
 
-A figure is readable up to a point. Past `maxnodes()` drawn columns (default 14) it stops and points you at the HTML page, which scrolls and keeps the full record on hover. A fan counts as one column however many items sit inside it, so the limit is on what the eye has to follow.
+A figure is readable up to a point. Past `maxnodes()` drawn columns (default 14) it stops and points you at the HTML page, which scrolls and keeps the full record on hover. A fan counts as one column however many items it contains, so the limit is on what the eye has to follow.
 
-## The band chart, for a long instrument
+## The band chart
 
 The flow map has a node budget. Past `maxnodes()` drawn columns it stops and points you at the HTML page, and on a 230-item instrument there is no arrangement of boxes and lanes that fits a page at all. `surveymap band` has no budget: one thin column per item, in questionnaire order, each split into answered, declined and not shown, stacking to the whole sample.
 
