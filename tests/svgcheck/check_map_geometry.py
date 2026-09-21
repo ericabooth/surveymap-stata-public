@@ -23,7 +23,16 @@ SVG = re.compile(r'<svg[^>]*width="(\d+)"[^>]*height="(\d+)"')
 VBOX = re.compile(r'<svg[^>]*viewBox="0 0 (\d+) (\d+)"')
 
 
+def contains(a, b):
+    return (a[0] <= b[0] and a[1] <= b[1]
+            and a[0] + a[2] >= b[0] + b[2] and a[1] + a[3] >= b[1] + b[3])
+
+
 def overlap(a, b):
+    # a bar drawn inside its item box is containment, not a collision;
+    # only a partial overlap means two shapes are fighting for the space
+    if contains(a, b) or contains(b, a):
+        return False
     return (a[0] < b[0] + b[2] and b[0] < a[0] + a[2]
             and a[1] < b[1] + b[3] and b[1] < a[1] + a[3])
 

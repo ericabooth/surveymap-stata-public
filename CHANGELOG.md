@@ -2,6 +2,194 @@
 
 All notable changes to surveymap. Dates are the day the work landed locally.
 
+## 0.8.2 - 2026-08-29
+
+### Documentation
+
+- The generated pages lose their semicolon chains: the braid's legend,
+  reading guide, fragmentation sentence, and footer, the SVG descriptions,
+  and the routing map's description now read as separate short sentences.
+
+## 0.8.1 - 2026-08-28
+
+### Fixed
+
+- **A verify scan now returns `r(mismatched)` and `r(notmapped)`.** The
+  checker computed both lists, but the scan's own return list replaced
+  them before the command returned, so the two documented macros were
+  always empty. The scan re-returns them, and block 23 of the battery
+  now checks both.
+
+### Documentation
+
+- Help-file accuracy pass against the code: the draw syntax now lists
+  `highlight()`; the band syntax lists `nnames()`, `areamin()` and
+  `name()`; `responses()` states its 1 to 8 range; `maxnodes()` says
+  what happens past the cap (the figure stops with a message pointing
+  at `export(html)`; it never wrote the page for you); the band chart
+  names every item only up to 16 items, not 60; `$SM_LASTJ` survives
+  `clear all`, and `draw` falls back to `survey_journal.tsv` in the
+  working directory; the paths stored results add `r(n_unique)`; the
+  journal-class list adds `resp`.
+- Help-file mechanics: seven sections joined the viewer jump panel, the
+  Examples jump got the `{marker examples}` it pointed at, the worked
+  nlsw88 example's HTML-entity arrows now render as plain text, and
+  `{helpb clear all}` links to the `clear` entry it meant.
+- A prose pass over the help file and README: personified and
+  metaphor-heavy sentences rewritten plainly, the longest paragraphs
+  split, and package terms glossed where a reader first meets them.
+
+## 0.8.0 - 2026-08-28
+
+### Added
+
+- **The paths page depends on no hover.** A visible table under the braid
+  names the eight largest item-to-item flows with counts and shares, so
+  the numbers a reader needs are in plain text; the svg tooltips stay for
+  the rest.
+- **The page states its own caveats.** When half or more of the interviews
+  follow a unique route, the complete-paths table says so
+  and points the reader at the ribbons, where each flow counts well.
+  When highlight(paths #) picks paths that together cover under five
+  percent of the scope, the caption says that, and the run prints a note
+  suggesting the block form of highlight() instead. Both came out of
+  real use: a twelve-item braid highlighted its three most common
+  complete paths, faded everything else, and spotlighted sixteen
+  people out of 1,369.
+
+### Testing
+
+- The battery grows to cover the flow table, both directions of the
+  fragmentation sentence (present when routes are mostly unique, absent
+  when they concentrate), and both directions of the small-slice caveat,
+  each asserted from the same journal the page was drawn from.
+
+## 0.7.0 - 2026-08-27
+
+### Added
+
+- **`highlight()` on the response braid**, so a page can lead the reader
+  to its key paths. `highlight(paths 3)` keeps the three most common
+  complete paths in full colour with a stroke, prints them bold in the
+  table, and states their combined share in the caption; every other
+  ribbon fades to pale grey, while the blocks keep their colour so the
+  columns stay readable. `highlight(var = value)` keeps the ribbons into
+  and out of one answer block, with `other` and `noanswer` naming the two
+  grey blocks. Works on `surveymap paths` and on `surveymap draw` over a
+  paths journal, so one journal redraws under different highlights with
+  no rescan; on a scan journal, `highlight()` is refused with a message.
+- A worked, click-to-run example set in the help file on `nlsw88`, the
+  practice data Stata ships, with the numbers on the page quoted in the
+  text (2,246 women; Married 64.2%; the top path Married, Not college
+  grad, Nonunion at 32.9%). The README gains the same runnable example
+  and two screenshots: the braid, and the braid with its two most common
+  paths highlighted.
+
+### Testing
+
+- 373 checks, passing on Stata 16.1 and 19.5. The new checks cover both
+  highlight forms, the exact count of bold table rows and stroked blocks,
+  the faded-ribbon colour, redraw-with-highlight, and four refusals
+  (unknown item, undrawn value, unreadable spec, scan journal).
+
+## 0.6.0 - 2026-08-27
+
+### Added
+
+- **`surveymap paths`, the response-flow view.** The flow map follows the
+  routing, so an instrument with little skip logic draws as a straight
+  line however the boxes are annotated. This view follows the answers:
+  every item becomes a column, each of its `top(k)` most common answers a
+  block, and a ribbon between two blocks carries the respondents who gave
+  both answers on consecutive items, so the survey reads as a braid that
+  splits and merges at every item. Under the figure, a table of the ten
+  most common complete paths, end to end. `surveymap paths d3a q1 q2 q3,
+  top(3) out(flows.tsv) saving(flows.html)`; `if`/`in` and a `pweight`
+  work as in the scan, and the scope is stated on the page.
+- Three new journal classes, `pnode`, `pflow` and `ppath` (see
+  JOURNAL_SCHEMA.md). The arithmetic is conserved and checked: every
+  column partitions the scope, the ribbons out of a block partition the
+  block, and the battery asserts both from the journal.
+- `surveymap draw` on a paths journal routes to the flow renderer, and
+  refuses non-html exports with a message instead of drawing the wrong
+  map.
+- The missing state is labelled `no answer recorded`, not `no answer`:
+  for an item the routing skipped, most of that block was never asked,
+  and item data cannot tell a decline from a skip. The footer says so.
+
+### Fixed
+
+- The install layout. Stata resolves an ado under PLUS by its first
+  character, so the `_sm_` helpers install under `plus/_/` while
+  `surveymap.ado` installs under `plus/s/`; a sync that copied everything
+  to `plus/s/` was a silent no-op for every helper and left a stale
+  renderer loading. TRAPS 32 and 33 record this and the related discovery
+  that one ado file's subprograms are not callable from another ado file.
+- Answer values are compared against the tabulation matrix element, never
+  a macro copy of it: a macro keeps 16 significant digits and a float
+  code like `.1` needs 17 to round-trip, so the macro copy matched nobody
+  and such codes silently pooled into `other answers`. Fixed in `paths`
+  and in the `responses()` rows, and pinned in the battery with a
+  float-coded item (TRAPS 34).
+
+### Testing
+
+- 354 checks, passing on Stata 16.1 and 19.5. Block 26 covers the
+  conservation invariants, the full-path table, scope round-trip,
+  weighted totals, draw routing, and four refusals (one item, `top(9)`,
+  a 30-plus-value item, a string item).
+
+## 0.5.0 - 2026-08-27
+
+### Added
+
+- **Three declared ways to start a map**, so a survey without much routing no
+  longer draws as a featureless chain. (1) `responses(k)` adds each item's k
+  most common answers to its box, drawn as share bars with the remainder
+  pooled into `other answers` and the declined share on its own row; the
+  denominator is the people the item was put to, so the rows in a box add to
+  100. (2) An `if`/`in` restriction traces one subgroup through the whole
+  questionnaire, and the map now says so: the journal records the expression
+  and the page opens with `scope: only respondents where ...`. (3) The
+  `profile()` conditions from 0.4 cover the outlier paths: heavy decliners,
+  refusals, don't-knows, and where people stopped.
+- **Every HTML map now carries its own reading guide**: a `How to read this
+  map, step by step` section generated with the survey's own item and gate
+  names, walking from the first box through splits, lanes, the rejoin dot,
+  and the `!!`/`!?` marks.
+- New journal class `resp` (see JOURNAL_SCHEMA.md). All values journaled with
+  a pooled marker up to 30 distinct values; an item past the cap gets a note
+  advising `branch(var = cut(...))` instead. String items are skipped.
+- Mermaid nodes carry the same response lines, and the accessibility
+  description states the scope and the response-share rule.
+
+### Fixed
+
+- The `!?` disagreement line now counts toward box height, so a box with a
+  verify mark cannot overflow its frame.
+- The geometry checker treats a bar drawn inside its own box as containment
+  rather than a collision.
+
+### Testing
+
+- 331 checks, passing on Stata 16.1 and 19.5. The new block verifies the
+  response rows partition the answered count exactly, the 30-value cap, the
+  string-item skip, the scope round-trip to the page, and that a scan
+  without `responses()` is unchanged byte-for-byte in behaviour.
+
+## 0.4.6 - 2026-08-24
+
+The item wording is now drawn inside the boxes, not only in the hover. Lane
+cells (the fanned follow-up items a gate routes people through) previously
+showed the variable name and counts alone, so a reader of a static export, a
+print-out, or a viewer that suppresses svg titles had to look up what D8 was.
+The HTML renderer's lane cells gain a visible wording line (cells grew from 54
+to 68px to carry it), in both layouts; the twoway/PNG renderer appends the
+wording to the name line on every box, spine and lane cells alike, skipped
+cells included. Wording comes from the journal's existing vallabel column, so
+old journals gain the labels on redraw with no rescan. Items whose variable
+carried no label render exactly as before.
+
 ## 0.4.5 - 2026-08-24
 
 ### Fixed

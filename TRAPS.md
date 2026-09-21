@@ -86,3 +86,47 @@
     real sources: the 59-study meta-analysis is theirs, but the 11% is
     Groves (2006), across 235 estimates in 30 studies.  Both halves were
     plausible and the sentence was wrong.
+28. -graph export- to PNG can return 198 ("failed to export to the specified
+    format") and leave a zero-byte file, for a graph that exports to SVG and
+    PDF without complaint.  Observed on macOS console-mode (batch) Stata with
+    text-heavy immediate-plot graphs (many text() elements over scatteri,
+    pci, pcarrowi), at any item count.  The same twoway command rebuilt at
+    the top level of a fresh session usually exports fine, and a graph save'd
+    copy of the refused graph stays refused after graph use in a new session,
+    so the refusal travels with the serialized graph rather than with the
+    session.  The renderer works around it (0.4.5): vector first, trap the
+    PNG, rebuild it from PDF via sips on a Mac.  While fixing it: GUI Stata
+    reports c(os) = "MacOSX" but the console build reports "Unix"; a Mac test
+    that must hold in batch mode has to read c(machine_type) instead.
+29. -import delimited- GUESSES the encoding when none is named, and a
+    mostly-ASCII journal with a few UTF-8 labels can read back as latin1,
+    exploding every curly quote into mojibake.  Every journal read carries
+    encoding("utf-8") explicitly; caught by the TVP vendor labels.
+30. substr()/strlen() count BYTES.  Truncating label text with them can split
+    a multibyte character and leave an invalid byte in the page.  Label cuts
+    go through usubstr()/ustrlen()/ustrrpos(); cuts at ASCII delimiters found
+    by strpos() are safe because the delimiter is single-byte.
+31. No apostrophe in a journal flags string.  The text passes through macro
+    quoting in every reader, and a lone quote aborts the run there -- the
+    battery itself crash-truncated at the first flags string carrying
+    "item's", silently reporting only the checks before the crash.  Check the
+    completion banner, not just the FAIL count.
+32. Stata resolves an ado under PLUS by its FIRST character: surveymap.ado
+    in plus/s/, but _sm_paths.ado in plus/_/.  Copying helpers into plus/s/
+    is a silent no-op -- which surveymap finds the new main file while every
+    _sm_ helper keeps loading stale from plus/_/.  Bit for real: a "synced"
+    install kept rendering with a pre-0.4.6 _sm_renderhtml.  Sync underscore
+    files to plus/_/, and verify with  which _sm_paths  not with  ls.
+33. Subprograms defined inside surveymap.ado are NOT callable from another
+    ado file, even while surveymap is loaded (empirical: program list says
+    not found).  A helper .ado that needs _sm_wrow or _sm_wsum carries its
+    own copy (_smp_wrow in _sm_paths.ado, _srf_ helpers in
+    _sm_renderflow.ado).
+34. Never compare data against a MACRO copy of a tabulated value.  -local
+    rv = R[1,1]- keeps 16 significant digits; a float code like .1 needs
+    17 to round-trip, so -if v == `rv'- matches NOBODY and every .1/.2/.3
+    respondent silently pools into "other" with rc 0.  Compare against the
+    matrix element directly (v == R[1,1] evaluates exactly, and matrices
+    are visible inside frame prefixes); derive display text with
+    strofreal(R[1,1], "%12.0g").  Found by the adversarial review, not by
+    the conservation invariant, which the misclassification satisfies.

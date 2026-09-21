@@ -1,17 +1,20 @@
 # surveymap
 
-**Map how respondents moved through a survey.** A Stata command that reads a survey dataset and shows who was asked each question, who answered, who declined, and who the instrument routed around it, as a browser flow map and an Excel tracker.
+**Map how respondents moved through a survey.** A Stata command that reads a survey dataset and counts, for every question, who answered, who declined, and who the skip logic routed past it, as a browser flow map and an Excel tracker.
 
 <img width="900" alt="surveymap flow map of a political survey" src="images/surveymap_flow.png" />
 
 *A twelve-item poll. The spine runs left to right in questionnaire order; where a question decides what comes next, it fans into lanes. Dashed grey boxes are questions that lane was never shown.*
 
-## Why you'd reach for this
+## Use case
 
 Consider a scenario: You have a survey with skip logic. Some questions were asked of everyone, some only of people who answered an earlier question a particular way, and some collected far fewer answers than you expected. `describe` and `misstable` tell you a column is 52% missing. They do not tell you whether that is 52% of people refusing to answer, or 52% of people never being shown the question at all. Those are opposite problems: one is a question-wording problem you can fix, the other is the instrument working correctly.
 
 <img width="900" alt="surveymap figure exported as PNG" src="images/surveymap_figure.png" />
 
+Consider a scenario: You have a survey with skip logic. Some questions were asked of everyone, some only of people who answered an earlier question a particular way, and some collected far fewer answers than you expected. `describe` and `misstable` tell you a column is 52% missing. They do not tell you whether that is 52% of people refusing to answer, or 52% of people never being shown the question at all. Those are opposite problems: one is a question-wording problem you can fix, the other is the instrument working correctly.
+
+<img width="900" alt="surveymap figure exported as PNG" src="images/surveymap_figure.png" />
 
 `surveymap` separates them, for every item, and draws the path through the questionnaire that the answers imply.
 
@@ -59,15 +62,63 @@ Every scan prints one line per item, in questionnaire order:
 
 `q6_whovote` and `q13_income` both look badly answered, for opposite reasons. `q6_whovote` was never shown to 600 people, because it asks who you voted for and they had just said they did not vote. `q13_income` was shown to nearly everyone, and 220 of them refused. The two appear one column apart in the table and call for completely different responses.
 
-Three kinds of blank are counted separately throughout:
+Wherever the labels below appear, in the receipt, the tracker, and the maps, they mean the same thing:
 
 | | meaning |
 |---|---|
 | **answered** | a real answer |
-| **declined** | extended missing (`.a` to `.z`: don't know, refused), or a code you name in `nonresponse()` |
-| **not shown** | system missing (`.`), which is where skip logic lands |
+| **declined** | extended missing (`.a` to `.z`: don't know, refused), or any code you list in `nonresponse()` |
+| **not shown** | system missing (`.`), which is what skip logic produces |
 
 **The arithmetic is checked, not assumed.** Every respondent in scope lands in exactly one of answered, declined or not shown at every item, so those three counts have to add to the sample on every row. The scan checks it and the receipt reports it, because a map whose arithmetic is wrong looks exactly like one whose arithmetic is right. `r(N_unbalanced)` is the number of items that failed, and the journal records the verdict so a reader coming to the file later can see the check was run.
+
+## Where to start a map
+
+A survey with little skip logic draws as a single line of boxes, which answers who was asked what and nothing else. The starting points below turn that line into paths a reader can follow, and they combine freely.
+
+**The response braid.** `surveymap paths` follows the answers instead of the routing: every item becomes a column, each of its `top(k)` most common answers a block, and a ribbon between two blocks carries the respondents who gave both answers on consecutive items. The remainder pools into *other answers*, and *no answer recorded* contains everyone with nothing on the item. Every respondent in scope sits in exactly one block of every column, so each column adds back to the sample; the battery asserts it. Under the figure, a visible table of the largest item-to-item flows, then the ten most common complete paths end to end. The page states its own caveats: when half or more of the interviews follow a unique route, it says so and points the reader at the ribbons, and a `highlight(paths #)` that covers only a sliver of the sample says that too.
+
+<img width="900" alt="surveymap paths response braid" src="images/surveymap_paths.png" />
+
+*The gallery's fake 1,200-person poll as a braid: consent, party, turnout, approval. The grey blocks are pooled and missing answers; the table under the figure names the most common complete paths.*
+
+The example below runs as typed on data Stata ships:
+
+```stata
+sysuse nlsw88, clear
+surveymap paths married collgrad union, top(2) out(flows.tsv) saving(flows.html)
+```
+
+**Pick out the key paths.** `highlight()` keeps the flows you want a reader to see first and fades every other ribbon. `highlight(paths 3)` keeps the three most common complete paths, prints them bold in the table, and states their combined share in the caption; `highlight(union = 1)` keeps the ribbons into and out of one answer block (`other` and `noanswer` name the grey blocks). It also works on `surveymap draw` over a paths journal, so the same journal redraws with different highlights, no rescan.
+
+```stata
+surveymap paths married collgrad union, top(2) highlight(paths 2) saving(flows.html) replace
+surveymap draw flows.tsv, highlight(union = 1) saving(flows2.html) replace
+```
+
+<img width="900" alt="surveymap paths braid with the two most common paths highlighted" src="images/surveymap_paths_hl.png" />
+
+*The same braid with `highlight(paths 2)`: the two most common complete routes keep full colour and print bold in the table; everything else fades.*
+
+**The spine with its splits.** `responses(3)` adds each item's three most common answers to its box on the routing map, drawn as share bars, with the rest pooled into *other answers* and the declined share on its own row. The denominator is the people the item was put to (answered plus declined), so the rows inside a box account for everyone who saw the question. Items with more than 30 distinct values are skipped with a note advising `branch(age = cut(...))` instead.
+
+```stata
+surveymap, responses(3)
+```
+
+**One subgroup's path.** An `if` restriction traces the respondents it selects through the questionnaire, on the paths view or the scan, and the page says so: the map opens with `scope: only respondents where ...`.
+
+```stata
+surveymap paths q1 q2 q3 if inlist(party, 2, 3) & age > 40
+```
+
+**The outlier paths.** `profile()` splits the routing map by what respondents did rather than what they answered; see the section below.
+
+```stata
+surveymap, profile(declined)
+```
+
+Every HTML page carries **How to read this map, step by step**, generated with the survey's own item and gate names, plus the full record as a table.
 
 ## Pointing it at a real survey file
 
@@ -127,7 +178,7 @@ The lanes open where the gate's questions are, not necessarily in the next colum
 **Gating on a continuous item.** Age in years has too many values to be a lane, so you say where to cut it:
 
 ```stata
-surveymap, branch(age = cut(25 35 45 65))   // bands at the breaks you name
+surveymap, branch(age = cut(25 35 45 65))   // age bands cut at 25, 35, 45, 65
 surveymap, branch(hhinc = q(4))             // quartile bands
 ```
 
@@ -159,13 +210,13 @@ surveymap, profile(asked = q(4))              // how far the routing carried the
 
 **Two conditions this refuses to build.** `profile(exaggerator)` returns a refusal with the reason. People who over-report a socially desirable answer resemble people who report it honestly on everything a survey records: Ansolabehere and Hersh's fifty-state vote validation found over-reporters look like voters on demographics and attitudes alike. A flag built from the answers alone reproduces the profile of the behaviour rather than of the misreporting, and labels older, better-educated, more engaged respondents as liars. Measuring it takes an external record to validate against, or an instrument designed for it: a list experiment, randomised response, or planted foils.
 
-`profile(straightlining)` is refused for a different reason. Non-differentiation is measurable, but only inside a battery you name, and only where answering the same way down it would be implausible. Where a straight line is a plausible set of answers, Schonlau and Toepoel found 15 to 40% of respondents produce one, against under 2% where it is implausible; the index cannot tell those two apart. Non-differentiation is also more common among respondents with less schooling (Krosnick and Alwin 1988), and attention-check failure correlates with substantive characteristics in the same way (Berinsky, Margolis and Sances 2014), so a lane built on it is partly a lane built on education. A survey file does not record which items share a response scale, so this package does not guess.
+`profile(straightlining)` is refused for a different reason. Non-differentiation can be measured, but only inside a named battery of items that share a response scale, and only where answering the same way down that battery would be implausible. Where a straight line is a plausible set of answers, Schonlau and Toepoel found 15 to 40% of respondents produce one, against under 2% where it is implausible; the index cannot tell those two apart. Non-differentiation is also more common among respondents with less schooling (Krosnick and Alwin 1988), and attention-check failure correlates with substantive characteristics in the same way (Berinsky, Margolis and Sances 2014), so a lane built on it is partly a lane built on education. A survey file does not record which items share a response scale, so this package does not guess.
 
 What it shows you instead is `profile(refused)` against `profile(dontknow)`. Shoemaker, Eichholz and Skewes found don't-know associated with the cognitive effort a question demands, and refusal associated with effort *and* with how sensitive the question is. Refusals stacking on an income block is evidence about sensitivity; don't-knows spread across an attitude battery is evidence about burden. Those point at different fixes, which is why the package keeps them apart instead of adding them together.
 
 ## It renders on GitHub, too
 
-`export(mermaid)` writes text that GitHub, Quarto and VS Code draw themselves, so a flow map can live in a README or a report with no image file to keep in sync. This block is the command's own output, pasted:
+`export(mermaid)` writes text that GitHub, Quarto and VS Code render as the diagram, so a README or a report needs no image file to keep in sync. This block is the command's own output, pasted:
 
 ```mermaid
 flowchart LR
@@ -242,7 +293,7 @@ flowchart TB
 
 There is no questionnaire spec in a `.dta` file, so `surveymap` reads routing out of the answers. A category is recorded as routing people around a later item when almost nobody in that lane answered it while the other lanes did: at most 2% inside, at least 50% outside. `detect(# #)` moves both thresholds.
 
-This is evidence, not a specification. An item that everyone in a category happened not to answer looks exactly like an item they were never shown, and the receipt says so once. Read a detected gate as a claim worth checking, and name the gates yourself when you know the instrument.
+The detector reads the answers, so it can only report what the answers show. An item that everyone in a category happened not to answer looks exactly like an item they were never shown, and the receipt says so once. Read a detected gate as a claim worth checking, and name the gates yourself when you know the instrument.
 
 ## Pruning noisy branches
 
@@ -286,9 +337,9 @@ The page has no height cap and scrolls sideways, because a survey is wider than 
 
 <img width="900" alt="surveymap figure exported as PNG" src="images/surveymap_figure.png" />
 
-A figure is readable up to a point. Past `maxnodes()` drawn columns (default 14) it stops and points you at the HTML page, which scrolls and keeps the full record on hover. A fan counts as one column however many items sit inside it, so the limit is on what the eye has to follow.
+A figure is readable up to a point. Past `maxnodes()` drawn columns (default 14) it stops and points you at the HTML page, which scrolls and keeps the full record on hover. A fan counts as one column however many items it contains, so the limit is on what the eye has to follow.
 
-## The band chart, for a long instrument
+## The band chart
 
 The flow map has a node budget. Past `maxnodes()` drawn columns it stops and points you at the HTML page, and on a 230-item instrument there is no arrangement of boxes and lanes that fits a page at all. `surveymap band` has no budget: one thin column per item, in questionnaire order, each split into answered, declined and not shown, stacking to the whole sample.
 
@@ -352,7 +403,7 @@ A varlist chooses which items to map; the columns keep their dataset order eithe
 
 `surveymap` draws boxes and lanes because a survey node has to show more than a width: the item, its label, how many were asked, how many answered, how many declined. These draw flows in other shapes and are the better tool when that is the shape you want.
 
-- [`sankey`](https://github.com/asjadnaqvi/stata-sankey) and `alluvial` (Naqvi): ribbons whose width is the count, from `from`/`to`/`value` data, as mermaid's own [`sankey-beta`](https://mermaid.js.org/syntax/sankey.html) does from three CSV columns. Reach for one of them when two or three transitions are the whole story. `surveymap` does not encode counts as widths, for two reasons worth knowing before you go looking for the option. A ribbon diagram invites the reader to expect the widths at a node to add up, and on a questionnaire they do not: the people who declined an item are a gap the eye reads as attrition already explained. And on a 15 to 40 item instrument the smallest flows fall below a pixel, so a path taken by nobody disappears, which on a QC map is usually the finding you most wanted.
+- [`sankey`](https://github.com/asjadnaqvi/stata-sankey) and `alluvial` (@asjadnaqvi via https://github.com/asjadnaqvi): ribbons whose width is the count, from `from`/`to`/`value` data, as mermaid's own [`sankey-beta`](https://mermaid.js.org/syntax/sankey.html) does from three CSV columns. Reach for one of them when two or three transitions are the whole story. `surveymap` does not encode counts as widths, for two reasons worth knowing before you go looking for the option. A ribbon diagram invites the reader to expect the widths at a node to add up, and on a questionnaire they do not: the people who declined an item are a gap the eye reads as attrition already explained. And on a 15 to 40 item instrument the smallest flows fall below a pixel, so a path taken by nobody disappears, which on a QC map is usually the finding you most wanted.
 - [`flowchart`](https://ideas.repec.org/c/boc/bocode/s458387.html) (Dodd): CONSORT and PRISMA subject-disposition figures as LaTeX PGF/TikZ. Needs LaTeX, and you supply the counts.
 - [`direct_flow`](https://rlpacheco.github.io/direct_flow) (Pacheco, Martimbianco and Riera): systematic-review study-selection flowcharts, again from counts you supply.
 - `statflow`: an Excel sheet of logic, variable, statistic and value, with the value column rewritten from the data. You fix the shape; it fills the numbers.
@@ -377,7 +428,7 @@ cd tests
 do surveymap_pkgtest.do
 ```
 
-298 checks across 24 blocks, run on Stata 16.1 and on the current release, covering the fixture's routing truths, the branch parser, banding a continuous gate, the derived conditions and the ones the package refuses to build, the conservation arithmetic, the drawn verify disagreement, the band chart at 230 items, lane partitioning, pruning at scan and at draw time, weights, `exclude()`/`nostrings`, `verify()`, both layouts of all four renderers, the Excel tracker, the fragment's scoping guarantee, and both directions of the `datadictionary` bridge.
+384 checks across 26 blocks, run on Stata 16.1 and on the current release, covering the fixture's routing truths, the branch parser, banding a continuous gate, the derived conditions and the ones the package refuses to build, the conservation arithmetic, the drawn verify disagreement, the band chart at 230 items, the response rows and their exact partition of the answered count, the response braid's conservation (columns, ribbons and complete paths all partition the scope), the scope round-trip to the page, lane partitioning, pruning at scan and at draw time, weights, `exclude()`/`nostrings`, `verify()`, both layouts of all four renderers, the Excel tracker, the fragment's scoping guarantee, and both directions of the `datadictionary` bridge.
 
 The gallery is a second, coarser test: it rebuilds every example artifact from one fake survey and counts its own failures, because a Stata do-file can abort and still leave the runner reporting success.
 

@@ -1,4 +1,4 @@
-*! version 0.4.5  24aug2026  Eric Booth
+*! version 0.5.0  27aug2026  Eric Booth
 *! _sm_renderband -- the status band chart (chronogram) of a surveymap journal.
 *!
 *! One thin column per item, in questionnaire order, each split into answered
@@ -42,7 +42,7 @@ program define _sm_renderband, rclass
     frame `F' {
 
     quietly import delimited using `"`using'"', delimiter(tab) ///
-        varnames(1) stringcols(_all) clear
+        varnames(1) stringcols(_all) encoding("utf-8") clear
 
     foreach v in class var position n_asked n_answered n_nonresp n_sysmiss {
         capture confirm variable `v'

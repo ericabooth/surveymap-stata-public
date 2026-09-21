@@ -199,6 +199,24 @@ program define sm_fcount, rclass
     return scalar n = `n'
 end
 
+* count lines containing the character with this ASCII code.  For needles a
+* macro cannot carry (a backtick starts an expansion the moment it crosses
+* a macro boundary), the code number travels instead and the character is
+* built inside the program.
+program define sm_fcode, rclass
+    args f code
+    tempname fh
+    local n = 0
+    file open `fh' using `"`f'"', read text
+    file read `fh' line
+    while r(eof) == 0 {
+        if strpos(`"`macval(line)'"', char(`code')) local ++n
+        file read `fh' line
+    }
+    file close `fh'
+    return scalar n = `n'
+end
+
 * is there a line containing BOTH needles? (e.g. <title> plus the map's name)
 program define sm_flinehas, rclass
     args f n1 n2
@@ -1320,6 +1338,8 @@ capture noisily surveymap q1_consent q3_party q5_voted q6_whovote q11_rep_prim, 
     noautodetect out(j23.tsv) noreceipt replace verify(decl23.csv)
 sm_assert `=(_rc == 0)' "a scan with verify() runs"
 sm_assert `=(r(N_mismatch) == 1)' "it finds the one declared count that disagrees"
+sm_assert `=("`r(mismatched)'" == "q11_rep_prim")' "r(mismatched) names the disagreeing item"    // * REGRESSION: 0.8.1, the locals were wiped before return
+sm_assert `=("`r(notmapped)'" == "q99_nothere")' "r(notmapped) names the declared item that is not in the map"
 
 * ---- the verdict is appended to the journal, not just printed ----
 capture sm_jcount j23.tsv note q11_rep_prim
@@ -1486,6 +1506,352 @@ file close `xh'
 capture noisily surveymap band bad24.tsv, saving(b24bad.png) replace
 sm_assert `=(_rc == 0)' "a journal that does not partition still draws"
 sm_assert `=(r(devmax) > 0)' "and the shortfall is reported rather than hidden"
+
+* ============================================================================
+sm_block 25 "responses(): the linear path grows visible splits"
+* ============================================================================
+* A survey without skip logic used to draw as a featureless chain of boxes.
+* responses(k) adds each item's k most common answers to its box, as shares
+* of the people the item was put to, with the remainder pooled and the
+* declined share on its own row, so the single path still shows where the
+* sample divides.
+capture use fake_a.dta, clear
+
+capture noisily surveymap q1_consent q3_party q5_voted q8_approve q13_income ///
+    , responses(3) noautodetect out(j25.tsv) noreceipt replace
+sm_assert `=(_rc == 0)' "responses(3) is accepted"
+capture sm_jcount j25.tsv resp q8_approve
+sm_assert `=(r(n) == 4)' "an item with four answers journals all four response rows"
+
+* ---- the response rows partition the answered, exactly ----
+tempname f25
+frame create `f25'
+frame `f25' {
+    quietly import delimited using "j25.tsv", delimiter(tab) varnames(1) ///
+        stringcols(_all) clear
+    quietly gen double rn = real(n_asked)
+    quietly count if class == "resp" & var == "q8_approve" & pooled == "1"
+    local npool = r(N)
+    quietly summarize rn if class == "resp" & var == "q8_approve"
+    local rsum = r(sum)
+    quietly levelsof n_answered if class == "item" & var == "q8_approve", ///
+        local(ans) clean
+}
+frame drop `f25'
+sm_assert `=(`rsum' == real("`ans'"))' "the response rows add up to the answered count"
+sm_assert `=(`npool' == 1)' "the fourth-ranked answer is pooled, the top three are not"
+
+* ---- guard rails ----
+capture noisily surveymap q1_consent, responses(9) out(j25e.tsv) noreceipt replace
+sm_assert `=(_rc == 198)' "responses(9) is refused: a box cannot show nine answers"
+capture noisily surveymap q1_consent st, responses(2) noautodetect ///
+    out(j25s.tsv) noreceipt replace
+sm_assert `=(_rc == 0)' "a string item does not stop the scan"
+capture sm_jcount j25s.tsv resp st
+sm_assert `=(r(n) == 0)' "and it gets no response rows"
+capture noisily surveymap resp_id q1_consent, responses(2) noautodetect ///
+    out(j25c.tsv) noreceipt replace
+sm_assert `=(_rc == 0)' "an id with 1,200 distinct values does not stop the scan"
+capture sm_jcount j25c.tsv resp resp_id
+sm_assert `=(r(n) == 0)' "it gets a note instead of 1,200 rows"
+capture sm_jval j25c.tsv flags note resp_id
+sm_assert `=(strpos("`r(val)'", "more than 30 distinct") > 0)' ///
+    "and the note says to band it"
+
+* ---- the scope travels with the journal and reaches the page ----
+capture use fake_a.dta, clear
+capture noisily surveymap q1_consent q3_party if q2_age > 40, responses(2) ///
+    noautodetect out(j25f.tsv) noreceipt replace
+sm_assert `=(_rc == 0)' "an if restriction composes with responses()"
+capture sm_jval j25f.tsv flags survey "*"
+sm_assert `=(strpos("`r(val)'", "scope: if q2_age > 40") > 0)' ///
+    "the journal records the scope expression verbatim"
+
+capture noisily surveymap draw j25f.tsv, export(html) saving(h25f.html) replace
+sm_assert `=(_rc == 0)' "the scoped map draws"
+capture sm_fcount h25f.html "only respondents where q2_age &gt; 40"
+sm_assert `=(r(n) == 1)' "the page states whose path it shows, without the if keyword"
+
+* ---- the drawn splits and the reading guide ----
+capture noisily surveymap draw j25.tsv, export(html) saving(h25.html) replace
+sm_assert `=(_rc == 0)' "the responses map draws"
+capture sm_fcount h25.html "% other answers"
+sm_assert `=(r(n) >= 1)' "the pooled remainder is drawn as its own row"
+capture sm_fcount h25.html "% no answer"
+sm_assert `=(r(n) >= 1)' "the declined share is drawn as its own row"
+capture sm_fcount h25.html "sm-rb"
+sm_assert `=(r(n) >= 5)' "each response row carries a share bar"
+capture sm_fcount h25.html "How to read this map, step by step"
+sm_assert `=(r(n) == 1)' "the page carries the reading guide"
+capture sm_fcount h25.html "most common answers"
+sm_assert `=(r(n) >= 1)' "the guide explains the response rows when they are drawn"
+
+capture noisily surveymap draw j25.tsv, export(html) layout(vertical) ///
+    saving(h25v.html) replace
+sm_assert `=(_rc == 0)' "the vertical layout draws the same rows"
+capture sm_fcount h25v.html "% other answers"
+sm_assert `=(r(n) >= 1)' "including the pooled remainder"
+
+* ---- mermaid carries the same lines ----
+capture noisily surveymap draw j25.tsv, export(mermaid) saving(m25) replace
+sm_assert `=(_rc == 0)' "mermaid draws"
+capture sm_fcount m25.mmd "% no answer"
+sm_assert `=(r(n) >= 1)' "mermaid nodes carry the declined share"
+
+* ---- without responses(), nothing changes ----
+capture use fake_a.dta, clear
+capture noisily surveymap q1_consent q3_party, noautodetect out(j25n.tsv) ///
+    noreceipt replace
+capture sm_jcount j25n.tsv resp "*"
+sm_assert `=(r(n) == 0)' "a scan without responses() writes no response rows"
+capture noisily surveymap draw j25n.tsv, export(html) saving(h25n.html) replace
+capture sm_fcount h25n.html "sm-rb"
+sm_assert `=(r(n) == 0)' "and its map draws no bars"
+
+* ---- a label with a curly apostrophe survives the whole pipeline ----
+* Vendor files carry typographic quotes; a byte-based cut or an import that
+* guesses latin1 explodes them into mojibake.  Both failure modes shipped
+* once, so both are pinned here.
+capture use fake_a.dta, clear
+local CQ = uchar(8217)
+local LB = "Which party" + "`CQ'" + "s candidates have you backed most often"
+label variable q3_party "`LB'"
+capture noisily surveymap q1_consent q3_party, responses(3) noautodetect ///
+    out(j25u.tsv) noreceipt replace
+sm_assert `=(_rc == 0)' "a curly apostrophe in a label scans"
+capture noisily surveymap draw j25u.tsv, export(html) saving(h25u.html) replace
+sm_assert `=(_rc == 0)' "and draws"
+capture sm_fcount h25u.html "`CQ'"
+sm_assert `=(r(n) >= 1)' "the apostrophe reaches the page intact"
+local MOJ = uchar(195) + uchar(162)
+capture sm_fcount h25u.html "`MOJ'"
+sm_assert `=(r(n) == 0)' "and no mojibake sequence appears"
+
+* ---- responses() composes with a gate; lane cells stay compact ----
+capture use fake_a.dta, clear
+capture noisily surveymap q1_consent q3_party q5_voted q6_whovote q8_approve ///
+    , branch(q5_voted) responses(3) out(j25b.tsv) noreceipt replace
+sm_assert `=(_rc == 0)' "responses() and branch() run together"
+capture noisily surveymap draw j25b.tsv, export(html) saving(h25b.html) replace
+sm_assert `=(_rc == 0)' "and the branched map draws"
+capture noisily surveymap export j25b.tsv, saving(x25.xlsx) replace
+sm_assert `=(_rc == 0)' "the tracker tolerates the new rows"
+
+* ---- block 26: surveymap paths, the response-flow view ----------------------
+* The braid is only honest if its arithmetic conserves people: every column
+* partitions the scope, every ribbon bundle partitions its block, and the
+* full-sequence table partitions the scope again.  Each is checked from the
+* journal, not from the drawing.
+capture use fake_a.dta, clear
+capture noisily surveymap paths q1_consent q3_party q5_voted, top(3) ///
+    out(j26.tsv) saving(h26.html) noopen replace
+sm_assert `=(_rc == 0)' "paths runs on three items"
+sm_assert `=(r(N) > 0 & r(K_items) == 3)' "and returns N and K_items"
+local N26 = r(N)
+
+preserve
+capture import delimited using j26.tsv, delimiter(tab) varnames(1) ///
+    stringcols(_all) encoding("utf-8") clear
+sm_assert `=(_rc == 0)' "the paths journal reads back"
+capture destring n_asked, gen(nn) force
+local ok = 1
+forvalues t = 1/3 {
+    quietly su nn if class == "pnode" & position == "`t'"
+    if r(sum) != `N26' local ok = 0
+}
+sm_assert `ok' "every pnode column sums to the scope count"
+local ok = 1
+forvalues t = 1/2 {
+    quietly su nn if class == "pflow" & position == "`t'"
+    if r(sum) != `N26' local ok = 0
+}
+sm_assert `ok' "every pflow layer sums to the scope count"
+local ok = 1
+forvalues t = 1/2 {
+    forvalues a = 1/5 {
+        quietly su nn if class == "pnode" & position == "`t'" & gate == "`a'"
+        local node = r(sum)
+        quietly su nn if class == "pflow" & position == "`t'" & gate == "`a'"
+        if r(sum) != `node' local ok = 0
+    }
+}
+sm_assert `ok' "the ribbons out of each block partition the block"
+quietly count if class == "ppath"
+local np = r(N)
+sm_assert `=(`np' >= 1 & `np' <= 10)' "one to ten full sequences are journaled"
+quietly su nn if class == "ppath"
+sm_assert `=(r(sum) <= `N26')' "sequence counts never exceed the scope"
+restore
+
+capture sm_fcount h26.html "most common full paths"
+sm_assert `=(r(n) >= 1)' "the page lists the most common full paths"
+capture sm_fcount h26.html "How to read this map"
+sm_assert `=(r(n) >= 1)' "the page explains how to read itself"
+capture sm_fcount h26.html "sm-fp"
+sm_assert `=(r(n) >= 2)' "ribbons are drawn"
+capture sm_fcount h26.html "no answer recorded"
+sm_assert `=(r(n) >= 1)' "the missing state says recorded, not just no answer"
+* a backtick needle cannot pass through macro expansion intact, so the
+* delimiter-leak check counts character code 96 instead (sm_fcode)
+capture sm_fcode h26.html 96
+sm_assert `=(_rc == 0 & r(n) == 0)' "no compound-quote delimiters leak into the tooltips"
+
+* draw on a paths journal routes to the flow renderer, html only
+capture noisily surveymap draw j26.tsv, export(html) saving(h26b.html) noopen replace
+sm_assert `=(_rc == 0)' "surveymap draw redraws a paths journal"
+capture sm_fcount h26b.html "sm-fp"
+sm_assert `=(r(n) >= 2)' "and the redraw is the flow map, not the routing map"
+capture surveymap draw j26.tsv, export(mermaid) saving(m26) replace
+sm_assert `=(_rc == 198)' "a paths journal refuses a mermaid export"
+
+* scope travels to the page
+capture noisily surveymap paths q1_consent q3_party if q2_age > 40, top(2) ///
+    out(j26s.tsv) saving(h26s.html) noopen replace
+sm_assert `=(_rc == 0)' "a scoped paths run works"
+capture sm_flinehas h26s.html "only respondents where" "q2_age &gt; 40"
+sm_assert `=(r(hit) == 1)' "and the page states the scope"
+
+* weighted runs conserve the weighted total too
+quietly gen double w26 = cond(q3_party == 1, 1.4, 0.8)
+capture noisily surveymap paths q1_consent q3_party [pw=w26], top(2) ///
+    out(j26w.tsv) saving(h26w.html) noopen replace
+sm_assert `=(_rc == 0)' "a weighted paths run works"
+preserve
+quietly import delimited using j26w.tsv, delimiter(tab) varnames(1) ///
+    stringcols(_all) encoding("utf-8") clear
+quietly destring w_asked, gen(ww) force
+quietly su ww if class == "survey"
+local wtot = r(sum)
+quietly su ww if class == "pnode" & position == "1"
+sm_assert `=(abs(r(sum) - `wtot') < .01)' "weighted pnode counts sum to the weighted scope"
+restore
+
+* float answer codes: a macro copy of a tabulated value keeps 16 digits and
+* .1 needs 17, so a macro-based compare pools every such respondent into
+* "other" silently (TRAPS 34).  The named blocks must hold real counts.
+capture use fake_a.dta, clear
+quietly gen float f26 = cond(q3_party == 1, .1, cond(q3_party == 2, .2, .3))
+quietly gen double w26 = cond(q3_party == 1, 1.4, 0.8)
+capture noisily surveymap paths f26 q1_consent, top(3) ///
+    out(j26f.tsv) saving(h26f.html) noopen replace
+sm_assert `=(_rc == 0)' "float-coded answers run"
+preserve
+quietly import delimited using j26f.tsv, delimiter(tab) varnames(1) ///
+    stringcols(_all) encoding("utf-8") clear
+quietly destring n_asked, gen(nn) force
+quietly su nn if class == "pnode" & position == "1" & value != "~o" & value != "~m"
+local named = r(sum)
+quietly su nn if class == "pnode" & position == "1" & value == "~o"
+local other = r(sum)
+restore
+sm_assert `=(`named' > 0)' "float codes land in their named blocks"
+sm_assert `=(`other' == 0)' "and none of them pool into other answers"
+* the responses() rows share the fix: the weighted count uses the same compare
+capture noisily surveymap f26 q1_consent [pw=w26], responses(3) noautodetect ///
+    out(j26f2.tsv) noreceipt replace
+sm_assert `=(_rc == 0)' "responses() accepts the float-coded item"
+preserve
+quietly import delimited using j26f2.tsv, delimiter(tab) varnames(1) ///
+    stringcols(_all) encoding("utf-8") clear
+quietly destring w_asked, gen(ww) force
+quietly su ww if class == "resp" & var == "f26"
+local wf = r(sum)
+restore
+sm_assert `=(`wf' > 0)' "and its weighted response counts are nonzero"
+
+* complete data: the no-answer slot is never journaled, and the renderer
+* must read top from the survey row rather than inferring it from the
+* occupied slots, or every colour and the guide text shift by one
+capture use fake_a.dta, clear
+quietly keep if !missing(q3_party) & !missing(q5_voted)
+capture noisily surveymap paths q3_party q5_voted, top(3) ///
+    out(j26c.tsv) saving(h26c.html) noopen replace
+sm_assert `=(_rc == 0)' "a complete-data run works"
+capture sm_fcount h26c.html "past the 3 most common"
+sm_assert `=(r(n) >= 1)' "and the guide still says the 3 most common"
+
+* highlight: pick out paths or one block; everything else fades
+capture use fake_a.dta, clear
+capture noisily surveymap paths q1_consent q3_party q5_voted, top(3) ///
+    highlight(paths 2) out(j26h.tsv) saving(h26h.html) noopen replace
+sm_assert `=(_rc == 0)' "highlight(paths 2) runs"
+capture sm_fcount h26h.html "highlighted:"
+sm_assert `=(r(n) >= 1)' "and the caption says what is highlighted"
+capture sm_fcount h26h.html "tr class="
+sm_assert `=(r(n) == 2)' "exactly the two picked paths print bold"
+capture sm_fcount h26h.html "#d4d4d4"
+sm_assert `=(r(n) >= 2)' "the other ribbons fade to grey"
+capture noisily surveymap paths q1_consent q3_party, top(2) ///
+    highlight(q3_party = 1) out(j26h2.tsv) saving(h26h2.html) noopen replace
+sm_assert `=(_rc == 0)' "highlight(var = value) runs"
+capture sm_fcount h26h2.html "#1f2d3a"
+sm_assert `=(r(n) == 1)' "and exactly one block gets the highlight stroke"
+capture noisily surveymap draw j26h.tsv, saving(h26h3.html) ///
+    highlight(paths 1) noopen replace
+sm_assert `=(_rc == 0)' "draw redraws a paths journal with a highlight"
+capture surveymap paths q1_consent q3_party, highlight(zz = 1) out(jx.tsv) replace
+sm_assert `=(_rc == 198)' "an unknown highlight item is refused"
+capture surveymap paths q1_consent q3_party, highlight(q3_party = 99) out(jx.tsv) replace
+sm_assert `=(_rc == 198)' "a value with no drawn block is refused"
+capture surveymap paths q1_consent q3_party, highlight(nonsense) out(jx.tsv) replace
+sm_assert `=(_rc == 198)' "an unreadable highlight() is refused"
+capture surveymap draw j2.tsv, highlight(paths 1) saving(hx.html) noopen replace
+sm_assert `=(_rc == 198)' "highlight() on a scan journal is refused"
+
+* the largest flows are visible text, never hover-only
+capture sm_fcount h26.html "The largest flows"
+sm_assert `=(r(n) >= 1)' "the page lists its largest flows in plain text"
+
+* the fragmentation sentence appears exactly when routes are mostly unique
+capture use fake_a.dta, clear
+capture noisily surveymap paths q1_consent q3_party q5_voted q6_whovote q8_approve ///
+    , top(3) out(j26q.tsv) saving(h26q.html) noopen replace
+sm_assert `=(_rc == 0)' "a five-item paths run works"
+local frag_expected = r(n_unique) >= 0.5 * r(N)
+capture sm_fcount h26q.html "follow a unique route"
+sm_assert `=(r(n) >= 1) == `frag_expected'' "the fragmentation sentence appears exactly when routes are mostly unique"
+capture noisily surveymap paths q1_consent q3_party, top(3) out(j26r.tsv) saving(h26r.html) noopen replace
+local frag_expected2 = r(n_unique) >= 0.5 * r(N)
+capture sm_fcount h26r.html "follow a unique route"
+sm_assert `=(r(n) >= 1) == `frag_expected2'' "and stays off when a short list concentrates the routes"
+
+* every route shared by a twin: many distinct routes, zero unshared ones,
+* and the fragmentation sentence must stay off (the route count would lie)
+preserve
+capture use fake_a.dta, clear
+quietly keep in 1/40
+quietly expand 2
+capture noisily surveymap paths q1_consent q3_party q5_voted q6_whovote q8_approve ///
+    , top(3) out(j26t.tsv) saving(h26t.html) noopen replace
+sm_assert `=(_rc == 0)' "a twinned-routes run works"
+sm_assert `=(r(n_unique) == 0)' "twinned data have no unshared routes"
+capture sm_fcount h26t.html "follow a unique route"
+sm_assert `=(r(n) == 0)' "and the fragmentation sentence stays off for them"
+restore
+
+* a paths highlight covering a sliver says so on the page
+capture noisily surveymap paths q1_consent q3_party q5_voted q6_whovote q8_approve ///
+    , top(3) highlight(paths 1) out(j26s2.tsv) saving(h26s2.html) noopen replace
+sm_assert `=(_rc == 0)' "a fragmented-run highlight works"
+preserve
+quietly import delimited using j26s2.tsv, delimiter(tab) varnames(1) ///
+    stringcols(_all) encoding("utf-8") clear
+quietly destring pct_answered, gen(pp) force
+quietly su pp if class == "ppath" & gate == "1"
+local tiny = r(mean) < 5
+restore
+capture sm_fcount h26s2.html "small slice of the sample"
+sm_assert `=(r(n) >= 1) == `tiny'' "the small-slice caveat appears exactly when the picked paths are a sliver"
+
+* refusals: each has to name the problem
+capture surveymap paths q1_consent, out(jx.tsv) replace
+sm_assert `=(_rc == 198)' "one item is refused"
+capture surveymap paths q1_consent q3_party, top(9) out(jx.tsv) replace
+sm_assert `=(_rc == 198)' "top(9) is refused"
+capture surveymap paths q1_consent resp_id, out(jx.tsv) replace
+sm_assert `=(_rc == 198)' "an item past 30 distinct answers is refused"
+capture surveymap paths q1_consent st, out(jx.tsv) replace
+sm_assert `=(_rc == 198)' "a string item is refused"
 
 * ---------------------------------------------------------------- summary ----
 display as text _n "{hline 78}"

@@ -21,7 +21,7 @@ d
 d Author: Eric Booth
 d Support: email eric.a.booth@gmail.com
 d
-d Distribution-Date: 20260824
+d Distribution-Date: 20260829
 f src/surveymap.sthlp
 f src/surveymap.ado
 f src/_sm_branch.ado
@@ -32,6 +32,8 @@ f src/_sm_export.ado
 f src/_sm_isabs.ado
 f src/_sm_jprune.ado
 f src/_sm_open.ado
+f src/_sm_paths.ado
+f src/_sm_renderflow.ado
 f src/_sm_renderhtml.ado
 f src/_sm_rendertext.ado
 f src/_sm_rendertw.ado

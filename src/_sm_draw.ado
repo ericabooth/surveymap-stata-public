@@ -1,4 +1,4 @@
-*! version 0.4.5  24aug2026  Eric Booth
+*! version 0.7.0  27aug2026  Eric Booth
 *! _sm_draw -- dispatcher behind -surveymap draw-.  Resolves which journal to
 *! draw, picks the renderer from export(), applies the read-time prune rules,
 *! and handles the open-in-browser courtesy for HTML output.
@@ -17,7 +17,8 @@ program define _sm_draw, rclass
     version 16
     syntax [anything(name=jspec)] [, EXPort(string) SAVing(string)          ///
         LAYout(string) PRUNE(real -1) MINN(integer -1) MAXCats(integer -1)  ///
-        NOPRUNE NAME(string) NOOPen EMBed MAXnodes(integer -1) replace]
+        NOPRUNE NAME(string) HIGHlight(string) NOOPen EMBed                 ///
+        MAXnodes(integer -1) replace]
 
     * ---- which journal --------------------------------------------------
     gettoken w1 rest : jspec
@@ -64,6 +65,56 @@ program define _sm_draw, rclass
     if inlist("`layout'", "v", "vert", "tb", "td") local layout "vertical"
     if !inlist("`layout'", "horizontal", "vertical") {
         di as err "surveymap draw: layout() must be horizontal or vertical"
+        exit 198
+    }
+
+    * ---- a paths journal draws with the flow renderer -------------------
+    * pnode rows mark a journal -surveymap paths- wrote; its map is the
+    * response braid, which only the html renderer draws
+    local ispaths = 0
+    tempname PJ
+    frame create `PJ'
+    frame `PJ' {
+        capture quietly import delimited using `"`jfile'"', delimiter(tab) ///
+            varnames(1) stringcols(_all) encoding("utf-8") clear
+        capture confirm variable class
+        if !_rc {
+            quietly count if class == "pnode"
+            if r(N) > 0 local ispaths = 1
+        }
+    }
+    frame drop `PJ'
+    if `ispaths' {
+        if "`export'" != "html" {
+            di as err "surveymap draw: a paths journal draws as html only"
+            di as err "    surveymap draw `jfile', export(html) saving(...)"
+            exit 198
+        }
+        local hf `"`saving'"'
+        if `"`hf'"' == "" local hf "surveymap_paths.html"
+        if strlower(substr(`"`hf'"', -5, .)) != ".html" local hf `"`hf'.html"'
+        local no ""
+        if `"`name'"' != "" local no `"name(`name')"'
+        if `"`highlight'"' != "" local no `"`no' highlight(`highlight')"'
+        _sm_renderflow using `"`jfile'"', saving(`"`hf'"') `no' `embed' `replace'
+        return local journal `"`jfile'"'
+        return local output `"`s(out)'"'
+        local abs `"`hf'"'
+        _sm_isabs `"`abs'"'
+        if !r(abs) local abs `"`c(pwd)'/`hf'"'
+        global SM_LASTOUT `"`abs'"'
+        di as txt `"    {stata _sm_open:Open the map in your browser}"'
+        di as txt `"    `abs'"'
+        if "`noopen'" == "" & "`c(mode)'" != "batch" & "`c(console)'" == "" {
+            capture _sm_open
+        }
+        exit
+    }
+
+    if `"`highlight'"' != "" {
+        di as err "surveymap draw: highlight() picks out flows on a paths map"
+        di as err "    this journal is a scan journal, which draws no ribbons;"
+        di as err "    write one with  surveymap paths varlist, out(...)"
         exit 198
     }
 
