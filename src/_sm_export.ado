@@ -1,4 +1,4 @@
-*! version 0.5.1  09nov2026  Eric Booth
+*! version 0.8.4  09nov2026  Eric Booth
 *! _sm_export -- the journal as a dataset or an Excel tracker.  Count and
 *! percentage columns arrive numeric; text columns stay text.  The xlsx form
 *! is the point: a three-sheet tracker (items, branch lanes, lane-by-item
@@ -104,6 +104,14 @@ program define _sm_export, rclass
             & strlower(substr(`"`saving'"', -4, .)) != ".xls" {
             local saving `"`saving'.xlsx"'
         }
+        * save and export delimited add .dta or .csv to a name with no
+        * extension; add it here so the message and r(file) name the file
+        if inlist("`format'", "dta", "csv") {
+            local base `"`saving'"'
+            local p = max(strrpos(`"`base'"', "/"), strrpos(`"`base'"', char(92)))
+            if `p' local base = substr(`"`base'"', `p' + 1, .)
+            if strpos(`"`base'"', ".") == 0 local saving `"`saving'.`format'"'
+        }
         local outfile `"`saving'"'
     }
 
@@ -117,7 +125,7 @@ program define _sm_export, rclass
     local bad = 0
     frame _smexp {
         quietly import delimited `"`src'"', delimiter(tab) varnames(1) encoding("utf-8") ///
-            stringcols(_all) clear
+            stringcols(_all) bindquote(nobind) clear
         capture confirm variable class
         if _rc local bad = 1
         capture confirm variable gatevar
@@ -152,6 +160,22 @@ program define _sm_export, rclass
     }
 
     if "`format'" == "xlsx" {
+        * Stata 19 writes the first sheet of a workbook whose path holds a
+        * non-ASCII character but cannot reopen it for the next one (r(603);
+        * plain export excel fails the same way).  Such a workbook is built
+        * under an ASCII temporary name and copied into place at the end.
+        local xfinal `"`outfile'"'
+        if ustrlen(`"`outfile'"') != strlen(`"`outfile'"') {
+            capture confirm file `"`xfinal'"'
+            if !_rc & `"`dictionary'"' == "" & "`replace'" == "" {
+                frame drop _smexp
+                di as err `"surveymap export: file `xfinal' already exists; specify replace"'
+                exit 602
+            }
+            tempfile xtmp
+            local outfile `"`xtmp'.xlsx"'
+            if `"`dictionary'"' != "" copy `"`xfinal'"' `"`outfile'"'
+        }
         * first sheet may take -replace-; later sheets need -sheetreplace-
         * and no -replace-.  Into a datadictionary workbook every sheet is
         * -sheetreplace-, so its own sheets survive.
@@ -238,12 +262,21 @@ program define _sm_export, rclass
 
         * a bold header row on each sheet, so it reads as a table; no harm
         * done if this Stata cannot style cells
+        * each sheet's own header width: sm_items 11 columns, sm_branches
+        * 6, sm_flow 7 (styling empty cells makes import excel read them
+        * back as extra variables)
         foreach sh in sm_items sm_branches sm_flow {
+            local hc = cond("`sh'" == "sm_items", "K", cond("`sh'" == "sm_branches", "F", "G"))
             capture putexcel set `"`outfile'"', sheet("`sh'") modify
             if !_rc {
-                capture putexcel A1:K1, bold
+                capture putexcel A1:`hc'1, bold
                 capture putexcel clear
             }
+        }
+        if `"`xfinal'"' != `"`outfile'"' {
+            copy `"`outfile'"' `"`xfinal'"', replace
+            capture erase `"`outfile'"'
+            local outfile `"`xfinal'"'
         }
     }
     frame drop _smexp

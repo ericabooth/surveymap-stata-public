@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 0.8.3  09nov2026  Eric Booth}{...}
+{* *! version 0.8.4  09nov2026  Eric Booth}{...}
 {vieweralsosee "datadictionary" "help datadictionary"}{...}
 {vieweralsosee "mergemap" "help mergemap"}{...}
 {vieweralsosee "tabulate" "help tabulate"}{...}
@@ -246,9 +246,6 @@ answer that routed people away.{p_end}
 {bf:Every percentage here is out of the whole sample.}
 The receipt and the journal's {cmd:pct_answered} both divide by the respondents
 in scope, 1,200 in this example, so {cmd:q6_whovote} shows 48.2 percent of all 1,200. Of the 600 people it was put in front of, 578 answered, which is 96.3 percent. Both numbers are true and they answer different questions, so say which one you mean. When you want the second, compute it from the journal, which has no column for it:{p_end}
-it was put in front of, 578 answered, which is 96.3 percent. Both numbers are true and they answer
-different questions, so say which one you mean. When you want the second,
-compute it from the journal, which has no column for it:{p_end}
 
 {phang2}{cmd:. // answered as a share of those the item was shown to}{p_end}
 {phang2}{cmd:. generate double shown = n_asked - n_sysmiss}{p_end}
@@ -409,8 +406,6 @@ until you have found out which of the two is wrong.{p_end}
 {bf:You will see the disagreement in the drawing, not only in the receipt.} A
 number in a receipt is something the reader has to go looking for, so
 {opt verify()} adds its verdict to the journal as {cmd:note} rows, and the HTML map and the mermaid text put a {cmd:!?} on the item, on the spine and in each lane that draws it; the HTML page adds the declared and observed counts on hover. The {cmd:png}/{cmd:svg} figure does not show the mark. Hand the map to somebody who will not read a receipt and they still see the problem. Because the marks are written into the journal rather than added by the renderer, a map you draw months later from a stored journal still shows the audit that ran at scan time. Take the item names from {cmd:r(mismatched)} and {cmd:r(notmapped)} when you want to act on them in code.{p_end}
-names from {cmd:r(mismatched)} and {cmd:r(notmapped)} when you want to act on
-them in code.{p_end}
 
 {pstd}
 The two marks answer different questions. {cmd:!?} means the questionnaire and
@@ -528,8 +523,6 @@ percentages, and {cmd:profile(asked = q(4))} cuts a count into quartiles.{p_end}
 
 {pstd}
 {cmd:refused} and {cmd:dontknow} will not run until you list the codes this survey uses, because no two survey houses agree on them and a guess would be a fabrication. Look at what the file contains, then pass it:{p_end}
-survey uses, because no two survey houses agree on them and a guess would be a
-fabrication. Look at what the file contains, then pass it:{p_end}
 
 {phang2}{cmd:. codebook q13_income, tabulate(0)}{p_end}
 {phang2}{cmd:. surveymap, profile(refused) refusedcode(.b)}{p_end}
@@ -557,9 +550,6 @@ define the item base this way.{p_end}
 cuts at zero and nowhere else, giving you {bf:none} and {bf:at least one}. Zero
 is the only boundary on this measure that is not a judgement call: a threshold
 like "declined more than 20 percent" defines what counts as a lot. AAPOR is explicit that such a boundary belongs to the researcher and has to be declared in advance, so {cmd:surveymap} will not supply one. On a long instrument, where almost everybody declines something, that default puts nearly the whole sample
-explicit that such a boundary belongs to the researcher and has to be declared
-in advance, so {cmd:surveymap} will not supply one. On a long instrument, where
-almost everybody declines something, that default puts nearly the whole sample
 in one lane and tells you little, so look at the distribution and set your own
 breaks:{p_end}
 
@@ -637,9 +627,6 @@ rate never reaches 50 percent even among those who saw it.{p_end}
 
 {pstd}
 What you get here is evidence rather than a questionnaire specification. Where everyone in a category happened not to answer an item, you cannot tell that apart from an item they were never shown, and no amount of data will separate the two. The receipt prints one line saying so. Read a detected gate as a claim to check rather than
-category happened not to answer an item, you cannot tell that apart from an item
-they were never shown, and no amount of data will separate the two. The receipt
-prints one line saying so. Read a detected gate as a claim to check rather than
 as a fact, and where you know the instrument, name the gates yourself with
 {opt branch()} instead.{p_end}
 
@@ -681,8 +668,7 @@ back.{p_end}
 
 {pstd}
 {cmd:surveymap draw} turns a journal into a picture. Name a journal file, or
-give none and you get whatever the last scan wrote. {cmd:surveymap} keeps that
-path in the global {cmd:$SM_LASTJ}, so it lasts as long as the Stata session
+give none and you get whatever the last scan wrote.
 {cmd:surveymap} keeps that path in the global {cmd:$SM_LASTJ}, so it lasts as long as the Stata session does and no longer, though it does survive {helpb clear:clear all}. With nothing remembered, {cmd:draw} falls back to {cmd:survey_journal.tsv} in the working directory. Name the file yourself in a do-file somebody else will run.{p_end}
 
 {pstd}
@@ -708,8 +694,6 @@ you get both; keep whichever the document needs. A figure stays readable only up
 to a point, so past {opt maxnodes(#)} drawn columns (default 14) {cmd:surveymap}
 stops and points you at the HTML page, which scrolls and keeps the full record
 on hover. A fan, the spread of lanes where a gate splits the spine, counts as one column however many items it contains, so the limit is on what your eye has to follow rather than on the item count. When you hit it, narrow the map with a {varlist} or {opt exclude()}, or draw the whole instrument with {help surveymap##band:{cmd:surveymap band}} instead.{p_end}
-hit it, narrow the map with a {varlist} or {opt exclude()}, or draw the whole
-instrument with {help surveymap##band:{cmd:surveymap band}} instead.{p_end}
 
 {pstd}
 {bf:How to read it.} Follow the spine left to right: that is questionnaire
@@ -724,8 +708,6 @@ spine continues. Hover any box to get the full record behind it.{p_end}
 {pstd}
 Expect the lanes to open where the gate's items are rather than immediately
 after the gate. A party question asked early can gate primary-turnout questions much later, and the fan belongs where those questions fall in the questionnaire, not where the gate does.{p_end}
-questions much later, and the fan belongs where those questions fall in the
-questionnaire, not where the gate does.{p_end}
 
 {pstd}
 {bf:Which way it runs.} {opt layout(vertical)} turns the map on its side: items
@@ -929,7 +911,7 @@ want the small categories back.{p_end}
 {dlgtab:Export}
 
 {synoptset 26 tabbed}{...}
-{synopt :{opt sav:ing(filename)}}where to write it; the extension picks the format{p_end}
+{synopt :{opt sav:ing(filename)}}where to write it; the extension picks the format, and a name with no extension gets the format's own ({cmd:.xlsx}, {cmd:.dta} or {cmd:.csv}){p_end}
 {synopt :{opt f:ormat(xlsx|dta|csv)}}the format, when {opt saving()} does not say{p_end}
 {synopt :{opt dict:ionary(filename)}}add the sheets to an existing {helpb datadictionary} workbook{p_end}
 {synopt :{opt replace}}overwrite a tracker named in {opt saving()}; the default {cmd:surveymap_tracker.xlsx} is always overwritten{p_end}
@@ -958,30 +940,8 @@ want the small categories back.{p_end}
 {opt bar} and {opt area} override the automatic switch at {opt areamin()}.
 Force {opt bar} above 60 items when you need columns a reader can count and can accept the seams; force {opt area} below it when the figure is going next to another area chart. For a figure the width of a report page rather than a landscape slide, {cmd:xsize(6.5) ysize(2.5) scale(1.3)} works; below {cmd:ysize(2)} the axis labels start colliding.{p_end}
 
-{synoptset 26 tabbed}{...}
-{synopt :{opt sav:ing(filename)}}export the figure here; the extension picks the format{p_end}
-{synopt :{opt ti:tle(text)}}title above the figure{p_end}
-{synopt :{opt sub:title(text)}}subtitle under the title{p_end}
-{synopt :{opt not:e(text)}}note under the figure; the default states the denominator{p_end}
-{synopt :{opt names(spec)}}which items to name on the top axis: {cmd:auto}, {cmd:none}, or a list of variable names or positions{p_end}
-{synopt :{opt nn:ames(#)}}how many items {cmd:auto} names; default {cmd:6}{p_end}
-{synopt :{opt bar}}one discrete bar per item, whatever the item count{p_end}
-{synopt :{opt area}}one filled area, whatever the item count{p_end}
-{synopt :{opt areamin(#)}}switch from bars to area above this many items; default {cmd:60}{p_end}
-{synopt :{opt xsi:ze(#)} {opt ysi:ze(#)} {opt sc:ale(#)}}figure inches and text scaling{p_end}
-{synopt :{opt nolegend}}leave the legend off{p_end}
-{synopt :{opt name(text)}}the Stata graph name{p_end}
-{synopt :{opt replace}}overwrite existing output{p_end}
-{synoptline}
-{p2colreset}{...}
 
-{pstd}
-{opt bar} and {opt area} override the automatic switch at {opt areamin()}.
-Force {opt bar} above 60 items when you need columns a reader can count and can
-accept the seams; force {opt area} below it when the figure is going next to
-another area chart. For a figure the width of a report page rather than a
-landscape slide, {cmd:xsize(6.5) ysize(2.5) scale(1.3)} works; below
-{cmd:ysize(2)} the axis labels start colliding.{p_end}
+{marker examples}{...}
 {title:Examples}
 
 {pstd}{bf:See it work, with no setup}{p_end}
@@ -989,7 +949,8 @@ landscape slide, {cmd:xsize(6.5) ysize(2.5) scale(1.3)} works; below
 {pstd}
 Writes a 600-person survey and its journal into {cmd:./surveymap_demo}, prints
 the receipt, and offers the drawing commands as clickable links. Name a folder
-as {it:foldername} or in {opt folder()} to put it somewhere else, and add
+as {it:foldername} or in {opt folder()} to put it somewhere else (in double
+quotes when the name holds a space: {cmd:surveymap demo "my demo"}), and add
 {opt replace} to reuse a folder you have already written to. It leaves the data
 in memory alone.{p_end}
 {pstd}{bf:A worked response braid, on data Stata ships}{p_end}
@@ -1174,7 +1135,9 @@ columns, in order:
 {cmd:seq class var position vallabel value gatevar n_asked n_answered}
 {cmd:n_nonresp n_sysmiss pct_answered rate status gate gated_by pooled type}
 {cmd:severity flags w_asked w_answered pct_answered_w}. The three weighted
-columns contain {cmd:.} unless you supplied a weight.{p_end}
+columns contain {cmd:.} unless you supplied a weight. Tabs and line breaks in a
+label are written as spaces and a double quote as a single quote, so every row
+has the same columns whichever way you read it.{p_end}
 
 {pstd}
 The ones whose names do not give them away:{p_end}

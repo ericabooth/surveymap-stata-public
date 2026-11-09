@@ -1,4 +1,4 @@
-*! version 0.5.0  27aug2026  Eric Booth
+*! version 0.8.4  09nov2026  Eric Booth
 *! _sm_renderhtml -- render a surveymap journal (TSV, 20 columns) as HTML
 *! with one inline SVG flow map.
 *!
@@ -80,8 +80,8 @@ program define _sm_renderhtml
     tempname J
     frame create `J'
     frame `J' {
-        quietly import delimited using "`using'", delimiter(tab) ///
-            varnames(1) stringcols(_all) encoding("utf-8") clear
+        quietly import delimited using `"`using'"', delimiter(tab) ///
+            varnames(1) stringcols(_all) encoding("utf-8") bindquote(nobind) clear
         capture confirm variable class
         local badc = _rc
         capture confirm variable gatevar

@@ -1,4 +1,4 @@
-*! version 0.8.1  09nov2026  Eric Booth
+*! version 0.8.4  09nov2026  Eric Booth
 *! _sm_paths -- the response-flow view behind -surveymap paths-.
 *!
 *! The flow map (surveymap scan + draw) follows the ROUTING: who was shown
@@ -342,7 +342,11 @@ program define _sm_paths, rclass
             "." "." "." `"`pct'"' "." "." `i' "." "." "." note "." "." "." "."
     }
     file close `JH'
-    global SM_LASTJ `"`out'"'
+    * remembered as an absolute path, so a cd cannot point it elsewhere
+    _sm_isabs `"`out'"'
+    local jabs `"`r(path)'"'
+    if !r(abs) local jabs `"`c(pwd)'/`jabs'"'
+    global SM_LASTJ `"`jabs'"'
 
     return scalar N = `N'
     return scalar K_items = `K'
@@ -367,9 +371,9 @@ program define _sm_paths, rclass
     if `"`highlight'"' != "" local hlo `"highlight(`highlight')"'
     _sm_renderflow using `"`out'"', saving(`"`hf'"') title(`"`title'"') `hlo' `hrep'
     return local output `"`s(out)'"'
-    local abs `"`s(out)'"'
-    _sm_isabs `"`abs'"'
-    if !r(abs) local abs `"`c(pwd)'/`s(out)'"'
+    _sm_isabs `"`s(out)'"'
+    local abs `"`r(path)'"'
+    if !r(abs) local abs `"`c(pwd)'/`abs'"'
     global SM_LASTOUT `"`abs'"'
     di as txt `"    {stata _sm_open:Open the map in your browser}"'
     di as txt `"    `abs'"'
@@ -406,6 +410,9 @@ program define _smp_wrow
         local `f' = subinstr(`"``f''"', char(9), " ", .)
         local `f' = subinstr(`"``f''"', char(10), " ", .)
         local `f' = subinstr(`"``f''"', char(13), " ", .)
+        * a double quote would be bound by a CSV-style reader and swallow
+        * the rest of the row; the renderers show one as ' anyway
+        local `f' = subinstr(`"``f''"', char(34), char(39), .)
         local `f' = strtrim(`"``f''"')
         if `"``f''"' == "" local `f' "."
     }

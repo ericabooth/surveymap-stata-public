@@ -1,4 +1,4 @@
-*! version 0.5.1  09nov2026  Eric Booth
+*! version 0.8.4  09nov2026  Eric Booth
 *! _sm_rendertext -- emit a mermaid flowchart LR from a surveymap journal
 *! (TSV, 20 columns).
 *!
@@ -47,8 +47,8 @@ program define _sm_rendertext
     tempname J
     frame create `J'
     frame `J' {
-        quietly import delimited using "`using'", delimiter(tab) ///
-            varnames(1) stringcols(_all) encoding("utf-8") clear
+        quietly import delimited using `"`using'"', delimiter(tab) ///
+            varnames(1) stringcols(_all) encoding("utf-8") bindquote(nobind) clear
         capture confirm variable class
         local badc = _rc
         capture confirm variable gatevar

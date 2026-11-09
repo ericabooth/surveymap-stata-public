@@ -1,4 +1,4 @@
-*! version 0.7.1  09nov2026  Eric Booth
+*! version 0.8.4  09nov2026  Eric Booth
 *! _sm_draw -- dispatcher behind -surveymap draw-.  Resolves which journal to
 *! draw, picks the renderer from export(), applies the read-time prune rules,
 *! and handles the open-in-browser courtesy for HTML output.
@@ -82,7 +82,7 @@ program define _sm_draw, rclass
     frame create `PJ'
     frame `PJ' {
         capture quietly import delimited using `"`jfile'"', delimiter(tab) ///
-            varnames(1) stringcols(_all) encoding("utf-8") clear
+            varnames(1) stringcols(_all) encoding("utf-8") bindquote(nobind) clear
         capture confirm variable class
         if !_rc {
             quietly count if class == "pnode"
@@ -105,9 +105,9 @@ program define _sm_draw, rclass
         _sm_renderflow using `"`jfile'"', saving(`"`hf'"') `no' `embed' `drep'
         return local journal `"`jfile'"'
         return local output `"`s(out)'"'
-        local abs `"`hf'"'
-        _sm_isabs `"`abs'"'
-        if !r(abs) local abs `"`c(pwd)'/`hf'"'
+        _sm_isabs `"`hf'"'
+        local abs `"`r(path)'"'
+        if !r(abs) local abs `"`c(pwd)'/`abs'"'
         global SM_LASTOUT `"`abs'"'
         di as txt `"    {stata _sm_open:Open the map in your browser}"'
         di as txt `"    `abs'"'
@@ -158,7 +158,8 @@ program define _sm_draw, rclass
         local stub `"`saving'"'
         if `"`stub'"' == "" local stub "surveymap_map"
         local o `"`drep'"'
-        if `"`nameopt'"' != "" local o `"`o' `nameopt'"'
+        * name the journal you gave, not a pruned tempfile copy
+        local o `"`o' name(`"`jname'"')"'
         if `maxnodes' >= 0 local o `"`o' maxnodes(`maxnodes')"'
         _sm_rendertw using `"`jfile'"', saving(`"`stub'"') `o'
         return local output `"`stub'.`export'"'
@@ -191,9 +192,9 @@ program define _sm_draw_html, sclass
     * directory.  Note the missing-file case also gets an absolute path:
     * only absolutising when the file existed left a relative path in the
     * link on the one occasion it mattered.
-    local abs `"`hf'"'
-    _sm_isabs `"`abs'"'
-    if !r(abs) local abs `"`c(pwd)'/`hf'"'
+    _sm_isabs `"`hf'"'
+    local abs `"`r(path)'"'
+    if !r(abs) local abs `"`c(pwd)'/`abs'"'
     global SM_LASTOUT `"`abs'"'
     * A {stata ...} link runs a Stata command.  Do NOT go back to
     * {browse "file://..."}: SMCL hands that to the platform URL parser, and

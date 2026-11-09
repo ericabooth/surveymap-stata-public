@@ -257,9 +257,12 @@ end
 capture mkdir pkgtest_tmp
 cd pkgtest_tmp
 
-* make the package findable whether or not surveymap is installed
-adopath ++ ".."
-adopath ++ "../../src"
+* make the package findable whether or not surveymap is installed.  The
+* entries are absolute: a relative one is resolved against the working
+* directory at lookup time, so after a cd into a block's subfolder it would
+* point nowhere and an installed copy would be picked up instead.
+adopath ++ "`c(pwd)'/.."
+adopath ++ "`c(pwd)'/../../src"
 capture discard
 
 capture which surveymap

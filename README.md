@@ -12,10 +12,6 @@ Consider a scenario: You have a survey with skip logic. Some questions were aske
 
 <img width="900" alt="surveymap figure exported as PNG" src="images/surveymap_figure.png" />
 
-Consider a scenario: You have a survey with skip logic. Some questions were asked of everyone, some only of people who answered an earlier question a particular way, and some collected far fewer answers than you expected. `describe` and `misstable` tell you a column is 52% missing. They do not tell you whether that is 52% of people refusing to answer, or 52% of people never being shown the question at all. Those are opposite problems: one is a question-wording problem you can fix, the other is the instrument working correctly.
-
-<img width="900" alt="surveymap figure exported as PNG" src="images/surveymap_figure.png" />
-
 `surveymap` separates them, for every item, and draws the path through the questionnaire that the answers imply.
 
 ```stata
@@ -197,7 +193,7 @@ With no `branch()`, the two questions that route the most respondents are drawn,
 ```stata
 surveymap, profile(declined)                  // % of asked items left unanswered
 surveymap, profile(declined = cut(10 25))     // breaks read as percentages
-surveymap, profile(refused), refusedcode(.b)  // the survey's own refusal code
+surveymap, profile(refused) refusedcode(.b)  // the survey's own refusal code
 surveymap, profile(breakoff)                  // where they stopped answering
 surveymap, profile(asked = q(4))              // how far the routing carried them
 ```
@@ -394,12 +390,26 @@ leaves every sheet `datadictionary` wrote untouched and adds the three `sm_` she
 |---|---|
 | `surveymap` *[varlist]* *[weight]* | **scan**: read the data, write the journal, print the receipt |
 | `surveymap demo` | write a small survey, scan it, show the output |
-| `surveymap draw` | the flow map: HTML or mermaid |
+| `surveymap paths` *varlist* | the response braid: every complete answer sequence, as an HTML flow |
+| `surveymap draw` | the flow map: HTML, mermaid, or a PNG/SVG figure |
+| `surveymap band` *[journal]* | the band chart: one stacked column per item |
 | `surveymap export` | the tracker: `.xlsx`, `.dta`, or `.csv` |
 | `surveymap receipt` *journal* | reprint a receipt from a saved journal |
 | `surveymap clear` | forget the remembered journal; no file is touched |
 
 A varlist chooses which items to map; the columns keep their dataset order either way. `if` and `in` restrict who is in scope, and every count is computed within it. The data in memory are never modified.
+
+### Stored results
+
+| result | what it holds |
+|---|---|
+| `r(N)`, `r(K_items)`, `r(N_gates)` | respondents in scope, items mapped, gates drawn |
+| `r(N_unbalanced)` | items whose three counts do not add to the sample; assert this is 0 |
+| `r(N_mismatch)`, `r(mismatched)`, `r(notmapped)` | after `verify()`: declared gates the counts contradict, and which items |
+| `r(n_sequences)`, `r(n_unique)` | after `paths`: distinct complete sequences, and interviews on unique routes |
+| `r(nitems)`, `r(devmax)` | after `band`: columns drawn, and the largest shortfall on any column (assert 0) |
+| `r(journal)`, `r(gates)` | the journal file, and the gate variables drawn |
+| `r(output)`, `r(file)` | after `draw`: the file it wrote; after `export`: the tracker it wrote |
 
 ## Related work
 

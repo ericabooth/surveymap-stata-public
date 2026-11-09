@@ -1,4 +1,4 @@
-*! version 0.5.0  27aug2026  Eric Booth
+*! version 0.8.4  09nov2026  Eric Booth
 *! _sm_rendertw : draw a surveymap journal (schema v2) as a native twoway
 *!            boxes-and-arrows figure, for a paper or a slide
 *!
@@ -32,12 +32,17 @@ program define _sm_rendertw
         }
     }
 
+    * a leading ~ is expanded here: the macOS PNG fallback hands the stub to
+    * the shell inside quotes, where ~ is not expanded
+    _sm_isabs `"`saving'"'
+    local saving `"`r(path)'"'
+
     * ---- load the journal into a frame (read columns BY NAME) ----
     tempname J
     frame create `J'
     frame `J' {
-        quietly import delimited using "`using'", delimiter(tab) ///
-            varnames(1) stringcols(_all) encoding("utf-8") clear
+        quietly import delimited using `"`using'"', delimiter(tab) ///
+            varnames(1) stringcols(_all) encoding("utf-8") bindquote(nobind) clear
         capture confirm variable class
         local badc = _rc
         capture confirm variable gatevar

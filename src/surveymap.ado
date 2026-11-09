@@ -1,4 +1,4 @@
-*! version 0.8.3  09nov2026  Eric Booth
+*! version 0.8.4  09nov2026  Eric Booth
 *! surveymap: map how respondents moved through a survey
 *!
 *! The data in memory are a survey: one row per respondent, one column per
@@ -91,7 +91,10 @@ program define surveymap, rclass
             gettoken jfile : jfile
             confirm file `"`jfile'"'
             _sm_receipt using `"`jfile'"'
-            global SM_LASTJ `"`jfile'"'
+            _sm_isabs `"`jfile'"'
+            local jabs `"`r(path)'"'
+            if !r(abs) local jabs `"`c(pwd)'/`jabs'"'
+            global SM_LASTJ `"`jabs'"'
             return local journal `"`jfile'"'
             exit
         }
@@ -1091,7 +1094,11 @@ program define surveymap, rclass
     file close `JH'
     frame drop _smwork
 
-    global SM_LASTJ `"`out'"'
+    * remembered as an absolute path, so a cd cannot point it elsewhere
+    _sm_isabs `"`out'"'
+    local jabs `"`r(path)'"'
+    if !r(abs) local jabs `"`c(pwd)'/`jabs'"'
+    global SM_LASTJ `"`jabs'"'
     di as txt "surveymap: " as res "`K'" as txt " items, " as res "`N'"    ///
         as txt " respondents, journal " as res `"`out'"'
     if `"`skipgates'"' != "" {
@@ -1156,6 +1163,9 @@ program define _sm_wrow
         local `f' = subinstr(`"``f''"', char(9), " ", .)
         local `f' = subinstr(`"``f''"', char(10), " ", .)
         local `f' = subinstr(`"``f''"', char(13), " ", .)
+        * a double quote would be bound by a CSV-style reader and swallow
+        * the rest of the row; the renderers show one as ' anyway
+        local `f' = subinstr(`"``f''"', char(34), char(39), .)
         local `f' = strtrim(`"``f''"')
         if `"``f''"' == "" local `f' "."
     }
@@ -1205,7 +1215,7 @@ program define _sm_verify, rclass
     local lastseq = 0
     frame _smvj {
         quietly import delimited using `"`using'"', delimiter(tab)        ///
-            varnames(1) stringcols(_all) encoding("utf-8") clear
+            varnames(1) stringcols(_all) encoding("utf-8") bindquote(nobind) clear
         * the journal is append-only, so a verdict row continues the numbering
         quietly gen double _sq = real(seq)
         quietly summarize _sq, meanonly
@@ -1216,8 +1226,10 @@ program define _sm_verify, rclass
     frame create _smvd
     local bad = 0
     frame _smvd {
+        * bindquote(strict): a quoted note may hold a line break, and the
+        * default reading would split that row in two
         quietly import delimited using `"`declared'"', varnames(1) encoding("utf-8")        ///
-            stringcols(_all) clear
+            stringcols(_all) bindquote(strict) clear
         foreach need in varname expected_n {
             capture confirm variable `need'
             if _rc local bad = 1
@@ -1240,14 +1252,18 @@ program define _sm_verify, rclass
     di as txt "{hline 78}"
     di as txt "  item" _col(20) "declared" _col(34) "answered" _col(46) "verdict"
     di as txt "{hline 78}"
+    * the frames are dropped whatever happens in the loop
+    capture noisily {
     frame _smvd {
         local ND = _N
         forvalues i = 1/`ND' {
-            local vn = varname[`i']
-            local ex = expected_n[`i']
+            * read through Mata, so a stray quote in the table cannot break
+            * the macro; a variable name never holds one
+            mata: st_local("vn", strtrim(subinstr(st_sdata(`i', "varname"), char(34), "")))
+            mata: st_local("ex", strtrim(subinstr(st_sdata(`i', "expected_n"), char(34), "")))
             local ge = ""
             capture confirm variable gate_expr
-            if !_rc local ge = gate_expr[`i']
+            if !_rc mata: st_local("ge", st_sdata(`i', "gate_expr"))
             local ++nchk
             local got ""
             local gb ""
@@ -1286,8 +1302,11 @@ program define _sm_verify, rclass
             }
         }
     }
-    frame drop _smvj
-    frame drop _smvd
+    }
+    local vrc = _rc
+    capture frame drop _smvj
+    capture frame drop _smvd
+    if `vrc' exit `vrc'
 
     * write the verdict back, as note rows: the schema is append-only and
     * read by name, so adding rows cannot disturb a reader that ignores them
@@ -1490,11 +1509,14 @@ program define _sm_demo
     local d `"`folder'"'
     if `"`d'"' == "" local d `"`dname'"'
     if `"`d'"' == "" local d "surveymap_demo"
+    * a quoted folder name (one with a space must be quoted) keeps its
+    * quotes through anything and string asis; take them off
+    if inlist(substr(`"`d'"', 1, 1), char(34), char(96)) gettoken d : d
 
     local exists = 0
     capture confirm file `"`d'/demo_survey.dta"'
     if !_rc local exists = 1
-    mata: st_local("dirthere", strofreal(direxists("`d'")))
+    mata: st_local("dirthere", strofreal(direxists(st_local("d"))))
     if "`dirthere'" == "1" & !`exists' & "`replace'" == "" {
         di as err `"surveymap demo: the folder `d' exists and holds files the demo did not write"'
         di as err "    name another folder, or specify replace"
@@ -1591,15 +1613,15 @@ program define _sm_demo
         as txt "                     the flow map, in your browser"
     di as txt `"    {stata surveymap draw, export(mermaid) saving(demo_map) replace:surveymap draw, export(mermaid) ...}"' ///
         as txt "  text for a README"
-    di as txt `"    {stata surveymap export, saving(`d'/demo_tracker.xlsx) replace:surveymap export, saving(...xlsx)}"' ///
+    di as txt `"    {stata surveymap export, saving("`d'/demo_tracker.xlsx") replace:surveymap export, saving(...xlsx)}"' ///
         as txt "   the Excel tracker"
     di as txt `"    {stata surveymap draw, layout(vertical) saving(demo_tall.html) replace:surveymap draw, layout(vertical) ...}"' ///
         as txt "    the same map down a page"
     di as txt ""
     di as txt "Two more gates to try on this survey:"
-    di as txt `"    {stata surveymap, branch(age = cut(30 50 65)) out(`d'/demo_age.tsv) replace:surveymap, branch(age = cut(30 50 65))}"' ///
+    di as txt `"    {stata surveymap, branch(age = cut(30 50 65)) out("`d'/demo_age.tsv") replace:surveymap, branch(age = cut(30 50 65))}"' ///
         as txt "   band a continuous item"
-    di as txt `"    {stata surveymap, profile(declined) out(`d'/demo_prof.tsv) replace:surveymap, profile(declined)}"' ///
+    di as txt `"    {stata surveymap, profile(declined) out("`d'/demo_prof.tsv") replace:surveymap, profile(declined)}"' ///
         as txt "               split by who left items blank"
     di as txt ""
     c_local demojournal `"`d'/demo_journal.tsv"'

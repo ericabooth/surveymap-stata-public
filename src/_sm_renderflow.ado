@@ -1,4 +1,4 @@
-*! version 0.8.0  28aug2026  Eric Booth
+*! version 0.8.4  09nov2026  Eric Booth
 *! _sm_renderflow -- draw a paths journal (pnode/pflow/ppath rows) as a
 *! self-contained HTML page: one column per item, one block per common
 *! answer, ribbons between consecutive columns sized by the people who gave
@@ -32,7 +32,7 @@ program define _sm_renderflow, sclass
     frame create `J'
     frame `J' {
         quietly import delimited using `"`using'"', delimiter(tab) ///
-            varnames(1) stringcols(_all) encoding("utf-8") clear
+            varnames(1) stringcols(_all) encoding("utf-8") bindquote(nobind) clear
         capture confirm variable class
         local badc = _rc
         capture confirm variable gatevar

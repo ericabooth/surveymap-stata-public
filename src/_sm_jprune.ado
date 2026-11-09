@@ -1,4 +1,4 @@
-*! version 0.5.0  27aug2026  Eric Booth
+*! version 0.8.4  09nov2026  Eric Booth
 *! _sm_jprune -- apply the prune rules to a surveymap journal before a
 *! reader (receipt, HTML map, mermaid, Excel) sees it.
 *!
@@ -36,7 +36,7 @@ program define _sm_jprune, sclass
     frame create _smpr
     frame _smpr {
         quietly import delimited `"`using'"', delimiter(tab) varnames(1) encoding("utf-8") ///
-            stringcols(_all) clear
+            stringcols(_all) bindquote(nobind) clear
         capture confirm variable class
         if _rc {
             di as err `"surveymap: `using' is not a surveymap journal"'
@@ -213,6 +213,11 @@ program define _sm_jprune, sclass
         capture drop sm_n_asked sm_n_answered sm_n_nonresp sm_n_sysmiss
         tempfile jp
         local jp `"`jp'.tsv"'
+        * the journal is raw TSV read with bindquote(nobind); a quote left in
+        * a field (a journal from before 0.8.4) would come back CSV-quoted
+        foreach v of varlist _all {
+            quietly replace `v' = subinstr(`v', char(34), char(39), .)
+        }
         quietly export delimited using `"`jp'"', delimiter(tab) replace datafmt
     }
     frame drop _smpr

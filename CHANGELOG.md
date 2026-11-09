@@ -2,6 +2,59 @@
 
 All notable changes to surveymap. Dates are the day the work landed locally.
 
+## 0.8.4 - 2026-11-09
+
+### Fixed
+
+- **`surveymap demo` takes a quoted folder name.** `surveymap demo "my demo"`
+  and `surveymap demo, folder("my demo")` stopped with r(3000) "invalid
+  expression", so a demo folder whose name holds a space could not be made.
+  The quotes are now removed before the folder is used, and the clickable
+  follow-up links quote the folder too.
+- **`verify()` reads a declared table whose notes hold line breaks.** The
+  CSV is read with `bindquote(strict)`, so a quoted note with a line break
+  stays one row instead of splitting and stopping the run with r(132). The
+  values are read through Mata, so a stray quote cannot break the macro, and
+  the working frames are dropped on every exit path.
+- **A double quote in a label no longer swallows the rest of a journal row.**
+  The journal writers now write a double quote in a label as a single quote,
+  and every journal reader uses `bindquote(nobind)`, as the receipt already
+  did. Before, a label that opened with a quote lost it, and one with an
+  unmatched quote emptied the counts on its row in the HTML map, the tracker
+  and `verify()`.
+- **Paths beginning with `~` resolve to the home folder in the printed link,
+  `$SM_LASTOUT` and the open-in-browser link.** `draw` and `paths` with
+  `saving("~/map.html")` wrote the right file but printed and remembered
+  `<pwd>/~/map.html`. The PNG fallback converter also gets the expanded path.
+- **The remembered journal is an absolute path.** After a `cd`, a bare
+  `surveymap draw`, `export` or `band` used whatever journal of the default
+  name sat in the new folder; it now uses the journal the last scan wrote.
+- **`draw, export(png|svg)` honours `name()`**, and a pruned figure's caption
+  names the journal you gave rather than a temporary file.
+- **The Excel tracker styles only each sheet's own header**, so
+  `import excel ..., firstrow` no longer reads empty columns G-K back from
+  `sm_branches` and `sm_flow`.
+- **`export` names the file it wrote.** `saving(flow)` with `format(csv)` or
+  `format(dta)` writes `flow.csv` or `flow.dta`, and the message and
+  `r(file)` now say so.
+- **An xlsx tracker can be written to a path holding a non-ASCII character
+  on Stata 19**, which writes the first sheet of such a workbook but cannot
+  reopen it. The workbook is built under a temporary ASCII name and copied
+  into place.
+
+### Documentation
+
+- The help no longer prints eight passages twice or repeats the band options
+  table, and its Examples jump link works.
+- README: the repeated use-case block is gone, the `refusedcode()` example
+  has one comma, and the Commands table lists `paths` and `band` and the
+  PNG/SVG figure. A stored-results table was added.
+
+### Tests
+
+- The battery's adopath entries are absolute, so blocks that `cd` into a
+  subfolder keep testing this copy rather than an installed one.
+
 ## 0.8.3 - 2026-11-09
 
 ### Fixed
