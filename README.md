@@ -316,6 +316,8 @@ surveymap draw, export(mermaid) saving(flow) replace  // text GitHub renders its
 surveymap draw, export(png) saving(figures/flow)      // a figure for a paper
 ```
 
+The files surveymap names for you (`survey_journal.tsv`, `surveymap_map.html` and its `.mmd`/`.png` siblings, `surveymap_paths.tsv`/`.html`, `surveymap_tracker.xlsx`) are overwritten on every scan, draw or export, so you can rescan and redraw freely. A file you name with `out()` or `saving()` needs `replace` before surveymap will write over it.
+
 Items run left to right on a spine, each box carrying the name, the label, and the count and percent who answered, with `!!` on items a lot of people declined. Where a gate splits the sample the spine fans into lanes; a dashed grey box is an item that lane was routed around. The lanes rejoin at a dot and the spine continues. Hover any box for its full record.
 
 **Which way it runs.** `layout(vertical)` turns the map on its side: items run down the page and a gate spreads its lanes across it, one column per lane.
@@ -428,7 +430,7 @@ cd tests
 do surveymap_pkgtest.do
 ```
 
-384 checks across 26 blocks, run on Stata 16.1 and on the current release, covering the fixture's routing truths, the branch parser, banding a continuous gate, the derived conditions and the ones the package refuses to build, the conservation arithmetic, the drawn verify disagreement, the band chart at 230 items, the response rows and their exact partition of the answered count, the response braid's conservation (columns, ribbons and complete paths all partition the scope), the scope round-trip to the page, lane partitioning, pruning at scan and at draw time, weights, `exclude()`/`nostrings`, `verify()`, both layouts of all four renderers, the Excel tracker, the fragment's scoping guarantee, and both directions of the `datadictionary` bridge.
+397 checks across 27 blocks, run on Stata 16.1 and on the current release, covering the fixture's routing truths, the branch parser, banding a continuous gate, the derived conditions and the ones the package refuses to build, the conservation arithmetic, the drawn verify disagreement, the band chart at 230 items, the response rows and their exact partition of the answered count, the response braid's conservation (columns, ribbons and complete paths all partition the scope), the scope round-trip to the page, lane partitioning, pruning at scan and at draw time, weights, `exclude()`/`nostrings`, `verify()`, both layouts of all four renderers, the Excel tracker, the fragment's scoping guarantee, and both directions of the `datadictionary` bridge.
 
 The gallery is a second, coarser test: it rebuilds every example artifact from one fake survey and counts its own failures, because a Stata do-file can abort and still leave the runner reporting success.
 

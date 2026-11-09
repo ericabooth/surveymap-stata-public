@@ -1,4 +1,4 @@
-*! version 0.5.0  27aug2026  Eric Booth
+*! version 0.5.1  09nov2026  Eric Booth
 *! _sm_rendertext -- emit a mermaid flowchart LR from a surveymap journal
 *! (TSV, 20 columns).
 *!
@@ -497,9 +497,14 @@ program define _sm_rendertext
     * one layout, so the file is named for the stub the caller gave: a
     * survey runs left to right and there is no second direction to pick
     local written ""
+    * check both names before writing either, so a refusal leaves no half pair
+    if "`replace'" == "" {
+        foreach ext in mmd md {
+            confirm new file "`saving'.`ext'"
+        }
+    }
     foreach ext in mmd md {
         local out "`saving'.`ext'"
-        if "`replace'" == "" confirm new file "`out'"
         tempname fh
         file open `fh' using "`out'", write text replace
         if "`ext'" == "md" {

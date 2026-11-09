@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 0.8.2  29aug2026  Eric Booth}{...}
+{* *! version 0.8.3  09nov2026  Eric Booth}{...}
 {vieweralsosee "datadictionary" "help datadictionary"}{...}
 {vieweralsosee "mergemap" "help mergemap"}{...}
 {vieweralsosee "tabulate" "help tabulate"}{...}
@@ -205,7 +205,7 @@ Response rows are drawn on the spine (the map's main left-to-right line of boxes
 {opt replace}]{p_end}
 
 {pstd}
-Give two to twelve numeric items in the order the questionnaire asks them. Each item is cut into {opt top(#)} named answers (ranked by count, default 3, at most 6), a pooled {bf:other answers} block, and {bf:no answer recorded}. The command writes a journal ({opt out()}, default {cmd:surveymap_paths.tsv}) and draws the HTML page ({opt saving()}, default {cmd:surveymap_paths.html}) in one step; {opt nodraw} writes the journal only, and {cmd:surveymap draw} redraws a paths journal later without rescanning. A paths journal draws as HTML only.{p_end}
+Give two to twelve numeric items in the order the questionnaire asks them. Each item is cut into {opt top(#)} named answers (ranked by count, default 3, at most 6), a pooled {bf:other answers} block, and {bf:no answer recorded}. The command writes a journal ({opt out()}, default {cmd:surveymap_paths.tsv}) and draws the HTML page ({opt saving()}, default {cmd:surveymap_paths.html}) in one step; {opt nodraw} writes the journal only, and {cmd:surveymap draw} redraws a paths journal later without rescanning. A paths journal draws as HTML only. The two default files are overwritten on every run; a journal or page you name needs {opt replace}.{p_end}
 
 {pstd}
 An item with more than 30 distinct answers is refused with a message: band it first ({cmd:egen} {it:newvar} {cmd:= cut(}{it:var}{cmd:), at(...)}) and map the banded variable. String items are refused: {cmd:encode} them first. With a {cmd:pweight}, weighted counts are journaled alongside; the drawing reports unweighted counts, because a route through a questionnaire is a property of the fieldwork rather than of the population.{p_end}
@@ -685,6 +685,15 @@ give none and you get whatever the last scan wrote. {cmd:surveymap} keeps that
 path in the global {cmd:$SM_LASTJ}, so it lasts as long as the Stata session
 {cmd:surveymap} keeps that path in the global {cmd:$SM_LASTJ}, so it lasts as long as the Stata session does and no longer, though it does survive {helpb clear:clear all}. With nothing remembered, {cmd:draw} falls back to {cmd:survey_journal.tsv} in the working directory. Name the file yourself in a do-file somebody else will run.{p_end}
 
+{pstd}
+The files {cmd:surveymap} names for you are overwritten every time without
+{opt replace}: the scan's {cmd:survey_journal.tsv}, the draw's
+{cmd:surveymap_map.html} (or {cmd:.mmd}/{cmd:.md}, {cmd:.png}/{cmd:.svg}),
+the {cmd:paths} journal and page, and the export's {cmd:surveymap_tracker.xlsx}.
+That lets you rescan and redraw as often as you like. A file you name with
+{opt out()} or {opt saving()} is yours, and {cmd:surveymap} will not write over
+it unless you add {opt replace}.{p_end}
+
 {synoptset 22 tabbed}{...}
 {synopt :{opt export(html)}}a self-contained page: no internet, no JavaScript {it:(the default)}{p_end}
 {synopt :{opt export(mermaid)}}text that GitHub, Quarto and VS Code render{p_end}
@@ -860,7 +869,7 @@ name, so a lookup across sheets takes one formula.{p_end}
 {synopt :{opt prof:ile(spec)}}split by what the respondent did rather than by what they answered; see {help surveymap##profile:Splitting by what the respondent did}{p_end}
 {synopt :{opt ref:usedcode(value)}}which value means refused, such as {cmd:.b} or {cmd:99}; required by {cmd:profile(refused)} and used by nothing else{p_end}
 {synopt :{opt dk:code(value)}}which value means don't know; required by {cmd:profile(dontknow)} and used by nothing else{p_end}
-{synopt :{opt out(filename)}}write the journal here; default {cmd:survey_journal.tsv}{p_end}
+{synopt :{opt out(filename)}}write the journal here; default {cmd:survey_journal.tsv}, which each scan overwrites{p_end}
 {synopt :{opt non:response(numlist)}}coded values to count as declined rather than answered, such as {cmd:98 99}; extended missings always count as declined{p_end}
 {synopt :{opt ex:clude(varlist)}}columns to leave out: ids, sample frame, admin{p_end}
 {synopt :{opt nostrings}}leave the string columns out, which are usually verbatims{p_end}
@@ -869,7 +878,7 @@ name, so a lookup across sheets takes one formula.{p_end}
 {synopt :{opt det:ect(# #)}}the two routing thresholds; default {cmd:2 50}{p_end}
 {synopt :{opt noautodetect}}do not look for gates; draw only the ones named in {opt branch()}{p_end}
 {synopt :{opt noreceipt}}skip the receipt table{p_end}
-{synopt :{opt replace}}overwrite an existing journal{p_end}
+{synopt :{opt replace}}overwrite an existing journal named in {opt out()}; the default journal is always overwritten{p_end}
 {synoptline}
 {p2colreset}{...}
 
@@ -913,7 +922,7 @@ want the small categories back.{p_end}
 {synopt :{opt embed}}a fragment for someone else's page, not a whole document{p_end}
 {synopt :{opt maxn:odes(#)}}how many columns a {cmd:png}/{cmd:svg} figure will attempt; default {cmd:14}. Past it {cmd:surveymap} stops with a message pointing you at {cmd:export(html)}{p_end}
 {synopt :{opt noop:en}}write the page but do not open a browser{p_end}
-{synopt :{opt replace}}overwrite existing output{p_end}
+{synopt :{opt replace}}overwrite a file named in {opt saving()}; the default {cmd:surveymap_map} files are always overwritten{p_end}
 {synoptline}
 {p2colreset}{...}
 
@@ -923,7 +932,7 @@ want the small categories back.{p_end}
 {synopt :{opt sav:ing(filename)}}where to write it; the extension picks the format{p_end}
 {synopt :{opt f:ormat(xlsx|dta|csv)}}the format, when {opt saving()} does not say{p_end}
 {synopt :{opt dict:ionary(filename)}}add the sheets to an existing {helpb datadictionary} workbook{p_end}
-{synopt :{opt replace}}overwrite an existing tracker{p_end}
+{synopt :{opt replace}}overwrite a tracker named in {opt saving()}; the default {cmd:surveymap_tracker.xlsx} is always overwritten{p_end}
 {synoptline}
 {p2colreset}{...}
 

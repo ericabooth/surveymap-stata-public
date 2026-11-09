@@ -1853,6 +1853,73 @@ sm_assert `=(_rc == 198)' "an item past 30 distinct answers is refused"
 capture surveymap paths q1_consent st, out(jx.tsv) replace
 sm_assert `=(_rc == 198)' "a string item is refused"
 
+* ============================================================================
+sm_block 27 "the help's sequences run as typed: default outputs are overwritten"
+* ============================================================================
+* v0.8.2 required replace for every output, including the files surveymap
+* names itself, so the Quick start (scan, draw, scan with branch(), draw) and
+* the Pruning sequence stopped with r(602) on their second step. A default
+* name is now overwritten; a file you name still needs replace.
+capture mkdir b27
+cd b27
+foreach f in survey_journal.tsv surveymap_map.html surveymap_map.mmd ///
+    surveymap_map.md surveymap_map.png surveymap_map.svg surveymap_paths.tsv ///
+    surveymap_paths.html surveymap_tracker.xlsx {
+    capture erase `f'
+}
+capture use ../fake_a.dta, clear
+capture noisily surveymap, noreceipt
+sm_assert `=(_rc == 0)' "quick start: surveymap"
+capture noisily surveymap draw, noopen
+sm_assert `=(_rc == 0)' "quick start: surveymap draw"
+capture noisily surveymap, branch(q3_party) noreceipt
+sm_assert `=(_rc == 0)' "quick start: surveymap, branch() over the default journal"
+capture noisily surveymap draw, noopen
+sm_assert `=(_rc == 0)' "quick start: a second draw over the default page"
+capture noisily surveymap q1_consent q3_party, noreceipt
+capture sm_jcount survey_journal.tsv item
+sm_assert `=(r(n) == 2)' "a rescan really replaces the default journal (2 items, not 16)"
+capture noisily surveymap, branch(q3_party) noreceipt
+capture noisily surveymap draw, prune(10) noopen
+sm_assert `=(_rc == 0)' "pruning: surveymap draw, prune(10)"
+capture noisily surveymap draw, noprune noopen
+sm_assert `=(_rc == 0)' "pruning: surveymap draw, noprune"
+capture noisily surveymap draw, export(mermaid)
+capture noisily surveymap draw, export(mermaid)
+sm_assert `=(_rc == 0)' "a second default mermaid draw"
+capture noisily surveymap draw, export(png) maxnodes(40)
+capture noisily surveymap draw, export(png) maxnodes(40)
+sm_assert `=(_rc == 0)' "a second default png draw"
+capture noisily surveymap export
+capture noisily surveymap export
+sm_assert `=(_rc == 0)' "a second default export"
+capture noisily surveymap paths q1_consent q3_party q5_voted, top(3) noopen
+capture noisily surveymap paths q1_consent q3_party q5_voted, top(3) noopen
+sm_assert `=(_rc == 0)' "a second default paths run"
+capture noisily surveymap draw surveymap_paths.tsv, noopen
+sm_assert `=(_rc == 0)' "a default paths redraw"
+* a file the user named is still protected
+capture noisily surveymap, out(own27.tsv) noreceipt replace
+capture noisily surveymap, out(own27.tsv) noreceipt
+sm_assert `=(_rc == 602)' "a named journal still needs replace"
+capture noisily surveymap draw own27.tsv, saving(own27.html) noopen replace
+capture noisily surveymap draw own27.tsv, saving(own27.html) noopen
+sm_assert `=(_rc == 602)' "a named page still needs replace"
+capture noisily surveymap paths q1_consent q3_party, out(own27p.tsv) saving(own27p.html) noopen replace
+capture noisily surveymap paths q1_consent q3_party, out(own27p.tsv) saving(own27p.html) noopen
+sm_assert `=(_rc == 602)' "a named paths journal still needs replace"
+capture noisily surveymap export own27.tsv, saving(own27.xlsx) replace
+capture noisily surveymap export own27.tsv, saving(own27.xlsx)
+sm_assert `=(_rc == 602)' "a named tracker still needs replace"
+* a refused mermaid draw writes neither half of the pair
+capture noisily surveymap draw own27.tsv, export(mermaid) saving(own27m) replace
+capture erase own27m.mmd
+capture noisily surveymap draw own27.tsv, export(mermaid) saving(own27m)
+sm_assert `=(_rc == 602)' "a named mermaid pair still needs replace"
+capture confirm file own27m.mmd
+sm_assert `=(_rc != 0)' "and the refusal leaves no stray .mmd"
+cd ..
+
 * ---------------------------------------------------------------- summary ----
 display as text _n "{hline 78}"
 display as text "surveymap battery: " as result "$SM_PASS passed" as text ", " ///

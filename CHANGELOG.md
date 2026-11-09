@@ -2,6 +2,27 @@
 
 All notable changes to surveymap. Dates are the day the work landed locally.
 
+## 0.8.3 - 2026-11-09
+
+### Fixed
+
+- **A second scan or draw no longer stops with r(602).** The files
+  surveymap names for you (`survey_journal.tsv`, `surveymap_map.html` and
+  its `.mmd`/`.md`/`.png`/`.svg` siblings, `surveymap_paths.tsv` and
+  `.html`, `surveymap_tracker.xlsx`) are now overwritten without `replace`,
+  so the help's Quick start and Pruning sequences run as typed: scan, draw,
+  scan again with `branch()`, draw again. A file you name with `out()` or
+  `saving()` still needs `replace`.
+- A mermaid draw refused for want of `replace` no longer leaves a new
+  `.mmd` beside the old `.md`; both names are checked before either is
+  written.
+
+### Added
+
+- Regression cover: `tests/surveymap_pkgtest.do` block 27 types the Quick
+  start and Pruning sequences in order, repeats each default-named output,
+  and checks that a named file is still protected.
+
 ## 0.8.2 - 2026-08-29
 
 ### Documentation

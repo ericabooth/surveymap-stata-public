@@ -1,4 +1,4 @@
-*! version 0.8.2  29aug2026  Eric Booth
+*! version 0.8.3  09nov2026  Eric Booth
 *! surveymap: map how respondents moved through a survey
 *!
 *! The data in memory are a survey: one row per respondent, one column per
@@ -184,7 +184,13 @@ program define surveymap, rclass
         local minn = 0
         local maxcats = 9999
     }
-    if `"`out'"' == "" local out "survey_journal.tsv"
+    * the default journal is the package's own scratch: a second scan
+    * overwrites it, the way the help's Quick start reads.  A journal you
+    * name with out() is yours, and needs replace.
+    if `"`out'"' == "" {
+        local out "survey_journal.tsv"
+        local replace "replace"
+    }
     if strlower(substr(`"`out'"', -4, .)) != ".tsv" local out `"`out'.tsv"'
     capture confirm file `"`out'"'
     if !_rc & "`replace'" == "" {

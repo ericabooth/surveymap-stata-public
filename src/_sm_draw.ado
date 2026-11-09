@@ -1,4 +1,4 @@
-*! version 0.7.0  27aug2026  Eric Booth
+*! version 0.7.1  09nov2026  Eric Booth
 *! _sm_draw -- dispatcher behind -surveymap draw-.  Resolves which journal to
 *! draw, picks the renderer from export(), applies the read-time prune rules,
 *! and handles the open-in-browser courtesy for HTML output.
@@ -45,6 +45,12 @@ program define _sm_draw, rclass
         di as err `"surveymap draw: journal `jfile' not found"'
         exit 601
     }
+
+    * ---- overwriting ----------------------------------------------------
+    * a default output name (no saving()) is the package's own scratch and is
+    * overwritten on every draw; a file you name with saving() needs replace
+    local drep "`replace'"
+    if `"`saving'"' == "" local drep "replace"
 
     * ---- which renderer -------------------------------------------------
     if `"`export'"' == "" local export "html"
@@ -96,7 +102,7 @@ program define _sm_draw, rclass
         local no ""
         if `"`name'"' != "" local no `"name(`name')"'
         if `"`highlight'"' != "" local no `"`no' highlight(`highlight')"'
-        _sm_renderflow using `"`jfile'"', saving(`"`hf'"') `no' `embed' `replace'
+        _sm_renderflow using `"`jfile'"', saving(`"`hf'"') `no' `embed' `drep'
         return local journal `"`jfile'"'
         return local output `"`s(out)'"'
         local abs `"`hf'"'
@@ -140,7 +146,7 @@ program define _sm_draw, rclass
     if "`export'" == "html" {
         local hf `"`saving'"'
         if `"`hf'"' == "" local hf "surveymap_map.html"
-        _sm_draw_html `"`jfile'"' `"`hf'"' `"`jname'"' "`embed'" "`replace'" "`noopen'" "`layout'"
+        _sm_draw_html `"`jfile'"' `"`hf'"' `"`jname'"' "`embed'" "`drep'" "`noopen'" "`layout'"
         return local output `"`s(out)'"'
         exit
     }
@@ -151,7 +157,7 @@ program define _sm_draw, rclass
     if inlist("`export'", "png", "svg") {
         local stub `"`saving'"'
         if `"`stub'"' == "" local stub "surveymap_map"
-        local o `"`replace'"'
+        local o `"`drep'"'
         if `"`nameopt'"' != "" local o `"`o' `nameopt'"'
         if `maxnodes' >= 0 local o `"`o' maxnodes(`maxnodes')"'
         _sm_rendertw using `"`jfile'"', saving(`"`stub'"') `o'
@@ -163,7 +169,7 @@ program define _sm_draw, rclass
     local stub `"`saving'"'
     if `"`stub'"' == "" local stub "surveymap_map"
     _sm_rendertext using `"`jfile'"', saving(`"`stub'"') name(`jname') ///
-        layout(`layout') `replace'
+        layout(`layout') `drep'
     return local output `"`stub'.mmd"'
 end
 

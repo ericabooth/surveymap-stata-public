@@ -1,4 +1,4 @@
-*! version 0.8.0  28aug2026  Eric Booth
+*! version 0.8.1  09nov2026  Eric Booth
 *! _sm_paths -- the response-flow view behind -surveymap paths-.
 *!
 *! The flow map (surveymap scan + draw) follows the ROUTING: who was shown
@@ -271,9 +271,14 @@ program define _sm_paths, rclass
     frame drop _smpwork
 
     * ---- journal ---------------------------------------------------------
-    if `"`out'"' == "" local out "surveymap_paths.tsv"
+    * default names are overwritten; a name you give needs replace
+    local jrep "`replace'"
+    if `"`out'"' == "" {
+        local out "surveymap_paths.tsv"
+        local jrep "replace"
+    }
     capture confirm file `"`out'"'
-    if !_rc & "`replace'" == "" {
+    if !_rc & "`jrep'" == "" {
         di as err `"surveymap paths: `out' exists; add replace to overwrite"'
         exit 602
     }
@@ -353,10 +358,14 @@ program define _sm_paths, rclass
     * ---- draw ------------------------------------------------------------
     if "`nodraw'" != "" exit
     local hf `"`saving'"'
-    if `"`hf'"' == "" local hf "surveymap_paths.html"
+    local hrep "`replace'"
+    if `"`hf'"' == "" {
+        local hf "surveymap_paths.html"
+        local hrep "replace"
+    }
     local hlo ""
     if `"`highlight'"' != "" local hlo `"highlight(`highlight')"'
-    _sm_renderflow using `"`out'"', saving(`"`hf'"') title(`"`title'"') `hlo' `replace'
+    _sm_renderflow using `"`out'"', saving(`"`hf'"') title(`"`title'"') `hlo' `hrep'
     return local output `"`s(out)'"'
     local abs `"`s(out)'"'
     _sm_isabs `"`abs'"'

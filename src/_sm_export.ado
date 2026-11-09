@@ -1,4 +1,4 @@
-*! version 0.5.0  27aug2026  Eric Booth
+*! version 0.5.1  09nov2026  Eric Booth
 *! _sm_export -- the journal as a dataset or an Excel tracker.  Count and
 *! percentage columns arrive numeric; text columns stay text.  The xlsx form
 *! is the point: a three-sheet tracker (items, branch lanes, lane-by-item
@@ -96,6 +96,8 @@ program define _sm_export, rclass
         if `"`saving'"' == "" {
             local saving = cond("`format'" == "xlsx", ///
                 "surveymap_tracker.xlsx", "surveymap_journal.`format'")
+            * a default name is overwritten; a name you give needs replace
+            local replace "replace"
         }
         if "`format'" == "xlsx" ///
             & strlower(substr(`"`saving'"', -5, .)) != ".xlsx" ///
